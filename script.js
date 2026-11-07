@@ -1657,6 +1657,21 @@ document.querySelector("#academic-subject").addEventListener("change", loadAcade
 document.querySelector("#academic-activity").addEventListener("change", loadAcademicSelection);
 document.querySelector("#academic-search").addEventListener("input", renderAcademicRoster);
 document.querySelector("#academic-form").addEventListener("submit", saveAcademicScores);
+document.querySelectorAll([
+  "#new-student-name",
+  "#academic-activity-name",
+  "#intervention-action",
+  "#intervention-assignee",
+  "#announcement-title",
+  "#announcement-body",
+].join(", ")).forEach((input) => {
+  input.addEventListener("input", () => input.setCustomValidity(""));
+});
+const studentIdInput = document.querySelector("#new-student-id");
+studentIdInput.addEventListener("input", () => {
+  studentIdInput.setCustomValidity("");
+  document.querySelector("#student-dialog-error").textContent = "";
+});
 document.querySelector("#add-intervention-button").addEventListener("click", () => openInterventionCreate());
 document.querySelector("#intervention-status-filter").addEventListener("change", renderInterventions);
 document.querySelector("#intervention-form").addEventListener("submit", saveIntervention);
