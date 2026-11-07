@@ -2335,6 +2335,13 @@ body:has(#announcement-dialog[open]) {
 
   .sidebar-close {
     display: grid;
+    width: 44px;
+    height: 44px;
+    flex: 0 0 44px;
+  }
+
+  .nav-link {
+    min-height: 44px;
   }
 
   .main-area {
@@ -2350,8 +2357,8 @@ body:has(#announcement-dialog[open]) {
 
   .mobile-menu {
     display: grid;
-    width: 31px;
-    height: 31px;
+    width: 44px;
+    height: 44px;
     flex: 0 0 auto;
     place-items: center;
     border: 0;
