@@ -2066,6 +2066,11 @@ p {
   clip-path: inset(50%);
 }
 
+body:has(#intervention-dialog[open]),
+body:has(#announcement-dialog[open]) {
+  overflow: hidden;
+}
+
 .student-dialog {
   width: min(440px, calc(100vw - 32px));
   max-width: none;
@@ -3343,11 +3348,6 @@ body {
   line-height: 1.5;
 }
 
-.intervention-dialog .student-dialog-card {
-  max-height: min(90vh, 760px);
-  overflow-y: auto;
-}
-
 .intervention-dialog .student-dialog-field textarea {
   width: 100%;
   min-height: 90px;
@@ -3654,11 +3654,6 @@ body {
   color: #bfd1e5;
   font-size: 12px;
   line-height: 1.5;
-}
-
-.announcement-dialog .student-dialog-card {
-  max-height: min(90vh, 760px);
-  overflow-y: auto;
 }
 
 .announcement-dialog textarea {
