@@ -1,0 +1,176 @@
+# Decision log
+
+Record decisions, assumptions, pending approvals, and reasons for exclusions.
+Update this log when a decision changes.
+
+## 2026-11-05 — Start from an empty workspace
+
+- **Decision:** Treat this as a fresh mock-system project, not a migration.
+- **Evidence:** The workspace contains only empty `index.html`, `style.css`, and
+  `script.js` files. No prior LNHS demo, assets, backend, or Git repository was
+  found.
+- **Implication:** There is no existing application behavior to preserve. Set
+  up Git and a backup before application implementation.
+
+## 2026-11-05 — Keep development fictitious and non-operational
+
+- **Decision:** The system is for capstone presentation and iteration only.
+  Use synthetic records, and do not present it as approved, deployed, or
+  legally compliant.
+- **Basis:** User-confirmed project intent.
+- **Revisit:** Before any real-data use or operational deployment.
+
+## 2026-11-05 — Verify policy text before deriving requirements
+
+- **Decision:** Do not derive screens, data fields, or business rules from an
+  issuance whose full text has not been reviewed.
+- **Evidence:** DepEd's official listing identifies DO_s2026_006r, but its PDF
+  was returned as binary by the available reader. NPC and Official Gazette
+  pages tested in this review returned HTTP 403.
+- **Next step:** Obtain and review readable official primary-source text; keep
+  policy-specific decisions pending in the requirements reconciliation.
+
+## 2026-11-05 — Build the dashboard as the first UI increment
+
+- **Decision:** Start with a responsive monitoring dashboard using aggregate
+  and clearly fictitious sample values.
+- **Behavior:** The sample attendance chart changes by selected period. Warning
+  acknowledgment and filtering work in the current browser session.
+- **Limitations:** No records are saved; there is no authentication or backend.
+  Other navigation modules are not implemented yet.
+- **Next step:** Build and test one additional workflow at a time.
+
+## 2026-11-05 — Add an in-session attendance prototype
+
+- **Decision:** Use generated learner IDs in three sample sections and the
+  proposed Present, Late, Absent, and Excused statuses.
+- **Behavior:** Validate complete marking before save; allow corrections and
+  show a session-only change history.
+- **Limitations:** Data is held in JavaScript memory and is cleared by refresh.
+  Categories, period handling, and staff access require client review before
+  they become operational rules.
+- **Next step:** Review the attendance workflow and data model before adding
+  durable persistence.
+
+## 2026-11-05 — Improve readability and add the student directory
+
+- **Decision:** Increase the interface type scale, particularly navigation,
+  form labels, table text, and supporting details.
+- **Behavior:** Add searchable, grade/section-filterable directory rows with
+  synthetic IDs, provisional learner names, and session-only enrollment in a
+  sample section. New learners are also included in the section attendance and
+  academic rosters.
+- **Limitations:** Names and other learner data are synthetic. Roster edits
+  disappear on refresh; real enrollment fields and processes remain subject
+  to school review.
+- **Next step:** Test the updated screens with the intended presentation users
+  and continue one workflow at a time.
+
+## 2026-11-05 — Add an academic assessment score-entry prototype
+
+- **Decision:** Add a simple score-entry screen organized by section and
+  subject, with one sample assessment per subject.
+- **Behavior:** Create activities with custom possible points, enter scores
+  per learner, review score completion and the average as a percentage, search
+  by learner ID, validate scores against each activity maximum, and save
+  changes for the current page session.
+- **Limitations:** Subjects, assessments, and points are synthetic examples.
+  The screen does not calculate final grades, apply pass/fail rules, or use
+  intervention thresholds. Scores clear on refresh.
+- **Next step:** Confirm subjects, assessment plans, grading periods, and
+  school-approved calculations before extending this workflow.
+
+## 2026-11-05 — Define provisional access boundaries before login
+
+- **Decision:** Document a draft least-access matrix for the roles named in
+  the SOP before adding any login or role-specific behavior.
+- **Basis:** The SOP identifies teachers, advisers, parents, and guidance
+  counselors as stakeholders in alerts, communication, and follow-up, but
+  does not specify permissions. Official source references do not establish
+  LNHS-specific access assignments.
+- **Limitations:** The matrix is a proposal only. The prototype remains
+  session-only, has no authentication or authorization, and must not be used
+  with real learner data.
+- **Next step:** Review the matrix with the adviser, school client, and privacy
+  officer; approve role assignments, guardian linking, sensitive-record
+  boundaries, audit procedures, and local sync design before implementation.
+
+## 2026-11-05 — Extend student directory management
+
+- **Decision:** Add session-only learner profile editing, a Boy/Girl directory
+  filter from the defense notes, and management controls for grade levels and
+  sections.
+- **Behavior:** Updating a learner's section moves the learner between rosters
+  and carries their in-session attendance and activity-score entries to the
+  new section. New classes appear in attendance and academics selectors.
+  Directory, attendance, and academic roster search can match the learner
+  name or ID; attendance can also be filtered by the provisional Boy/Girl
+  value without narrowing mark-all or save behavior.
+- **Limitations:** Profile information is limited to learner ID, section, and
+  a synthetic name and the provisional gender value. No sensitive profiling
+  fields are collected. School terminology, purpose, access, and workflow need
+  confirmation.
+- **Next step:** Confirm profile fields, demographic reporting purpose, and
+  class-transfer/history rules with the school before using real information.
+
+## 2026-11-05 — Add session-only intervention tracking
+
+- **Decision:** Implement the SOP's alert-to-follow-up step as a small
+  session-only workflow using synthetic learner records.
+- **Behavior:** A dashboard warning opens a new support plan with its learner
+  and reason preselected. Staff can record a planned action, an assigned staff
+  label, and a next check-in date; later updates add a status and timestamped
+  note. The dashboard and intervention list show the open plan status.
+- **Limitations:** Statuses and fields are provisional. Plans and notes are
+  cleared on refresh; there is no role enforcement, persistence, external
+  messaging, or approval of school procedures. The interface advises keeping
+  notes brief and avoiding sensitive details.
+- **Next step:** Confirm the status flow, required follow-up information,
+  assignments, visibility, audit/correction rules, and any family communication
+  process with the adviser and school client before operational use.
+
+## 2026-11-05 — Add a session-only announcement board
+
+- **Decision:** Turn the dashboard's announcement area into a small workspace
+  board for the SOP communication concept, without simulating delivery outside
+  the app.
+- **Behavior:** Staff can post a title and message with an all-staff or
+  grade/section audience label. Posts can be marked read in the current
+  session, and the navigation and notification control show the in-app unread
+  count.
+- **Limitations:** Posts are visible only in this browser session; audience
+  labels do not enforce role access. No message is sent to families, guardians,
+  or external services. Message fields, recipients, and communication
+  procedures remain unapproved.
+- **Next step:** Confirm communication channels, recipient scope, approved
+  content, role boundaries, and delivery requirements with the adviser and
+  school client before building real notifications or family messaging.
+
+## 2026-11-05 — Add session-based printable reports
+
+- **Decision:** Make the Reports navigation usable by previewing and printing
+  summaries from records saved during the current page session.
+- **Behavior:** Provide attendance by section/date, activity scores by
+  section/subject/activity, intervention status, and an aggregate roster
+  summary. Reports are generated on demand and can be sent to the browser's
+  print dialog.
+- **Limitations:** No report persists or includes unsaved drafts. The summary
+  does not calculate official grades, GPA, warning thresholds, or compliance.
+  Learner and profile fields remain synthetic and session-only.
+- **Next step:** Confirm report fields, audience/access, retention, and any
+  required official calculations with the adviser and school client.
+
+## 2026-11-06 — Add a dedicated early-warning review view
+
+- **Decision:** Make the sample warning workflow reviewable in a dedicated
+  list rather than only as a dashboard preview.
+- **Behavior:** Show four synthetic prompts with category/status filters,
+  learner/topic search, session-only acknowledgement, live counts, and a
+  shortcut to create a linked intervention plan.
+- **Limitations:** Categories and priority labels are illustrative, not
+  school-approved criteria. No warning threshold, automated classification,
+  persistence, or real learner status is implemented; acknowledgements clear
+  on refresh.
+- **Next step:** Confirm the evidence, categories, escalation, review meaning,
+  authorized reviewers, audit requirements, and any approved thresholds
+  before using real learner information.

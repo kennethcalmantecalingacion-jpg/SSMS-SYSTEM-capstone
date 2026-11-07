@@ -1,0 +1,801 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#eaf3fc">
+    <meta name="description" content="LNHS student monitoring and early warning dashboard.">
+    <title>Overview · LNHS Monitoring System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js" defer></script>
+  </head>
+  <body>
+    <div class="app-shell">
+      <aside class="sidebar" id="sidebar" aria-label="Main navigation">
+        <div class="brand-row">
+          <a class="brand" href="#" aria-label="LNHS Monitoring System overview" data-view="overview">
+            <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
+            <span class="brand-copy"><strong>LNHS</strong><small>STUDENT MONITORING</small></span>
+          </a>
+          <button class="sidebar-close" id="sidebar-close" type="button" aria-label="Close navigation">
+            <svg aria-hidden="true" viewBox="0 0 20 20"><path d="m5 5 10 10M15 5 5 15"/></svg>
+          </button>
+        </div>
+
+        <div class="school-switcher">
+          <span class="school-emblem" aria-hidden="true">L</span>
+          <span class="school-name"><strong>Labnig National</strong><small>High School</small></span>
+          <svg aria-hidden="true" viewBox="0 0 16 16"><path d="m4 6 4 4 4-4"/></svg>
+        </div>
+
+        <div class="nav-group">
+          <span class="nav-label">WORKSPACE</span>
+          <nav class="primary-nav">
+            <button class="nav-link active" type="button" data-view="overview" aria-current="page">
+              <svg aria-hidden="true" viewBox="0 0 20 20"><rect x="2.5" y="2.5" width="6" height="6" rx="1.5"/><rect x="11.5" y="2.5" width="6" height="4" rx="1.5"/><rect x="11.5" y="8.5" width="6" height="9" rx="1.5"/><rect x="2.5" y="10.5" width="6" height="7" rx="1.5"/></svg>
+              <span>Overview</span>
+            </button>
+            <button class="nav-link" type="button" data-view="students">
+              <svg aria-hidden="true" viewBox="0 0 20 20"><circle cx="7" cy="6" r="3"/><path d="M1.8 17v-1.3A4.7 4.7 0 0 1 6.5 11h1a4.7 4.7 0 0 1 4.7 4.7V17ZM13 3.2a3 3 0 0 1 0 5.7M14 11.2a4.7 4.7 0 0 1 4.2 4.6V17h-3"/></svg>
+              <span>Students</span>
+            </button>
+            <button class="nav-link" type="button" data-view="attendance">
+              <svg aria-hidden="true" viewBox="0 0 20 20"><rect x="2.5" y="4" width="15" height="13" rx="2"/><path d="M6 2.5v3M14 2.5v3M2.5 8h15M6 11h2M6 14h2m3-3h3"/></svg>
+              <span>Attendance</span>
+            </button>
+            <button class="nav-link" type="button" data-view="academics">
+              <svg aria-hidden="true" viewBox="0 0 20 20"><path d="M2 7.5 10 3l8 4.5-8 4.5-8-4.5Z"/><path d="M5 9.5V14c2.8 2.3 7.2 2.3 10 0V9.5M18 7.5v5"/></svg>
+              <span>Academics</span>
+            </button>
+          </nav>
+        </div>
+
+        <div class="nav-group nav-group-spaced">
+          <span class="nav-label">STUDENT SUPPORT</span>
+          <nav class="primary-nav">
+            <button class="nav-link" type="button" data-view="alerts">
+              <svg aria-hidden="true" viewBox="0 0 20 20"><path d="M15.5 7a5.5 5.5 0 0 0-11 0c0 6-2 6-2 7.5h15C17.5 13 15.5 13 15.5 7ZM8 17h4"/></svg>
+              <span>Early warnings</span>
+              <span class="nav-count" id="sidebar-alert-count">0</span>
+            </button>
+            <button class="nav-link" type="button" data-view="interventions">
+              <svg aria-hidden="true" viewBox="0 0 20 20"><path d="M10 17s-7-4.2-7-9a4 4 0 0 1 7-2.6A4 4 0 0 1 17 8c0 4.8-7 9-7 9Z"/><path d="M6.5 10h2l1.2-2.5 1.5 5 1.1-2.5h1.2"/></svg>
+              <span>Interventions</span>
+            </button>
+            <button class="nav-link" type="button" data-view="announcements">
+              <svg aria-hidden="true" viewBox="0 0 20 20"><path d="M3 9v2a2 2 0 0 0 2 2h2l6 3V4L7 7H5a2 2 0 0 0-2 2ZM7 13l1.5 4M15 7l2-2m-2 8 2 2"/></svg>
+              <span>Announcements</span>
+              <span class="nav-count" id="announcement-unread-count" hidden>0</span>
+            </button>
+          </nav>
+        </div>
+
+        <div class="nav-group nav-group-spaced">
+          <span class="nav-label">MANAGE</span>
+          <nav class="primary-nav">
+            <button class="nav-link" type="button" data-view="reports">
+              <svg aria-hidden="true" viewBox="0 0 20 20"><path d="M3 17.5h14M5 14V9m5 5V4m5 10v-7"/></svg>
+              <span>Reports</span>
+            </button>
+            <button class="nav-link" type="button" data-view="settings">
+              <svg aria-hidden="true" viewBox="0 0 20 20"><circle cx="10" cy="10" r="3"/><path d="m16.2 11.8 1.1.9-1.5 2.6-1.4-.5a7 7 0 0 1-1.6.9l-.3 1.5h-3l-.3-1.5a7 7 0 0 1-1.6-.9l-1.4.5-1.5-2.6 1.1-.9a6 6 0 0 1 0-1.8l-1.1-.9 1.5-2.6 1.4.5a7 7 0 0 1 1.6-.9l.3-1.5h3l.3 1.5a7 7 0 0 1 1.6.9l1.4-.5 1.5 2.6-1.1.9a6 6 0 0 1 0 1.8Z"/></svg>
+              <span>Settings</span>
+            </button>
+          </nav>
+        </div>
+
+        <div class="sidebar-bottom">
+          <div class="help-card">
+            <span class="help-icon" aria-hidden="true">?</span>
+            <div><strong>Need a hand?</strong><small>Visit the help center</small></div>
+            <span class="help-arrow" aria-hidden="true">↗</span>
+          </div>
+          <div class="profile-button">
+            <span class="profile-avatar">AD</span>
+            <span class="profile-info"><strong>Alex Dela Cruz</strong><small>School administrator</small></span>
+          </div>
+        </div>
+      </aside>
+
+      <main class="main-area">
+        <header class="topbar">
+          <button class="mobile-menu" id="mobile-menu" type="button" aria-label="Open navigation" aria-expanded="false">
+            <svg aria-hidden="true" viewBox="0 0 20 20"><path d="M3 5h14M3 10h14M3 15h14"/></svg>
+          </button>
+          <div class="breadcrumbs"><span>LNHS</span><span class="breadcrumb-divider">/</span><strong id="breadcrumb-current">Overview</strong></div>
+          <div class="topbar-actions">
+            <button class="icon-button notification-button" type="button" id="notification-button" aria-label="Open announcements">
+              <svg aria-hidden="true" viewBox="0 0 20 20"><path d="M15.5 7a5.5 5.5 0 0 0-11 0c0 6-2 6-2 7.5h15C17.5 13 15.5 13 15.5 7ZM8 17h4"/></svg>
+              <span class="notification-dot" id="announcement-notification-dot" hidden></span>
+            </button>
+            <span class="topbar-date" id="today-date"></span>
+          </div>
+        </header>
+
+        <div class="content">
+          <div id="overview-view">
+          <section class="page-heading" aria-labelledby="page-title">
+            <div>
+              <p class="eyebrow" id="greeting">GOOD DAY</p>
+              <h1 id="page-title">Overview</h1>
+              <p class="page-subtitle">A quick look at attendance and student support.</p>
+            </div>
+            <div class="heading-actions">
+              <label class="period-select">
+                <svg aria-hidden="true" viewBox="0 0 20 20"><rect x="2.5" y="4" width="15" height="13" rx="2"/><path d="M6 2.5v3M14 2.5v3M2.5 8h15"/></svg>
+                <select id="period-select" aria-label="Select dashboard period">
+                  <option value="today">Today</option>
+                  <option value="week" selected>This week</option>
+                  <option value="month">This month</option>
+                </select>
+                <svg class="select-chevron" aria-hidden="true" viewBox="0 0 16 16"><path d="m4 6 4 4 4-4"/></svg>
+              </label>
+              <button class="button button-primary" type="button" data-action="attendance">
+                <svg aria-hidden="true" viewBox="0 0 20 20"><path d="M10 4v12M4 10h12"/></svg>
+                <span>Record attendance</span>
+              </button>
+            </div>
+          </section>
+
+          <section class="metrics-grid" aria-label="Student monitoring summary">
+            <article class="metric-card">
+              <div class="metric-topline"><span class="metric-icon students-icon"><svg aria-hidden="true" viewBox="0 0 20 20"><circle cx="7" cy="6" r="3"/><path d="M1.8 17v-1.3A4.7 4.7 0 0 1 6.5 11h1a4.7 4.7 0 0 1 4.7 4.7V17ZM13 3.2a3 3 0 0 1 0 5.7M14 11.2a4.7 4.7 0 0 1 4.2 4.6V17h-3"/></svg></span><span class="metric-context">ENROLLED</span></div>
+              <div class="metric-value">1,248</div>
+              <div class="metric-footer"><span class="trend neutral"><span>↗</span> 24 this term</span><span class="metric-note">Across all sections</span></div>
+            </article>
+            <article class="metric-card">
+              <div class="metric-topline"><span class="metric-icon attendance-icon"><svg aria-hidden="true" viewBox="0 0 20 20"><path d="m4 10 4 4 8-8"/></svg></span><span class="metric-context">ATTENDANCE</span></div>
+              <div class="metric-value" id="attendance-metric">94.2<span class="metric-unit">%</span></div>
+              <div class="metric-footer"><span class="trend positive"><span>↗</span> Period average</span><span class="metric-note">School-wide average</span></div>
+            </article>
+            <article class="metric-card">
+              <div class="metric-topline"><span class="metric-icon alerts-icon"><svg aria-hidden="true" viewBox="0 0 20 20"><path d="M15.5 7a5.5 5.5 0 0 0-11 0c0 6-2 6-2 7.5h15C17.5 13 15.5 13 15.5 7ZM8 17h4"/></svg></span><span class="metric-context">NEEDS REVIEW</span></div>
+              <div class="metric-value" id="open-alert-total">0</div>
+              <div class="metric-footer"><span class="trend attention"><span>•</span> Sample prompts</span><span class="metric-note">Awaiting staff review</span></div>
+            </article>
+            <article class="metric-card">
+              <div class="metric-topline"><span class="metric-icon support-icon"><svg aria-hidden="true" viewBox="0 0 20 20"><path d="M10 17s-7-4.2-7-9a4 4 0 0 1 7-2.6A4 4 0 0 1 17 8c0 4.8-7 9-7 9Z"/></svg></span><span class="metric-context">IN PROGRESS</span></div>
+              <div class="metric-value">12</div>
+              <div class="metric-footer"><span class="trend neutral"><span>↗</span> 4 due this week</span><span class="metric-note">Support follow-ups</span></div>
+            </article>
+          </section>
+
+          <section class="main-grid">
+            <article class="panel attendance-panel">
+              <div class="panel-heading">
+                <div><h2>Attendance overview</h2><p>Daily attendance rate across all sections</p></div>
+                <button class="icon-button more-button" type="button" aria-label="Attendance chart options" data-action="attendance"><svg aria-hidden="true" viewBox="0 0 20 20"><circle cx="4" cy="10" r="1"/><circle cx="10" cy="10" r="1"/><circle cx="16" cy="10" r="1"/></svg></button>
+              </div>
+              <div class="chart-summary"><strong id="chart-average">94.2%</strong><span>average attendance</span><span class="chart-legend"><i></i> Attendance</span></div>
+              <div class="chart-wrap">
+                <div class="chart-y-labels" aria-hidden="true"><span>100%</span><span>95%</span><span>90%</span><span>85%</span></div>
+                <div class="chart">
+                  <div class="chart-gridlines" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+                  <svg class="chart-svg" id="attendance-chart" viewBox="0 0 620 180" preserveAspectRatio="none" role="img" aria-label="Attendance rate trend">
+                    <defs><linearGradient id="chart-fill" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#7868e5" stop-opacity=".18"/><stop offset="100%" stop-color="#7868e5" stop-opacity="0"/></linearGradient></defs>
+                    <path class="chart-area" id="chart-area" d="M0 94 C35 88 60 55 100 59 S165 105 205 87 S265 69 310 78 S370 110 410 77 S475 48 515 59 S580 66 620 31 L620 180 L0 180Z"/>
+                    <path class="chart-line" id="chart-line" d="M0 94 C35 88 60 55 100 59 S165 105 205 87 S265 69 310 78 S370 110 410 77 S475 48 515 59 S580 66 620 31"/>
+                    <circle cx="0" cy="94" r="4"/><circle cx="100" cy="59" r="4"/><circle cx="205" cy="87" r="4"/><circle cx="310" cy="78" r="4"/><circle cx="410" cy="77" r="4"/><circle cx="515" cy="59" r="4"/><circle cx="620" cy="31" r="4"/>
+                  </svg>
+                  <div class="chart-x-labels" id="chart-x-labels"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div>
+                </div>
+              </div>
+              <div class="attendance-breakdown">
+                <div><span class="breakdown-dot present-dot"></span><span>Present</span><strong id="present-count">1,176</strong></div>
+                <div><span class="breakdown-dot late-dot"></span><span>Late</span><strong id="late-count">8</strong></div>
+                <div><span class="breakdown-dot absent-dot"></span><span>Absent</span><strong id="absent-count">54</strong></div>
+                <div><span class="breakdown-dot excused-dot"></span><span>Excused</span><strong id="excused-count">10</strong></div>
+              </div>
+            </article>
+
+            <article class="panel alerts-panel" id="alerts-panel">
+              <div class="panel-heading">
+                <div><h2>Early warnings</h2><p>Items requiring staff review</p></div>
+                <button class="text-link" type="button" data-view="alerts">View all <span aria-hidden="true">→</span></button>
+              </div>
+              <div class="alert-list" id="alert-list">
+              </div>
+              <p class="empty-search" id="empty-search" hidden>No warnings match this filter.</p>
+              <div class="alert-panel-footer"><span><i></i> Alerts are prompts for staff review</span><button type="button" class="filter-button" id="alert-filter"><svg aria-hidden="true" viewBox="0 0 20 20"><path d="M3 5h14M5.5 10h9M8 15h4"/></svg> Filter</button></div>
+            </article>
+          </section>
+
+          <section class="bottom-grid">
+            <article class="panel interventions-panel">
+              <div class="panel-heading">
+                <div><h2>Interventions in progress</h2><p>Recent support and follow-up activity</p></div>
+                <button class="text-link" type="button" data-view="interventions">View all <span aria-hidden="true">→</span></button>
+              </div>
+              <div class="intervention-list" id="dashboard-intervention-list"></div>
+            </article>
+            <article class="panel announcement-panel">
+              <div class="panel-heading">
+                <div><h2>School announcements</h2><p>Updates in this workspace</p></div>
+                <button class="text-link" type="button" data-view="announcements">View all <span aria-hidden="true">→</span></button>
+              </div>
+              <div id="dashboard-announcement-list"><p class="announcement-list-empty">No announcements posted in this session.</p></div>
+            </article>
+          </section>
+
+          <footer class="content-footer"><span>LNHS Student Monitoring System</span><span>Student monitoring overview</span></footer>
+          </div>
+
+          <section class="alerts-view" id="alerts-view" aria-labelledby="alerts-title" hidden>
+            <div class="page-heading alerts-page-heading">
+              <div>
+                <p class="eyebrow">STUDENT SUPPORT</p>
+                <h1 id="alerts-title">Early warnings</h1>
+                <p class="page-subtitle">Review sample flags and decide whether a follow-up is needed.</p>
+              </div>
+            </div>
+            <section class="alert-summary-grid" aria-label="Warning summary">
+              <article class="alert-summary-card"><span class="summary-label">NEEDS REVIEW</span><strong id="warning-needs-review">0</strong><span>Not yet acknowledged</span></article>
+              <article class="alert-summary-card"><span class="summary-label">REVIEWED</span><strong id="warning-reviewed">0</strong><span>Acknowledged this session</span></article>
+              <article class="alert-summary-card"><span class="summary-label">ALL WARNINGS</span><strong id="warning-total">0</strong><span>Sample records</span></article>
+            </section>
+            <section class="panel warning-board" aria-labelledby="warning-board-title">
+              <div class="warning-board-toolbar">
+                <div><h2 id="warning-board-title">Warning list</h2><p id="warning-result-count">0 warnings</p></div>
+                <div class="warning-filters">
+                  <label class="warning-filter">
+                    <span>Category</span>
+                    <select id="warning-category-filter">
+                      <option value="all">All categories</option>
+                      <option value="Attendance">Attendance</option>
+                      <option value="Academic">Academic</option>
+                      <option value="Follow-up">Follow-up</option>
+                    </select>
+                  </label>
+                  <label class="warning-filter">
+                    <span>Status</span>
+                    <select id="warning-status-filter">
+                      <option value="all">All warnings</option>
+                      <option value="open">Needs review</option>
+                      <option value="reviewed">Reviewed</option>
+                    </select>
+                  </label>
+                  <label class="roster-search warning-search">
+                    <svg aria-hidden="true" viewBox="0 0 20 20"><circle cx="8.5" cy="8.5" r="5.5"/><path d="m13 13 4 4"/></svg>
+                    <input id="warning-search" type="search" placeholder="Find learner or topic" autocomplete="off">
+                  </label>
+                </div>
+              </div>
+              <div class="warning-board-list alert-list" id="warning-board-list"></div>
+              <p class="warning-empty" id="warning-empty" hidden>No warnings match these filters.</p>
+            </section>
+            <p class="warning-prototype-note">Sample warnings only. Their categories and priority labels are not approved thresholds and do not determine a learner's status.</p>
+          </section>
+
+          <section class="students-view" id="students-view" aria-labelledby="students-title" hidden>
+            <div class="page-heading students-page-heading">
+              <div>
+                <p class="eyebrow">LEARNER DIRECTORY</p>
+                <h1 id="students-title">Student records</h1>
+                <p class="page-subtitle">Find a learner by name, ID, or section.</p>
+              </div>
+              <button class="button button-primary" id="add-student-button" type="button">
+                <svg aria-hidden="true" viewBox="0 0 20 20"><path d="M10 4v12M4 10h12"/></svg>
+                <span>Add learner</span>
+              </button>
+              <button class="button button-outline" id="manage-classes-button" type="button">Manage grades &amp; sections</button>
+            </div>
+
+            <section class="student-summary-grid" aria-label="Student directory summary">
+              <article class="student-summary-card"><span class="summary-label">LEARNERS</span><strong id="student-total">0</strong><span>Across all sections</span></article>
+              <article class="student-summary-card"><span class="summary-label">GRADE LEVELS</span><strong id="student-grade-total">0</strong><span>In the directory</span></article>
+              <article class="student-summary-card"><span class="summary-label">SECTIONS</span><strong id="student-section-total">0</strong><span>With learners listed</span></article>
+            </section>
+
+            <section class="panel student-list-panel" aria-labelledby="student-list-title">
+              <div class="student-list-heading">
+                <div><h2 id="student-list-title">Learner directory</h2><p>Check learner IDs and section placements.</p></div>
+                <span class="student-record-count" id="student-record-count">0 records</span>
+              </div>
+              <div class="student-toolbar">
+                <label class="roster-search student-search">
+                  <svg aria-hidden="true" viewBox="0 0 20 20"><circle cx="8.5" cy="8.5" r="5.5"/><path d="m13 13 4 4"/></svg>
+                  <input id="student-search" type="search" placeholder="Search by name or ID" autocomplete="off">
+                </label>
+                <label class="student-filter">
+                  <span>Grade</span>
+                  <select id="student-grade-filter">
+                    <option value="all">All grades</option>
+                    <option value="7">Grade 7</option>
+                    <option value="8">Grade 8</option>
+                  </select>
+                </label>
+                <label class="student-filter">
+                  <span>Section</span>
+                  <select id="student-section-filter">
+                    <option value="all">All sections</option>
+                  </select>
+                </label>
+                <label class="student-filter">
+                  <span>Gender</span>
+                  <select id="student-gender-filter">
+                    <option value="all">All learners</option>
+                    <option value="boy">Boys</option>
+                    <option value="girl">Girls</option>
+                  </select>
+                </label>
+              </div>
+              <div class="student-table-wrap">
+                <table class="student-table">
+                  <thead><tr><th scope="col">LEARNER</th><th scope="col">GRADE &amp; SECTION</th><th scope="col">GENDER</th><th scope="col">ENROLLMENT</th><th scope="col"><span class="visually-hidden">Actions</span></th></tr></thead>
+                  <tbody id="student-list-body"></tbody>
+                </table>
+                <p class="student-empty" id="student-empty" hidden>No learners found. Try another search or filter.</p>
+              </div>
+              <div class="student-list-footer"><span id="student-results-label">Showing 0 learners</span><span>Student directory</span></div>
+            </section>
+          </section>
+
+          <section class="academics-view" id="academics-view" aria-labelledby="academics-title" hidden>
+            <div class="page-heading academics-page-heading">
+              <div>
+                <p class="eyebrow">LEARNING PROGRESS</p>
+                <h1 id="academics-title">Academics</h1>
+                <p class="page-subtitle">Add assessment scores and see class progress.</p>
+              </div>
+            </div>
+
+            <section class="academic-summary-grid" aria-label="Assessment summary">
+              <article class="academic-summary-card"><span class="summary-label">LEARNERS</span><strong id="academic-learner-count">0</strong><span>In this section</span></article>
+              <article class="academic-summary-card"><span class="summary-label">SCORES ADDED</span><strong id="academic-scores-entered">0 / 0</strong><span>For this assessment</span></article>
+              <article class="academic-summary-card"><span class="summary-label">CLASS AVERAGE</span><strong id="academic-average">—</strong><span id="academic-average-scale">Enter scores to see the average</span></article>
+            </section>
+
+            <section class="panel academic-record-panel">
+              <div class="academic-toolbar">
+                <div class="academic-filters">
+                  <label class="academic-filter-field">
+                    <span>Section</span>
+                    <select id="academic-section">
+                      <option value="7-A">Grade 7 · Section A</option>
+                      <option value="8-A">Grade 8 · Section A</option>
+                      <option value="8-B">Grade 8 · Section B</option>
+                    </select>
+                  </label>
+                  <label class="academic-filter-field">
+                    <span>Subject</span>
+                    <select id="academic-subject">
+                      <option value="english">English</option>
+                      <option value="mathematics">Mathematics</option>
+                      <option value="science">Science</option>
+                    </select>
+                  </label>
+                </div>
+                <label class="roster-search academic-search">
+                  <svg aria-hidden="true" viewBox="0 0 20 20"><circle cx="8.5" cy="8.5" r="5.5"/><path d="m13 13 4 4"/></svg>
+                  <input id="academic-search" type="search" placeholder="Find learner" autocomplete="off">
+                </label>
+              </div>
+
+              <form id="academic-form" novalidate>
+                <div class="academic-roster-heading">
+                  <div><h2>Activity scores</h2><p id="academic-roster-count">0 learners</p></div>
+                  <label class="academic-activity-picker">
+                    <span>Activity</span>
+                    <select id="academic-activity" aria-label="Select activity"></select>
+                  </label>
+                  <button class="button button-outline academic-add-activity" id="add-academic-activity" type="button">New activity</button>
+                  <span class="academic-points-label">Score out of <strong id="academic-max-score">20</strong></span>
+                </div>
+                <div class="academic-table-wrap">
+                  <table class="academic-table">
+                    <thead><tr><th scope="col">LEARNER ID</th><th scope="col">SCORE</th></tr></thead>
+                    <tbody id="academic-roster-body"></tbody>
+                  </table>
+                  <p class="academic-empty" id="academic-empty" hidden>No learner IDs match your search.</p>
+                </div>
+                <div class="academic-form-footer">
+                  <p class="academic-message" id="academic-message" role="status" aria-live="polite"></p>
+                  <div class="academic-form-actions">
+                    <button class="button button-outline" id="clear-academic" type="button">Clear changes</button>
+                    <button class="button button-primary" type="submit">
+                      <svg aria-hidden="true" viewBox="0 0 20 20"><path d="M4 3h10l3 3v11H3V3h1ZM6 3v5h8V3M6 17v-6h8v6"/></svg>
+                      <span>Save scores</span>
+                    </button>
+                  </div>
+                </div>
+              </form>
+            </section>
+            <p class="academic-note">Class average shows the entered activity scores as a percentage. Official grades and GPA are not calculated.</p>
+          </section>
+
+          <section class="interventions-view" id="interventions-view" aria-labelledby="interventions-title" hidden>
+            <div class="page-heading interventions-page-heading">
+              <div>
+                <p class="eyebrow">STUDENT SUPPORT</p>
+                <h1 id="interventions-title">Interventions</h1>
+                <p class="page-subtitle">Plan a next step, assign follow-up, and record what happened.</p>
+              </div>
+              <button class="button button-primary" id="add-intervention-button" type="button">New support plan</button>
+            </div>
+            <section class="intervention-summary-grid" aria-label="Support plan summary">
+              <article class="intervention-summary-card"><span class="summary-label">OPEN PLANS</span><strong id="intervention-open-count">0</strong><span>Not yet completed</span></article>
+              <article class="intervention-summary-card"><span class="summary-label">FOLLOW-UP</span><strong id="intervention-followup-count">0</strong><span>Needs another check-in</span></article>
+              <article class="intervention-summary-card"><span class="summary-label">COMPLETED</span><strong id="intervention-completed-count">0</strong><span>Marked complete</span></article>
+            </section>
+            <section class="panel intervention-record-panel" aria-labelledby="intervention-record-title">
+              <div class="intervention-record-toolbar">
+                <div><h2 id="intervention-record-title">Support plans</h2><p id="intervention-record-count">0 plans</p></div>
+                <label class="intervention-filter">
+                  <span>Status</span>
+                  <select id="intervention-status-filter">
+                    <option value="all">All plans</option>
+                    <option value="planned">Planned</option>
+                    <option value="in-progress">In progress</option>
+                    <option value="follow-up">Follow-up</option>
+                    <option value="completed">Completed</option>
+                  </select>
+                </label>
+              </div>
+              <div class="intervention-record-list" id="intervention-record-list"></div>
+              <p class="intervention-empty" id="intervention-empty">No support plans yet. Start one from an early warning or create a new plan.</p>
+            </section>
+            <p class="intervention-prototype-note">Plans and follow-up notes stay in this browser session. Keep notes brief and avoid sensitive personal details.</p>
+          </section>
+
+          <section class="announcements-view" id="announcements-view" aria-labelledby="announcements-title" hidden>
+            <div class="page-heading announcements-page-heading">
+              <div>
+                <p class="eyebrow">WORKSPACE UPDATES</p>
+                <h1 id="announcements-title">Announcements</h1>
+                <p class="page-subtitle">Share a notice with staff in this workspace.</p>
+              </div>
+              <button class="button button-primary" id="create-announcement-button" type="button">New announcement</button>
+            </div>
+            <section class="panel announcements-board" aria-labelledby="announcements-board-title">
+              <div class="announcements-board-toolbar">
+                <div><h2 id="announcements-board-title">Workspace board</h2><p id="announcement-result-count">0 announcements</p></div>
+                <label class="announcement-filter">
+                  <span>Show</span>
+                  <select id="announcement-status-filter">
+                    <option value="all">All updates</option>
+                    <option value="unread">Unread</option>
+                    <option value="read">Read this session</option>
+                  </select>
+                </label>
+              </div>
+              <div class="announcement-feed" id="announcement-feed"></div>
+            </section>
+            <p class="announcement-prototype-note">Posts are visible only in this browser session. They are not delivered to families or external services; audience labels are for prototype display only.</p>
+          </section>
+
+          <section class="reports-view" id="reports-view" aria-labelledby="reports-title" hidden>
+            <div class="page-heading reports-page-heading">
+              <div>
+                <p class="eyebrow">SESSION SUMMARIES</p>
+                <h1 id="reports-title">Reports</h1>
+                <p class="page-subtitle">Create a printable summary from records entered in this session.</p>
+              </div>
+            </div>
+            <section class="panel report-builder" aria-labelledby="report-builder-title">
+              <div class="report-builder-heading">
+                <div><h2 id="report-builder-title">Choose a report</h2><p>Only saved session records are included.</p></div>
+              </div>
+              <div class="report-builder-controls">
+                <label class="report-filter" for="report-type">
+                  <span>Report type</span>
+                  <select id="report-type">
+                    <option value="attendance">Attendance</option>
+                    <option value="academic">Activity scores</option>
+                    <option value="interventions">Support plan status</option>
+                    <option value="roster">Learner roster summary</option>
+                  </select>
+                </label>
+                <label class="report-filter report-section-field" for="report-section">
+                  <span>Section</span>
+                  <select id="report-section"></select>
+                </label>
+                <label class="report-filter report-date-field" for="report-date">
+                  <span>Attendance date</span>
+                  <input id="report-date" type="date">
+                </label>
+                <label class="report-filter report-subject-field" for="report-subject" hidden>
+                  <span>Subject</span>
+                  <select id="report-subject">
+                    <option value="english">English</option>
+                    <option value="mathematics">Mathematics</option>
+                    <option value="science">Science</option>
+                  </select>
+                </label>
+                <label class="report-filter report-activity-field" for="report-activity" hidden>
+                  <span>Activity</span>
+                  <select id="report-activity"></select>
+                </label>
+                <button class="button button-primary" id="generate-report" type="button">Generate report</button>
+                <button class="button button-outline" id="print-report" type="button" disabled>Print report</button>
+              </div>
+            </section>
+            <section class="report-output panel" id="report-output" aria-live="polite" aria-label="Report preview">
+              <div class="report-empty-state" id="report-empty-state">
+                <strong>Your report will appear here</strong>
+                <span>Choose a report type and generate a summary.</span>
+              </div>
+            </section>
+            <p class="report-prototype-note">Reports use session-only data and synthetic learner records. No official grading, risk thresholds, or legal compliance determinations are included.</p>
+          </section>
+
+          <section class="attendance-view" id="attendance-view" aria-labelledby="attendance-title" hidden>
+            <div class="page-heading attendance-page-heading">
+              <div>
+                <p class="eyebrow">CLASS RECORDS</p>
+                <h1 id="attendance-title">Attendance</h1>
+                <p class="page-subtitle">Take attendance for a section and date.</p>
+              </div>
+              <button class="button button-outline" id="back-to-overview" type="button">
+                <svg aria-hidden="true" viewBox="0 0 20 20"><path d="m12 4-6 6 6 6M6 10h12"/></svg>
+                <span>Back to overview</span>
+              </button>
+            </div>
+
+            <section class="attendance-summary-grid" aria-label="Attendance totals">
+              <article class="attendance-summary-card"><span class="summary-label">PRESENT</span><strong id="summary-present">0</strong><span class="summary-dot present-dot"></span></article>
+              <article class="attendance-summary-card"><span class="summary-label">LATE</span><strong id="summary-late">0</strong><span class="summary-dot late-dot"></span></article>
+              <article class="attendance-summary-card"><span class="summary-label">ABSENT</span><strong id="summary-absent">0</strong><span class="summary-dot absent-dot"></span></article>
+              <article class="attendance-summary-card"><span class="summary-label">EXCUSED</span><strong id="summary-excused">0</strong><span class="summary-dot excused-dot"></span></article>
+              <article class="attendance-summary-card unmarked-summary"><span class="summary-label">NOT MARKED</span><strong id="summary-unmarked">0</strong><span class="summary-dot unmarked-dot"></span></article>
+            </section>
+
+            <section class="panel attendance-record-panel">
+              <div class="attendance-toolbar">
+                <div class="attendance-filters">
+                  <label class="attendance-filter-field">
+                    <span>School section</span>
+                    <select id="attendance-section">
+                      <option value="7-A">Grade 7 · Section A</option>
+                      <option value="8-A">Grade 8 · Section A</option>
+                      <option value="8-B">Grade 8 · Section B</option>
+                    </select>
+                  </label>
+                  <label class="attendance-filter-field date-filter-field">
+                    <span>Attendance date</span>
+                    <input id="attendance-date" type="date" required>
+                  </label>
+                  <label class="attendance-filter-field">
+                    <span>Gender</span>
+                    <select id="attendance-gender-filter">
+                      <option value="all">All learners</option>
+                      <option value="boy">Boys</option>
+                      <option value="girl">Girls</option>
+                    </select>
+                  </label>
+                </div>
+                <label class="roster-search">
+                  <svg aria-hidden="true" viewBox="0 0 20 20"><circle cx="8.5" cy="8.5" r="5.5"/><path d="m13 13 4 4"/></svg>
+                  <input id="roster-search" type="search" placeholder="Find learner" autocomplete="off">
+                </label>
+              </div>
+
+              <form id="attendance-form" novalidate>
+                <div class="roster-heading">
+                  <div><h2 id="roster-title">Grade 7 · Section A</h2><p id="roster-count">0 learners</p></div>
+                  <button class="text-button mark-all-button" id="mark-all-present" type="button">Mark all present</button>
+                </div>
+                <div class="attendance-table-wrap">
+                  <table class="attendance-table">
+                    <thead><tr><th scope="col">LEARNER ID</th><th scope="col">ATTENDANCE STATUS</th></tr></thead>
+                    <tbody id="roster-body"></tbody>
+                  </table>
+                  <p class="roster-empty" id="roster-empty" hidden>No learner IDs match your search.</p>
+                </div>
+                <div class="attendance-form-footer">
+                  <p class="attendance-message" id="attendance-message" role="status" aria-live="polite"></p>
+                  <div class="attendance-form-actions">
+                    <button class="button button-outline" id="clear-attendance" type="button">Clear changes</button>
+                    <button class="button button-primary save-attendance-button" type="submit">
+                      <svg aria-hidden="true" viewBox="0 0 20 20"><path d="M4 3h10l3 3v11H3V3h1ZM6 3v5h8V3M6 17v-6h8v6"/></svg>
+                      <span>Save attendance</span>
+                    </button>
+                  </div>
+                </div>
+              </form>
+            </section>
+
+            <section class="panel attendance-history-panel">
+              <div class="panel-heading">
+                <div><h2>Recent changes</h2><p>Attendance changes made during this session</p></div>
+                <span class="history-session-label">SESSION HISTORY</span>
+              </div>
+              <div class="history-list" id="attendance-history">
+                <p class="history-empty" id="history-empty">Saved attendance changes will appear here.</p>
+              </div>
+            </section>
+          </section>
+        </div>
+      </main>
+      <div class="sidebar-backdrop" id="sidebar-backdrop" hidden></div>
+      <div class="toast" id="toast" role="status" aria-live="polite"></div>
+      <dialog class="student-dialog" id="student-dialog" aria-labelledby="student-dialog-title">
+        <form class="student-dialog-card" id="student-dialog-form" novalidate>
+          <div class="student-dialog-heading">
+            <div><p class="eyebrow" id="student-dialog-eyebrow">LEARNER DIRECTORY</p><h2 id="student-dialog-title">Add learner</h2></div>
+            <button class="icon-button student-dialog-close" type="button" id="close-student-dialog" aria-label="Close dialog">×</button>
+          </div>
+          <p class="student-dialog-description" id="student-dialog-description">Enter a learner name and ID, then choose a section and gender.</p>
+          <div class="student-dialog-fields" id="student-dialog-fields">
+            <label class="student-dialog-field" for="new-student-name">
+              <span>Full name</span>
+              <input id="new-student-name" name="name" type="text" maxlength="80" placeholder="Enter learner name" autocomplete="off" required>
+            </label>
+            <label class="student-dialog-field" for="new-student-id">
+              <span>Learner ID</span>
+              <input id="new-student-id" name="learnerId" type="text" placeholder="L-0901" pattern="L-[0-9]{4}" maxlength="6" autocomplete="off" required>
+              <small>Enter an ID in the format L-0000.</small>
+            </label>
+            <label class="student-dialog-field" for="new-student-section">
+              <span>Grade and section</span>
+              <select id="new-student-section" name="section" required></select>
+            </label>
+            <label class="student-dialog-field" for="new-student-gender">
+              <span>Gender</span>
+              <select id="new-student-gender" name="gender" required>
+                <option value="boy">Boy</option>
+                <option value="girl">Girl</option>
+              </select>
+            </label>
+            <p class="student-dialog-error" id="student-dialog-error" role="alert"></p>
+          </div>
+          <div class="student-dialog-actions">
+            <button class="button button-outline" id="cancel-student-dialog" type="button">Cancel</button>
+            <button class="button button-primary" id="save-student-button" type="submit">Add to roster</button>
+          </div>
+        </form>
+      </dialog>
+      <dialog class="student-dialog" id="class-setup-dialog" aria-labelledby="class-setup-title">
+        <div class="student-dialog-card">
+          <div class="student-dialog-heading">
+            <div><p class="eyebrow">SCHOOL STRUCTURE</p><h2 id="class-setup-title">Grades &amp; sections</h2></div>
+            <button class="icon-button student-dialog-close" type="button" id="close-class-setup" aria-label="Close dialog">×</button>
+          </div>
+          <p class="student-dialog-description">Add the grade levels and sections used in this workspace.</p>
+          <div class="class-setup-columns">
+            <section class="class-setup-block" aria-labelledby="grade-levels-heading">
+              <h3 id="grade-levels-heading">Grade levels</h3>
+              <div class="class-setup-inline">
+                <label class="visually-hidden" for="new-grade-level">New grade level</label>
+                <input id="new-grade-level" type="text" maxlength="24" placeholder="e.g. Grade 9" required>
+                <button class="button button-primary" id="add-grade-level" type="button">Add</button>
+              </div>
+              <ul class="class-setup-list" id="grade-level-list"></ul>
+            </section>
+            <section class="class-setup-block" aria-labelledby="sections-heading">
+              <h3 id="sections-heading">Sections</h3>
+              <label class="student-dialog-field" for="setup-section-grade">
+                <span>Grade level</span>
+                <select id="setup-section-grade" required></select>
+              </label>
+              <div class="class-setup-inline">
+                <label class="visually-hidden" for="new-section-name">New section name</label>
+                <input id="new-section-name" type="text" maxlength="24" placeholder="e.g. Section C" required>
+                <button class="button button-primary" id="add-section" type="button">Add</button>
+              </div>
+              <ul class="class-setup-list" id="section-list"></ul>
+            </section>
+          </div>
+          <p class="student-dialog-error" id="class-setup-error" role="status"></p>
+          <div class="student-dialog-actions">
+            <button class="button button-primary" id="done-class-setup" type="button">Done</button>
+          </div>
+        </div>
+      </dialog>
+      <dialog class="student-dialog activity-dialog" id="academic-activity-dialog" aria-labelledby="academic-activity-dialog-title">
+        <form class="student-dialog-card" id="academic-activity-form" novalidate>
+          <div class="student-dialog-heading">
+            <div><p class="eyebrow">ACADEMIC RECORDS</p><h2 id="academic-activity-dialog-title">New activity</h2></div>
+            <button class="icon-button student-dialog-close" type="button" id="close-academic-activity-dialog" aria-label="Close dialog">×</button>
+          </div>
+          <p class="student-dialog-description">Set an activity name and its possible points.</p>
+          <div class="student-dialog-fields">
+            <label class="student-dialog-field" for="academic-activity-name">
+              <span>Activity name</span>
+              <input id="academic-activity-name" type="text" maxlength="60" placeholder="e.g. Quiz 1" required>
+            </label>
+            <label class="student-dialog-field" for="academic-activity-points">
+              <span>Points possible</span>
+              <input id="academic-activity-points" type="number" min="0.01" step="any" inputmode="decimal" value="20" required>
+            </label>
+            <p class="student-dialog-error" id="academic-activity-error" role="alert"></p>
+          </div>
+          <div class="student-dialog-actions">
+            <button class="button button-outline" id="cancel-academic-activity" type="button">Cancel</button>
+            <button class="button button-primary" type="submit">Create activity</button>
+          </div>
+        </form>
+      </dialog>
+      <dialog class="student-dialog intervention-dialog" id="intervention-dialog" aria-labelledby="intervention-dialog-title">
+        <form class="student-dialog-card" id="intervention-form" novalidate>
+          <div class="student-dialog-heading">
+            <div><p class="eyebrow">STUDENT SUPPORT</p><h2 id="intervention-dialog-title">New support plan</h2></div>
+            <button class="icon-button student-dialog-close" type="button" id="close-intervention-dialog" aria-label="Close dialog">×</button>
+          </div>
+          <p class="student-dialog-description" id="intervention-dialog-description">Choose a learner and record a practical next step.</p>
+          <div class="student-dialog-fields" id="intervention-create-fields">
+            <label class="student-dialog-field" for="intervention-learner">
+              <span>Learner</span>
+              <select id="intervention-learner" required></select>
+            </label>
+            <label class="student-dialog-field" for="intervention-source">
+              <span>Warning or reason</span>
+              <select id="intervention-source" required></select>
+            </label>
+            <label class="student-dialog-field" for="intervention-action">
+              <span>Planned support</span>
+              <input id="intervention-action" type="text" maxlength="100" placeholder="e.g. Check in about missed classes" required>
+            </label>
+            <label class="student-dialog-field" for="intervention-assignee">
+              <span>Assigned staff / role</span>
+              <input id="intervention-assignee" type="text" maxlength="80" placeholder="e.g. Adviser 1" required>
+            </label>
+            <label class="student-dialog-field" for="intervention-due-date">
+              <span>Next check-in date</span>
+              <input id="intervention-due-date" type="date" required>
+            </label>
+          </div>
+          <div class="student-dialog-fields" id="intervention-update-fields" hidden>
+            <dl class="intervention-detail-list" id="intervention-detail-list"></dl>
+            <label class="student-dialog-field" for="intervention-status">
+              <span>Progress</span>
+              <select id="intervention-status" required>
+                <option value="planned">Planned</option>
+                <option value="in-progress">In progress</option>
+                <option value="follow-up">Follow-up</option>
+                <option value="completed">Completed</option>
+              </select>
+            </label>
+            <label class="student-dialog-field" for="intervention-update">
+              <span>Follow-up update</span>
+              <textarea id="intervention-update" maxlength="240" rows="3" placeholder="Briefly note the action taken or next step. Avoid sensitive details."></textarea>
+            </label>
+            <div class="intervention-update-history" id="intervention-update-history"></div>
+          </div>
+          <p class="student-dialog-error" id="intervention-error" role="alert"></p>
+          <div class="student-dialog-actions">
+            <button class="button button-outline" id="cancel-intervention" type="button">Cancel</button>
+            <button class="button button-primary" id="save-intervention" type="submit">Create plan</button>
+          </div>
+        </form>
+      </dialog>
+      <dialog class="student-dialog announcement-dialog" id="announcement-dialog" aria-labelledby="announcement-dialog-title">
+        <form class="student-dialog-card" id="announcement-form" novalidate>
+          <div class="student-dialog-heading">
+            <div><p class="eyebrow">WORKSPACE UPDATES</p><h2 id="announcement-dialog-title">New announcement</h2></div>
+            <button class="icon-button student-dialog-close" type="button" id="close-announcement-dialog" aria-label="Close dialog">×</button>
+          </div>
+          <p class="student-dialog-description">Write a short update for the workspace board.</p>
+          <div class="student-dialog-fields">
+            <label class="student-dialog-field" for="announcement-title">
+              <span>Title</span>
+              <input id="announcement-title" type="text" maxlength="80" placeholder="Add a clear title" required>
+            </label>
+            <label class="student-dialog-field" for="announcement-body">
+              <span>Message</span>
+              <textarea id="announcement-body" maxlength="400" rows="4" placeholder="Write the announcement" required></textarea>
+            </label>
+            <label class="student-dialog-field" for="announcement-audience">
+              <span>Workspace audience</span>
+              <select id="announcement-audience" required>
+                <option value="staff">All staff workspace</option>
+                <option value="section">Grade and section workspace</option>
+              </select>
+            </label>
+            <label class="student-dialog-field" id="announcement-section-field" for="announcement-section" hidden>
+              <span>Grade and section</span>
+              <select id="announcement-section" required></select>
+            </label>
+            <p class="student-dialog-error" id="announcement-error" role="alert"></p>
+          </div>
+          <div class="student-dialog-actions">
+            <button class="button button-outline" id="cancel-announcement" type="button">Cancel</button>
+            <button class="button button-primary" type="submit">Post to workspace</button>
+          </div>
+        </form>
+      </dialog>
+    </div>
+  </body>
+</html>
