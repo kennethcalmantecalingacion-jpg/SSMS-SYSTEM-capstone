@@ -18,15 +18,142 @@
           <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
           <span class="brand-copy"><strong>Student Monitoring</strong><small>SYSTEM</small></span>
         </a>
-        <p class="login-eyebrow">WORKSPACE ACCESS</p>
+        <p class="login-eyebrow">PRODUCTION ACCESS</p>
         <h1 id="login-title">Sign in to your workspace</h1>
-        <p class="login-intro">Choose a fictional demo account to explore role-based navigation.</p>
-        <div class="demo-account-list" id="demo-account-list" aria-label="Demo accounts"></div>
+        <p class="login-intro">This production sign-in is not configured yet. A real backend and authorization flow are still pending deployment configuration.</p>
+
+        <form id="main-login-form" class="production-login-form" novalidate>
+          <div class="auth-field-row">
+            <label class="auth-field">
+              <span>Email</span>
+              <input id="main-login-email" name="email" type="email" placeholder="you@institution.example" autocomplete="email" required>
+            </label>
+          </div>
+          <div class="auth-field-row">
+            <label class="auth-field">
+              <span>Password</span>
+              <input id="main-login-password" name="password" type="password" placeholder="Enter password" autocomplete="current-password" required>
+            </label>
+          </div>
+          <button class="button button-primary auth-submit" type="submit">Sign in</button>
+        </form>
+
+        <div class="login-meta">
+          <button class="text-link" id="forgot-password-button" type="button">Forgot password</button>
+          <button class="text-link" id="create-account-button" type="button">Create account</button>
+        </div>
+
+        <button class="button button-secondary demo-enter-button" id="enter-demo-mode" type="button">Enter Demo Mode</button>
+
         <p class="login-message" id="login-message" role="status" aria-live="polite">
-          Demo accounts and records are fictional. Navigation presets are provisional and not approved for a deployment; assignment-level isolation and server-side permissions are future work.
+          Production sign-in and registration remain unconfigured. Use the Demo Mode sandbox to test local workflow behavior and synthetic data.
         </p>
       </section>
     </main>
+
+    <div class="demo-portal-view" id="demo-portal-view" hidden>
+      <div class="demo-portal-shell">
+        <header class="demo-portal-header">
+          <div>
+            <p class="login-eyebrow">DEMO ENVIRONMENT</p>
+            <h2>Student Monitoring System — Demo Environment</h2>
+          </div>
+          <button class="button button-secondary" id="demo-return-login" type="button">Return to login</button>
+        </header>
+
+        <p class="portal-subtitle">This browser-local sandbox uses fictional accounts and synthetic records. It is intended for demos, tutorials, and feature testing only, and it is not connected to real accounts, institutions, or student records.</p>
+
+        <div class="portal-grid">
+          <section class="portal-panel">
+            <div class="portal-panel-header">
+              <strong>Explore with an existing demo account</strong>
+            </div>
+            <div class="demo-account-list" id="demo-account-list" aria-label="Demo accounts"></div>
+          </section>
+
+          <section class="portal-panel">
+            <div class="portal-panel-header">
+              <strong>Sign in to an existing demo account</strong>
+            </div>
+            <form id="demo-signin-form" class="demo-portal-form" novalidate>
+              <label class="auth-field">
+                <span>Email or username</span>
+                <input name="email" type="text" placeholder="owner@boter.local or demo-teacher" required>
+              </label>
+              <label class="auth-field">
+                <span>Password</span>
+                <input name="password" type="password" placeholder="password" required>
+              </label>
+              <button class="button button-primary auth-submit" type="submit">Sign in to demo</button>
+            </form>
+          </section>
+
+          <section class="portal-panel">
+            <div class="portal-panel-header">
+              <strong>Create a new demo account</strong>
+            </div>
+            <form id="demo-register-form" class="demo-portal-form" novalidate>
+              <label class="auth-field">
+                <span>Username</span>
+                <input name="username" type="text" placeholder="janedoe" maxlength="36" required>
+              </label>
+              <label class="auth-field">
+                <span>Email</span>
+                <input name="email" type="email" placeholder="you@demo.example" autocomplete="email" required>
+              </label>
+              <label class="auth-field">
+                <span>Password</span>
+                <input name="password" type="password" placeholder="Create a password" autocomplete="new-password" required>
+              </label>
+              <label class="auth-field">
+                <span>Confirm password</span>
+                <input name="confirmPassword" type="password" placeholder="Confirm password" autocomplete="new-password" required>
+              </label>
+              <label class="auth-field">
+                <span>Demo registration invitation code</span>
+                <input name="invitationCode" type="text" placeholder="DEMO-INVITE-2024" required>
+              </label>
+              <div class="demo-verification-note">Demo verification step: this registration flow simulates email verification without sending a real email.</div>
+              <button class="button button-primary auth-submit" type="submit">Create demo account</button>
+            </form>
+          </section>
+        </div>
+
+        <section class="portal-panel onboarding-panel" id="portal-onboarding" hidden>
+          <div class="portal-panel-header">
+            <strong>Workspace onboarding</strong>
+          </div>
+          <div class="portal-account-state" id="portal-account-state">Sign in or create a demo account to begin onboarding.</div>
+          <div class="portal-onboarding-layout">
+            <form id="demo-workspace-join-form" class="demo-portal-form small-form" novalidate>
+              <h3>Join an existing workspace</h3>
+              <label class="auth-field">
+                <span>Workspace ID</span>
+                <input name="workspaceId" type="text" placeholder="workspace-boter-school or another demo workspace id">
+              </label>
+              <label class="auth-field">
+                <span>Invitation code</span>
+                <input name="inviteCode" type="text" placeholder="Optional invite code">
+              </label>
+              <button class="button button-primary auth-submit" type="submit">Request workspace access</button>
+            </form>
+
+            <form id="demo-workspace-create-form" class="demo-portal-form small-form" novalidate>
+              <h3>Create a new workspace</h3>
+              <label class="auth-field">
+                <span>Workspace name</span>
+                <input name="workspaceName" type="text" placeholder="Demo Workspace" maxlength="80" required>
+              </label>
+              <label class="auth-field">
+                <span>Workspace creation grant</span>
+                <input name="grantCode" type="text" placeholder="DEMO-WORKSPACE-GRANT-2024" required>
+              </label>
+              <button class="button button-primary auth-submit" type="submit">Create workspace</button>
+            </form>
+          </div>
+        </section>
+      </div>
+    </div>
 
     <div class="app-shell" id="app-shell" hidden>
       <aside class="sidebar" id="sidebar" aria-label="Main navigation">

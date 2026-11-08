@@ -1,12 +1,12 @@
-const demoSessionKey = "student-monitoring-system.demo-session.v1";
+﻿const demoSessionKey = "student-monitoring-system.demo-session.v1";
 const demoSessionMigrationKey = "student-monitoring-system.demo-session-migration.v1";
-// Read-only compatibility source; keep it so the prior session remains recoverable.
 const legacyDemoSessionKey = "lnhs-smart-student-monitoring.demo-session.v1";
 const demoSessionVersion = 1;
 const accountRegistryKey = "student-monitoring-system.accounts.v1";
 const workspaceRegistryKey = "student-monitoring-system.workspaces.v1";
 const invitationRegistryKey = "student-monitoring-system.registration-invites.v1";
 const workspaceGrantRegistryKey = "student-monitoring-system.workspace-grants.v1";
+const joinRequestRegistryKey = "student-monitoring-system.workspace-join-requests.v1";
 
 const demoWorkspaceId = "workspace-boter-school";
 const platformDefaultInviteCode = "DEMO-INVITE-2024";
@@ -57,6 +57,18 @@ function normalizeUsername(value) {
 
 const demoAccounts = [
   {
+    accountId: "demo-workspace-owner",
+    displayName: "Demo Workspace Owner",
+    username: "demo-workspace-owner",
+    email: "owner@boter.local",
+    passwordHash: hashValue("password"),
+    role: "Workspace Owner",
+    assignmentLabel: "Workspace owner",
+    description: "Explore workspace ownership and member management.",
+    available: true,
+    accountType: "demo",
+  },
+  {
     accountId: "demo-teacher",
     displayName: "Demo Teacher",
     username: "demo-teacher",
@@ -93,14 +105,14 @@ const demoAccounts = [
     accountType: "demo",
   },
   {
-    accountId: "demo-system-administrator",
-    displayName: "Demo System Administrator",
-    username: "demo-system-admin",
+    accountId: "demo-workspace-admin",
+    displayName: "Demo Workspace Administrator",
+    username: "demo-workspace-admin",
     email: "admin@boter.local",
     passwordHash: hashValue("password"),
-    role: "Designated System Administrator",
-    assignmentLabel: "Technical and account administration",
-    description: "Explore technical and account administration navigation.",
+    role: "Workspace Administrator",
+    assignmentLabel: "Workspace management",
+    description: "Explore workspace administration and member flow management.",
     available: true,
     accountType: "demo",
   },
@@ -152,23 +164,42 @@ function setWorkspaceGrants(grants) {
   writeLocalJSON(workspaceGrantRegistryKey, grants);
 }
 
+function getJoinRequests() {
+  return readLocalJSON(joinRequestRegistryKey, []);
+}
+
+function setJoinRequests(requests) {
+  writeLocalJSON(joinRequestRegistryKey, requests);
+}
+
 function seedWorkspaceData() {
   const workspaces = getWorkspaces();
+  const seededWorkspace = {
+    id: demoWorkspaceId,
+    name: "Boter School",
+    ownerId: "demo-workspace-owner",
+    createdAt: Date.now(),
+    members: [
+      { accountId: "demo-workspace-owner", role: "Workspace Owner", assignmentLabel: "Workspace owner", status: "active" },
+      { accountId: "demo-teacher", role: "Teacher", assignmentLabel: "Grade 7-A · English", status: "active" },
+      { accountId: "demo-adviser", role: "Adviser", assignmentLabel: "Grade 8-A", status: "active" },
+      { accountId: "demo-guidance-counselor", role: "Guidance Counselor", assignmentLabel: "Assigned demo referral scope", status: "active" },
+      { accountId: "demo-workspace-admin", role: "Workspace Administrator", assignmentLabel: "Workspace management", status: "active" },
+    ],
+  };
+
   if (workspaces.length === 0) {
-    setWorkspaces([
-      {
-        id: demoWorkspaceId,
-        name: "Boter School",
-        ownerId: "demo-admin",
-        createdAt: Date.now(),
-        members: [
-          { accountId: "demo-teacher", role: "Teacher", assignmentLabel: "Grade 7-A · English", status: "active" },
-          { accountId: "demo-adviser", role: "Adviser", assignmentLabel: "Grade 8-A", status: "active" },
-          { accountId: "demo-guidance-counselor", role: "Guidance Counselor", assignmentLabel: "Assigned demo referral scope", status: "active" },
-          { accountId: "demo-system-administrator", role: "Designated System Administrator", assignmentLabel: "Technical and account administration", status: "active" },
-        ],
-      },
-    ]);
+    setWorkspaces([seededWorkspace]);
+  } else {
+    const existing = workspaces.find((entry) => entry.id === demoWorkspaceId);
+    if (!existing) {
+      workspaces.push(seededWorkspace);
+      setWorkspaces(workspaces);
+    } else if (!existing.members.some((member) => member.accountId === "demo-workspace-owner")) {
+      existing.members.unshift({ accountId: "demo-workspace-owner", role: "Workspace Owner", assignmentLabel: "Workspace owner", status: "active" });
+      existing.ownerId = "demo-workspace-owner";
+      setWorkspaces(workspaces.map((entry) => entry.id === demoWorkspaceId ? existing : entry));
+    }
   }
 
   const invites = getInvitationCodes();
@@ -201,7 +232,7 @@ function seedWorkspaceData() {
 
 function getWorkspaceMembership(accountId) {
   const memberships = getWorkspaces().flatMap((workspace) => workspace.members
-    .filter((member) => member.accountId === accountId)
+    .filter((member) => member.accountId === accountId && member.status === "active")
     .map((member) => ({ ...member, workspaceId: workspace.id, workspaceName: workspace.name })));
   return memberships[0] || null;
 }
@@ -213,8 +244,9 @@ function getAccount(accountId) {
 function createSession(account, persistence = "tab", workspaceMembership = null) {
   const role = workspaceMembership?.role || account.role || "Teacher";
   const assignmentLabel = workspaceMembership?.assignmentLabel || account.assignmentLabel || "Workspace member";
-  const workspaceName = workspaceMembership?.workspaceName || "Boter School";
-  const workspaceId = workspaceMembership?.workspaceId || demoWorkspaceId;
+  const workspaceName = workspaceMembership?.workspaceName || null;
+  const workspaceId = workspaceMembership?.workspaceId || null;
+
   return {
     accountId: account.accountId,
     displayName: account.displayName,
@@ -259,11 +291,23 @@ export function getCurrentSession() {
       return null;
     }
 
-    memorySession = createSession(account, "tab", getWorkspaceMembership(stored.accountId));
+    const workspaceId = typeof stored.workspaceId === "string" ? stored.workspaceId : null;
+    const workspace = workspaceId ? getWorkspaces().find((entry) => entry.id === workspaceId) : null;
+    const membership = workspace
+      ? workspace.members.find((member) => member.accountId === account.accountId && member.status === "active")
+      : null;
+    const session = createSession(account, "tab", membership ? {
+      ...membership,
+      workspaceId: workspace.id,
+      workspaceName: workspace.name,
+    } : null);
+
+    memorySession = session;
     if (migrateLegacySession) {
       sessionStorage.setItem(demoSessionKey, JSON.stringify({
         version: demoSessionVersion,
         accountId: account.accountId,
+        workspaceId: session.workspaceId,
       }));
       sessionStorage.setItem(demoSessionMigrationKey, "1");
     }
@@ -280,11 +324,13 @@ export function signInDemo(accountId) {
   }
 
   const workspaceMembership = getWorkspaceMembership(account.accountId);
-  memorySession = createSession(account, "tab", workspaceMembership);
+  const session = createSession(account, "tab", workspaceMembership);
+  memorySession = session;
   try {
     sessionStorage.setItem(demoSessionKey, JSON.stringify({
       version: demoSessionVersion,
       accountId: account.accountId,
+      workspaceId: session.workspaceId,
     }));
   } catch {
     memorySession = createSession(account, "memory", workspaceMembership);
@@ -312,6 +358,7 @@ export function signInWithCredentials(email, password) {
     sessionStorage.setItem(demoSessionKey, JSON.stringify({
       version: demoSessionVersion,
       accountId: account.accountId,
+      workspaceId: session.workspaceId,
     }));
   } catch {
     memorySession = createSession(account, "memory", workspaceMembership);
@@ -319,14 +366,19 @@ export function signInWithCredentials(email, password) {
   return memorySession;
 }
 
-export function registerAccount({ username, email, invitationCode, password }) {
+export function registerAccount({ username, email, invitationCode, password, confirmPassword }) {
   const trimmedUsername = normalizeUsername(username);
   const trimmedEmail = normalizeEmail(email);
   const trimmedCode = String(invitationCode || "").trim();
   const trimmedPassword = String(password || "").trim();
+  const trimmedConfirm = String(confirmPassword || "").trim();
 
   if (!trimmedUsername || !trimmedEmail || !trimmedCode || !trimmedPassword) {
     return { success: false, message: "Username, email, invitation code, and password are required." };
+  }
+
+  if (trimmedPassword !== trimmedConfirm) {
+    return { success: false, message: "Password confirmation does not match." };
   }
 
   const allAccounts = [...demoAccounts, ...getRegisteredAccounts()];
@@ -391,7 +443,7 @@ export function getWorkspaceMembers(workspaceId) {
 
 export function getWorkspaceOptions(accountId) {
   seedWorkspaceData();
-  const userWorkspaces = getWorkspaces().filter((workspace) => workspace.members.some((member) => member.accountId === accountId));
+  const userWorkspaces = getWorkspaces().filter((workspace) => workspace.members.some((member) => member.accountId === accountId && member.status === "active"));
   return userWorkspaces.map((workspace) => ({
     id: workspace.id,
     name: workspace.name,
@@ -406,22 +458,79 @@ export function switchWorkspace(accountId, workspaceId) {
     return null;
   }
   const workspace = getWorkspaces().find((entry) => entry.id === workspaceId);
-  const membership = workspace?.members.find((member) => member.accountId === accountId) || null;
-  const session = createSession(account, "tab", membership ? {
+  if (!workspace) {
+    return null;
+  }
+  const membership = workspace.members.find((member) => member.accountId === accountId && member.status === "active");
+  if (!membership) {
+    return null;
+  }
+  const session = createSession(account, "tab", {
     ...membership,
     workspaceId: workspace.id,
     workspaceName: workspace.name,
-  } : getWorkspaceMembership(accountId));
+  });
   memorySession = session;
   try {
     sessionStorage.setItem(demoSessionKey, JSON.stringify({
       version: demoSessionVersion,
       accountId: account.accountId,
+      workspaceId: workspace.id,
     }));
   } catch {
     return session;
   }
   return session;
+}
+
+export function getWorkspaceJoinRequests(workspaceId) {
+  return getJoinRequests().filter((entry) => !workspaceId || entry.workspaceId === workspaceId);
+}
+
+export function requestWorkspaceMembership({ accountId, workspaceId, inviteCode }) {
+  const account = getAccount(accountId);
+  if (!account) {
+    return { success: false, message: "Create or sign into a demo account before requesting workspace access." };
+  }
+
+  if (getWorkspaceOptions(accountId).some((entry) => entry.id === workspaceId)) {
+    return { success: false, message: "This account already has an active membership in the selected workspace." };
+  }
+
+  const workspace = getWorkspaces().find((entry) => entry.id === workspaceId);
+  if (!workspace) {
+    const invite = getInvitationCodes().find((entry) => entry.code === String(inviteCode || "").trim() && entry.status === "active");
+    if (!invite) {
+      return { success: false, message: "That workspace invitation is invalid or expired." };
+    }
+    const request = {
+      id: `join-${Date.now().toString(36)}`,
+      accountId: account.accountId,
+      workspaceName: "Invite-based workspace",
+      workspaceId: null,
+      inviteCode: invite.code,
+      status: "pending",
+      createdAt: Date.now(),
+    };
+    const requests = getJoinRequests();
+    requests.push(request);
+    setJoinRequests(requests);
+    return { success: true, message: "Your workspace request is pending approval." };
+  }
+
+  const request = {
+    id: `join-${Date.now().toString(36)}`,
+    accountId: account.accountId,
+    workspaceName: workspace.name,
+    workspaceId: workspace.id,
+    inviteCode: null,
+    status: "pending",
+    createdAt: Date.now(),
+  };
+  const requests = getJoinRequests();
+  requests.push(request);
+  setJoinRequests(requests);
+  return { success: true, message: `Membership request sent for ${workspace.name}. Awaiting approval.` };
 }
 
 export function createWorkspaceGrant({ accountId, workspaceName, grantCode }) {
