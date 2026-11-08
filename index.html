@@ -12,7 +12,23 @@
     <script type="module" src="/src/main.js"></script>
   </head>
   <body>
-    <div class="app-shell">
+    <main class="login-view" id="login-view" aria-labelledby="login-title">
+      <section class="login-card">
+        <a class="login-brand" href="#" aria-label="LNHS Monitoring System">
+          <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
+          <span class="brand-copy"><strong>LNHS</strong><small>STUDENT MONITORING</small></span>
+        </a>
+        <p class="login-eyebrow">WORKSPACE ACCESS</p>
+        <h1 id="login-title">Sign in to your workspace</h1>
+        <p class="login-intro">Choose a fictional demo account to explore role-based navigation.</p>
+        <div class="demo-account-list" id="demo-account-list" aria-label="Demo accounts"></div>
+        <p class="login-message" id="login-message" role="status" aria-live="polite">
+          Demo accounts and records are fictional. Navigation presets are provisional, not school-approved; assignment-level isolation and server-side permissions are future work.
+        </p>
+      </section>
+    </main>
+
+    <div class="app-shell" id="app-shell" hidden>
       <aside class="sidebar" id="sidebar" aria-label="Main navigation">
         <div class="brand-row">
           <a class="brand" href="#" aria-label="LNHS Monitoring System overview" data-view="overview">
@@ -30,7 +46,7 @@
           <svg aria-hidden="true" viewBox="0 0 16 16"><path d="m4 6 4 4 4-4"/></svg>
         </div>
 
-        <div class="nav-group">
+        <div class="nav-group" data-navigation-group>
           <span class="nav-label">WORKSPACE</span>
           <nav class="primary-nav">
             <button class="nav-link active" type="button" data-view="overview" aria-current="page">
@@ -52,7 +68,7 @@
           </nav>
         </div>
 
-        <div class="nav-group nav-group-spaced">
+        <div class="nav-group nav-group-spaced" data-navigation-group>
           <span class="nav-label">STUDENT SUPPORT</span>
           <nav class="primary-nav">
             <button class="nav-link" type="button" data-view="alerts">
@@ -72,7 +88,7 @@
           </nav>
         </div>
 
-        <div class="nav-group nav-group-spaced">
+        <div class="nav-group nav-group-spaced" data-navigation-group>
           <span class="nav-label">MANAGE</span>
           <nav class="primary-nav">
             <button class="nav-link" type="button" data-view="reports">
@@ -93,9 +109,15 @@
             <span class="help-arrow" aria-hidden="true">↗</span>
           </div>
           <div class="profile-button">
-            <span class="profile-avatar">AD</span>
-            <span class="profile-info"><strong>Alex Dela Cruz</strong><small>School administrator</small></span>
+            <span class="profile-avatar" id="profile-avatar"></span>
+            <span class="profile-info">
+              <strong id="profile-name"></strong>
+              <small id="profile-role"></small>
+              <small class="profile-assignment" id="profile-assignment"></small>
+            </span>
           </div>
+          <p class="demo-access-notice" id="demo-access-notice">Demo mode uses fictional records. Navigation presets are provisional, not school-approved; assignment-level and server-side permissions are not active.</p>
+          <button class="sign-out-button" id="sign-out-button" type="button">Sign out</button>
         </div>
       </aside>
 

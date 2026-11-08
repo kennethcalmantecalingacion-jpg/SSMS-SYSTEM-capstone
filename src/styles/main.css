@@ -4717,7 +4717,222 @@ stop-color: #2583c9;
     align-items: stretch;
     gap: 8px;
   }
+}
 
+.login-view {
+    display: grid;
+    min-height: 100vh;
+    place-items: center;
+    padding: 32px 18px;
+    background:
+      radial-gradient(ellipse at 18% 12%, rgba(201, 229, 250, .85), transparent 38%),
+      linear-gradient(145deg, #f4f9fe 0%, #e8f2fb 52%, #f8fafc 100%);
+  }
+
+.login-card {
+    width: min(100%, 620px);
+    padding: clamp(24px, 5vw, 46px);
+    border: 1px solid #dfeaf4;
+    border-radius: 20px;
+    background: rgba(255, 255, 255, .97);
+    box-shadow: 0 24px 70px rgba(37, 75, 110, .13);
+  }
+
+.login-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 34px;
+    color: #24263a;
+    text-decoration: none;
+  }
+
+.login-brand .brand-copy {
+    display: grid;
+    gap: 3px;
+  }
+
+.login-brand .brand-copy strong {
+    font: 800 17px/1 "Manrope", sans-serif;
+    letter-spacing: .06em;
+  }
+
+.login-brand .brand-copy small {
+    color: #718198;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: .12em;
+  }
+
+.login-eyebrow {
+    margin: 0 0 8px;
+    color: #547a9f;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .13em;
+  }
+
+.login-card h1 {
+    margin: 0;
+    color: #203d59;
+    font: 750 clamp(25px, 4vw, 32px)/1.2 "Manrope", sans-serif;
+  }
+
+.login-intro {
+    margin: 10px 0 24px;
+    color: #68798b;
+    font-size: 14px;
+    line-height: 1.55;
+  }
+
+.demo-account-list {
+    display: grid;
+    gap: 10px;
+  }
+
+.demo-account {
+    display: flex;
+    min-height: 88px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 14px 15px;
+    border: 1px solid #e1eaf2;
+    border-radius: 12px;
+    background: #fff;
+    transition: border-color .15s ease, background-color .15s ease;
+  }
+
+.demo-account:not(.demo-account-disabled):hover {
+    border-color: #9dc5e5;
+    background: #f8fbfe;
+  }
+
+.demo-account-identity {
+    display: grid;
+    min-width: 0;
+    gap: 4px;
+  }
+
+.demo-account-identity strong {
+    color: #294762;
+    font-size: 14px;
+  }
+
+.demo-account-identity span {
+    color: #507da4;
+    font-size: 12px;
+    font-weight: 650;
+  }
+
+.demo-account-identity small {
+    color: #778697;
+    font-size: 11px;
+    line-height: 1.45;
+  }
+
+.demo-account-action {
+    min-width: 94px;
+    min-height: 42px;
+    flex: 0 0 auto;
+    padding: 0 14px;
+    border: 1px solid #c5dced;
+    border-radius: 9px;
+    color: #24577f;
+    background: #eff7fd;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+.demo-account-action:hover:not(:disabled) {
+    border-color: #7eafd5;
+    background: #e2f1fc;
+  }
+
+.demo-account-action:disabled {
+    border-color: #e5e8ec;
+    color: #858e98;
+    background: #f3f5f7;
+    cursor: not-allowed;
+  }
+
+.demo-account-disabled {
+    background: #fafbfc;
+  }
+
+.login-message {
+    margin: 19px 0 0;
+    padding: 12px 14px;
+    border-left: 3px solid #93bad9;
+    border-radius: 4px 8px 8px 4px;
+    color: #607387;
+    background: #f3f8fc;
+    font-size: 11px;
+    line-height: 1.55;
+  }
+
+.demo-access-notice {
+    margin: 10px 0;
+    padding: 9px;
+    border-radius: 8px;
+    color: #c1d8ec;
+    background: rgba(255, 255, 255, .06);
+    font-size: 9px;
+    line-height: 1.5;
+  }
+
+.sign-out-button {
+    width: 100%;
+    min-height: 40px;
+    padding: 8px 11px;
+    border: 1px solid #43698d;
+    border-radius: 8px;
+    color: #e5f1fc;
+    background: transparent;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 650;
+    text-align: left;
+  }
+
+.sign-out-button:hover {
+    border-color: #7da6cc;
+    background: rgba(255, 255, 255, .08);
+  }
+
+.profile-info .profile-assignment {
+    color: #87a7c5;
+  }
+
+@media (max-width: 520px) {
+  .login-view {
+    align-items: start;
+    padding: 18px 12px;
+  }
+
+  .login-card {
+    padding: 24px 18px;
+    border-radius: 16px;
+  }
+
+  .login-brand {
+    margin-bottom: 28px;
+  }
+
+  .demo-account {
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .demo-account-action {
+    min-width: 82px;
+    padding: 0 10px;
+  }
+}
+
+@media (max-width: 540px) {
   .students-page-heading > div {
     grid-column: 1 / -1;
   }

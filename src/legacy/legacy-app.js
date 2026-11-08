@@ -1,5 +1,8 @@
 "use strict";
 
+import { canAccessView } from "../core/access/role-access.js";
+import { getCurrentSession } from "../core/auth/demo-auth.js";
+
 const periodData = {
   today: {
     labels: ["8 AM", "10 AM", "12 PM", "2 PM", "4 PM"],
@@ -1904,6 +1907,12 @@ function loadAttendanceSelection() {
 }
 
 function setCurrentView(view) {
+  const session = getCurrentSession();
+  if (!session || !canAccessView(session.role, view)) {
+    showToast("This section isn't available for the selected demo role.");
+    return false;
+  }
+
   const isAttendance = view === "attendance";
   const isStudents = view === "students";
   const isAcademics = view === "academics";
@@ -1933,6 +1942,7 @@ function setCurrentView(view) {
   });
   closeMobileNavigation();
   window.scrollTo({ top: 0, behavior: "smooth" });
+  return true;
 }
 
 function saveAttendance(event) {
@@ -2210,6 +2220,11 @@ document.querySelectorAll("[data-view]").forEach((button) => {
   button.addEventListener("click", (event) => {
     event.preventDefault();
     const view = button.dataset.view;
+    const session = getCurrentSession();
+    if (!session || !canAccessView(session.role, view)) {
+      showToast("This section isn't available for the selected demo role.");
+      return;
+    }
 
     if (view === "overview") {
       setCurrentView("overview");
