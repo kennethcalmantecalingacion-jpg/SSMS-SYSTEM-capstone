@@ -1,91 +1,214 @@
-# Provisional access-control matrix
+# Provisional role and access-control matrix
 
-This is a requirements proposal for the capstone presentation prototype, not
-an approved LNHS access policy. It must not be used to authorize real access to
-learner records. The current website has no authentication or enforced roles.
+## Status and source basis
 
-## What the sources establish
+This is a proposal for review, not an LNHS-approved policy or an authorization
+to access real learner data. The prototype has no authentication or enforced
+permissions. The roles below are provisional, and every conditional or pending
+entry requires LNHS approval and a trusted implementation before it can grant
+access. No entry is marked as currently allowed.
 
-- The user-provided SOP names advisers, teachers, parents, and guidance
-  counselors as people involved in monitoring, alerts, communication, and
-  interventions. It does not specify their exact permissions.
-- The [DepEd orders listing](https://www.deped.gov.ph/category/issuances/deped-orders/)
-  identifies DO_s2026_015r as the revised classroom assessment and grading
-  issuance. The complete issuance has not been reviewed for this proposal; it
-  is not used here to infer role permissions.
-- The [National Privacy Commission Data Privacy Act page](https://privacy.gov.ph/data-privacy-act/)
-  and [Official Gazette copy of Republic Act No. 10173](https://www.officialgazette.gov.ph/2012/08/15/republic-act-no-10173/)
-  are identified project references. They were not readable during this
-  requirements pass. No legal interpretation or compliance conclusion is
-  made here.
-- [Supabase's Row Level Security guide](https://supabase.com/docs/guides/database/postgres/row-level-security)
-  is vendor technical guidance, not school policy. It explains that database
-  grants and row-level policies both matter if that technology is selected.
-  Any implementation, including a school-local server, must enforce
-  authorization at the trusted data layer rather than relying only on hidden
-  buttons or client-side role state.
+This update reconciles the conceptual entities in
+[DATA-MODEL-ERD.md](./DATA-MODEL-ERD.md) with their fields and unresolved
+details in [DATA-DICTIONARY.md](./DATA-DICTIONARY.md), the existing provisional
+role boundaries, and the relevant project requirements. It does not create
+school policy, legal interpretation, or a permission architecture.
 
-## Draft role matrix
+## Decision legend
 
-**Legend:** `Own/assigned` means only learners, classes, referrals, or
-conversations explicitly assigned to that account. `Proposed` means a
-workflow suggestion based on the SOP, not a confirmed LNHS rule.
+Each entity cell refers to a profile defined below. Every profile specifies
+Read, Create, Update, Delete, Correct, and Export:
 
-| Area | Teacher | Adviser | Guidance counselor | Parent/guardian | Designated system administrator |
-|---|---|---|---|---|---|
-| Learner directory | Read minimum details for own classes; no profile edits by default | Read and update basic details for own advisory section, subject to school process | Read minimum details for an assigned referral | Read only the linked child’s approved profile details | Manage accounts and approved configuration; learner-record access is not automatic |
-| Attendance | Record and correct attendance only for assigned classes, with change history | View and record attendance for own advisory section; coordinate corrections | View relevant attendance for an assigned referral; no bulk roster edits | View only linked child’s approved attendance summary | No routine attendance editing; any exceptional support action must be logged |
-| Activities and scores | Create activities and enter/correct scores only for assigned classes and subjects | View academic summaries for own advisees; score editing only where also assigned as teacher | View relevant summaries for assigned referrals; no grade edits | View only the linked child’s approved progress summary | No routine score editing; no power to change grading rules without approval |
-| Early warnings | Review relevant alerts in assigned classes and refer concerns through an approved process | Review and coordinate alerts for own advisees | Receive and manage referrals assigned to the guidance caseload | Receive only school-approved messages about their own child; never internal alert queues | Configure access and approved system settings; no unilateral authority to set student-risk thresholds |
-| Follow-up / interventions | Record classroom-level action or referral; view only related follow-up needed for teaching | Coordinate and track adviser follow-up for own advisees | Create and manage guidance follow-up for assigned referrals; sensitive notes kept separately and tightly restricted | Exchange approved messages about their child; no access to internal staff notes | Technical administration only by default; sensitive case content is not included in routine admin views |
-| Announcements and messages | Send or respond within approved school communication scope | Coordinate messages for own advisees/families | Communicate about assigned referrals using school-approved channels | Read/respond only in conversations linked to their child | Maintain messaging configuration; no routine reading of private conversations |
-| Reports and exports | Own classes, minimum necessary detail | Own advisory section and approved summary reports | Assigned referral/caseload summaries only | No staff reports or other learners’ information | Operational reports only when authorized; exports restricted, logged, and approved |
-| Accounts, roles, structure, sync | No account/role administration | No account/role administration | No account/role administration | No account/role administration | Provision/deactivate accounts and maintain approved grade/section and device/sync configuration; every privileged action logged |
+- **C — Conditional:** a proposed, narrow permission only if LNHS approves the
+  stated purpose, role, and scope. It is not active now.
+- **P — Pending LNHS approval:** no permission is proposed until the relevant
+  workflow or boundary is decided. It is not active now.
+- **D — Denied:** denied by this draft/default, including routine access or
+  destructive changes to historical records.
 
-## Boundaries for the prototype
+There are no **Allowed** entries because no permissions have been approved.
+For all profiles, `Correct` means a separately authorized, attributable change
+to an existing record; it is not implied by `Update`. `Export` is separate
+from viewing. A profile marked `—` is not used in that matrix cell.
 
-- These are proposed access boundaries, not claims that DepEd or LNHS has
-  approved them. Confirm assigned-class and assigned-caseload rules with the
-  school.
-- A parent account is mentioned in SOP question 2, but the school must decide
-  identity verification, who may be linked to a learner, what can be viewed,
-  and which communication channels are allowed.
-- The SOP mentions boys' and girls' records separately, but does not define the
-  field, purpose, categories, or who may view it. Do not create a broad
-  sex-based access boundary from that note alone. Keep any approved demographic
-  filter limited to its documented purpose.
-- Do not put sensitive guidance notes, stigmatizing labels, or speculative
-  risk profiles in general teacher or parent views. Referral summaries should
-  be limited to what the recipient needs for the approved action.
-- Early warnings should be review prompts with explainable evidence, not
-  automated conclusions or unrestricted notifications.
-- Offline mode does not itself enforce roles. Local device access, encrypted
-  storage, backup, account revocation, conflict handling, and sync permissions
-  need a school-approved architecture and threat review before real data is
-  used.
-- Do not implement authentication as a decorative sign-in page or a
-  client-side role selector. In a static HTML/JavaScript app, users can inspect
-  or alter client code and state. A later login must be backed by trusted
-  authentication and authorization on the school-controlled data service.
+### Permission profiles
 
-## Decisions required from LNHS before implementing roles
+| Code | Read | Create | Update | Delete | Correct | Export |
+|---|---|---|---|---|---|---|
+| `V` — scoped view | C, within the row's scope | P | P | D | P | P |
+| `E` — scoped edit | C, within scope | C, within scope | C, within scope | D | C only with approved correction history | P |
+| `B` — basic adviser details | C, assigned advisory only | P | C, approved basic fields only | D | C, approved and attributable corrections only | P |
+| `A` — assessment setup | C, assigned offering only | C, assigned offering only | C, assigned offering only | D | P; ERD has no assessment-change history | P |
+| `EV` — review/event | C, within review scope | C, append-only event for an approved action | D | D | D | P |
+| `H` — history | C, only where needed for the assigned work | C only as an append-only event generated by an approved operation | D | D | D | P |
+| `R` — classroom referral | C, related classroom support only | C, limited referral within assigned class | C, limited classroom follow-up only | D | P | P |
+| `G` — restricted guidance | C, approved guidance/caseload scope only | C, only if the guidance entity and content schema are approved | C, assigned scope and approved schema only | D | C, with approved history and controls | P |
+| `N` — announcement | C, authorized audience only | C, approved communication scope only | C, own post and approved edit workflow only | D | P; no edit-history entity is modeled | P |
+| `I` — own identity | C, own minimum account details only | P | P | D | P | D |
+| `O` — own assignment | C, own assignment row only | P | P | D | P | P |
+| `S` — own receipt | C, own receipt for an authorized announcement | C, own receipt only | D | D | D | D |
+| `M` — technical administration | C, approved technical/account/configuration task only | C, approved task only | C, approved task only | D | C, audited administrative correction only | P |
+| `Q` — audit view | C, approved operational audit fields only | P; system-generated events only, if approved | D | D | D | P |
+| `PARENT` — future linked access | C, verified linked learner and approved subset only | D | D | D | D | D |
+| `PENDING` | P | P | P | D | P | P |
+| `DENY` | D | D | D | D | D | D |
 
-1. Which staff positions map to Teacher, Adviser, and Guidance Counselor in
-   this system, and can one person hold multiple assignments?
-2. Who approves accounts, section/subject assignments, parent-child links, and
-   role changes? Who is the designated system administrator?
-3. Which records may each role read, create, correct, export, or delete, and
-   what correction/audit procedure applies?
-4. What may parents see, how is guardian identity and learner relationship
-   verified, and which communication methods are approved?
-5. Which referral fields are needed by teachers, advisers, and guidance staff?
-   Which guidance records must remain restricted to guidance personnel?
-6. What school-managed local sync model is intended, and what happens to
-   offline edits after an account is disabled, a device is lost, or two devices
-   change the same record?
+`C` must not be interpreted as approval: it identifies a proposed boundary to
+review. `P` means the sources do not support even a specific proposed grant.
+The default is deny until decisions, identity verification, assignments, and
+server-side enforcement are in place.
 
-## Status
+## Provisional roles and scope
 
-Draft for adviser/client and school privacy-officer review. Do not build
-real-data login, role enforcement, parent access, sensitive profiling, or
-production sync from this matrix until the decisions above are confirmed.
+- **Teacher:** any conditional class access is limited to currently approved
+  teaching assignments and their subject offerings/classes. The role alone
+  grants no roster, section, or case scope.
+- **Adviser:** conditional learner access is limited to the currently
+  approved advisory assignment. Basic profile changes and follow-up are
+  limited to the approved adviser workflow.
+- **Guidance Counselor:** access is limited to an approved guidance function
+  and assigned referral/case scope. Guidance records remain a separately
+  restricted domain; a general support-case assignment does not by itself
+  grant guidance-record access.
+- **Parent/Guardian:** future access is conditional on verified identity and
+  learner relationship, and limited to information and communications
+  explicitly approved for that relationship. The ERD does not yet include a
+  guardian-link entity.
+- **Designated System Administrator:** technical/account and approved
+  structure administration does not grant routine learner, academic, warning,
+  support-note, or guidance-content access. Administrative corrections must
+  be attributable; an administrator must not grant or elevate their own
+  privileges.
+
+A user may have multiple roles and multiple assignment records. Evaluate each
+role, assignment, entity, action, and record scope independently. Do not use
+“highest role wins,” infer access from a role label, or let one assignment
+expand another assignment's scope. Record the acting identity and applicable
+authorization context for consequential changes. Assignment authority,
+effective dates, and role-combination rules still need LNHS decisions.
+
+## Role-to-entity permission matrix
+
+Cells use the permission profiles above. The scope column and role definitions
+constrain each conditional profile. The matrix covers every entity in the
+current 27-entity ERD; it does not add entities or imply that conditional
+permissions have been approved.
+
+| ERD entity | Scope / boundary | Teacher | Adviser | Guidance Counselor | Parent/Guardian | Designated System Administrator |
+|---|---|---:|---:|---:|---:|---:|
+| `LEARNER` | Assigned class; assigned advisory; assigned referral; verified linked learner; no routine admin access | V | B | V | PARENT | DENY |
+| `GRADE_LEVEL` | Minimum structure context needed for an approved task | V | V | V | PENDING | M |
+| `SECTION` | Assigned class/advisory or case context; parent only linked learner context | V | V | V | PARENT | M |
+| `SCHOOL_YEAR` | Minimum structure context; use remains conditional on school-year approval | V | V | V | PENDING | M |
+| `ENROLLMENT` | Applicable learner and historical section context only | V | V | V | PARENT | DENY |
+| `USER_PROFILE` | Own minimum account details; admin technical identity references only | I | I | I | I | M |
+| `ROLE` | Role definitions; no self-grant or privilege escalation | PENDING | PENDING | PENDING | DENY | M |
+| `USER_ROLE` | Staff/parent can view own role assignment only; provisioning authority unresolved | O | O | O | O | M |
+| `SUBJECT` | Only subjects needed for assigned offering, advisory summary, referral, or approved parent summary | V | V | V | PARENT | M |
+| `SUBJECT_OFFERING` | Teacher's assigned offering; adviser section summary; referral or linked-learner summary only as approved | V | V | V | PARENT | M |
+| `TEACHING_ASSIGNMENT` | Staff may view own assignment only; assignment creation/approval is not granted by this role matrix | O | PENDING | PENDING | DENY | M |
+| `ADVISORY_ASSIGNMENT` | Adviser may view own assignment only; assignment creation/approval remains unresolved | PENDING | O | PENDING | DENY | M |
+| `ATTENDANCE_SESSION` | Assigned class or advisory section; referral view only; parent summary only | E | E | V | PARENT | DENY |
+| `ATTENDANCE_ENTRY` | Enrollment and section must match the applicable session; same scopes as session | E | E | V | PARENT | DENY |
+| `ATTENDANCE_CHANGE` | Read history only when needed in assigned work; event appended only by approved correction | H | H | V | DENY | DENY |
+| `ASSESSMENT` | Teacher setup only for assigned offering; other views limited to approved summaries | A | V | V | PARENT | DENY |
+| `ASSESSMENT_SCORE` | Assigned offering and applicable enrollment; summaries only for other roles | E | V | V | PARENT | DENY |
+| `ASSESSMENT_SCORE_CHANGE` | Teacher correction history only for assigned offering; no routine parent/admin history access | H | V | V | DENY | DENY |
+| `WARNING_RECORD` | Review prompt only for assigned class, advisory, or guidance referral; never an automated conclusion | V | V | V | DENY | DENY |
+| `WARNING_REVIEW_EVENT` | Assigned warning only; review attribution is append-only; review actions remain undefined | EV | EV | EV | DENY | DENY |
+| `SUPPORT_CASE` | Teacher classroom referral; adviser assigned advisees; counselor approved assigned case; parent excluded from internal case | R | E | E | DENY | DENY |
+| `SUPPORT_UPDATE` | Limited classroom follow-up, assigned advisee, or assigned case; no guidance notes in general updates | R | E | E | DENY | DENY |
+| `GUIDANCE_RECORD` | Separate restricted domain; entity/content schema and permission rules require approval | DENY | DENY | G | DENY | DENY |
+| `GUIDANCE_CASE_ASSIGNMENT` | Counselor may view own approved assignment only; assignment provisioning and whether it grants case access are unresolved | DENY | DENY | O | DENY | PENDING |
+| `ANNOUNCEMENT` | Approved in-app audience and communication scope; audience label is not authorization | N | N | N | PARENT | DENY |
+| `ANNOUNCEMENT_READ_RECEIPT` | Own receipt only, and only for an announcement the user is authorized to read | S | S | S | S | DENY |
+| `AUDIT_EVENT` | Approved operational audit view only; append-only and no broad content disclosure | PENDING | PENDING | PENDING | DENY | Q |
+
+### Entity-matrix interpretation notes
+
+- `ATTENDANCE_CHANGE`, `ASSESSMENT_SCORE_CHANGE`, `WARNING_REVIEW_EVENT`, and
+  `AUDIT_EVENT` are history/event records. Their matrix profiles do not permit
+  editing, deleting, or correcting the history row itself.
+- `ASSESSMENT` uses `A`, not `E`, because the ERD has no assessment-change
+  history. Corrections to assessment definitions are pending until an
+  attributable history process is approved.
+- `GUIDANCE_CASE_ASSIGNMENT` is an assignment record, not an authorization
+  policy. A separate approval must define whether and how it grants case
+  access. Neither technical administration nor general support access grants
+  access to `GUIDANCE_RECORD`.
+- The ERD's `USER_PROFILE`, `ROLE`, and `USER_ROLE` are proposed future
+  authorization-supporting records, not evidence of live accounts or roles.
+- Parent access is future-only. `PARENT` applies solely to a verified linked
+  learner and an approved information subset; it does not grant internal
+  warnings, support notes, guidance data, staff records, or exports.
+- No matrix profile authorizes deletion of historical educational, warning,
+  support, guidance, announcement-read, or audit history. Archival and
+  retention procedures require separate approval.
+
+## Screen and action mapping
+
+The eight application modules are views/actions over the ERD entities, not
+independent grants. The proposed boundaries below are subject to the same
+status legend and assignment restrictions as the entity matrix.
+
+| Existing module | Principal entities | Principal actions and provisional boundary |
+|---|---|---|
+| **Overview** | Derived from `LEARNER`, `ENROLLMENT`, attendance, assessment, warning, and support entities | Read scoped summaries only. Totals and charts must be computed from records the user may read; no extra access through dashboard aggregation. Parent summaries, if approved, are limited to linked learners. |
+| **Students** | `LEARNER`, `ENROLLMENT`, `SECTION`, `GRADE_LEVEL`, `SCHOOL_YEAR` | View class roster, advisory roster, assigned referral context, or verified linked learner only as approved. Profile updates are limited to the adviser `B` proposal; administrators manage structure, not learner content. |
+| **Attendance** | `ATTENDANCE_SESSION`, `ATTENDANCE_ENTRY`, `ATTENDANCE_CHANGE`, `ENROLLMENT` | Create/record and update only for approved assigned class/advisory scopes. Corrections require attributable history. Guidance and parent access is limited to approved relevant views; no admin routine edits. |
+| **Academics** | `SUBJECT`, `SUBJECT_OFFERING`, `ASSESSMENT`, `ASSESSMENT_SCORE`, `ASSESSMENT_SCORE_CHANGE`, `ENROLLMENT` | Teachers manage approved assessments and scores only for assigned offerings. Advisers, guidance staff, and parents receive only approved summaries within scope. Score corrections require history; official grading rules remain unconfirmed. |
+| **Early Warnings** | `WARNING_RECORD`, `WARNING_REVIEW_EVENT`, and source records where approved | Read/review only within assigned class, advisory, or referral scope. Review events are attributable and append-only. No parent internal alert queue, unapproved threshold administration, or administrator content access. |
+| **Interventions** | `SUPPORT_CASE`, `SUPPORT_UPDATE`, `GUIDANCE_RECORD`, `GUIDANCE_CASE_ASSIGNMENT`, `WARNING_RECORD` | Teacher referral/classroom follow-up, adviser coordination, and counselor case work are distinct scoped proposals. Preserve the actual warning link. Keep guidance records separately restricted; parents do not see internal case notes by default. |
+| **Announcements** | `ANNOUNCEMENT`, `ANNOUNCEMENT_READ_RECEIPT`, `USER_PROFILE`, `SECTION` | Read, publish, and edit only under an approved communication scope. Audience labels do not enforce access. Parent participation, recipient verification, and communication channels require approval. |
+| **Reports** | Derived from the underlying entities above | Every row, aggregate, print view, and export must apply the same authorization as its source data. No report or export can widen access; export remains pending unless LNHS approves the scope, fields, recipient, and audit process. |
+
+## Cross-cutting enforcement boundaries
+
+1. Apply authorization at the trusted data layer for each read and write;
+   hidden controls or client-side role state are not enforcement.
+2. Resolve record scope from approved assignments and historical enrollment
+   context. A current section must not silently replace the section that
+   applied when an attendance or score record was created.
+3. Keep guidance records, content, and any guidance-only audit detail
+   separate from general teacher, administrator, parent, and support views.
+4. An announcement's `audience_type` or `section_id` is targeting metadata,
+   not proof that a user is authorized to read it.
+5. Apply the same restrictions to derived totals, print previews, downloads,
+   exports, and any attachments introduced later.
+6. Preserve historical records. Corrections should record actor, before/after
+   values, and time where the ERD provides a history entity; do not casually
+   update or delete history rows.
+7. Do not infer access from a role alone. Multiple roles, assignments, and
+   scopes must be checked independently for every action.
+8. Do not add a guardian link, content field, role, permission, warning rule,
+   or school-specific procedure unless it is approved and documented.
+
+## Decisions requiring LNHS approval
+
+- Which staff positions map to Teacher, Adviser, Guidance Counselor, and
+  Designated System Administrator; who approves accounts, role changes, and
+  each assignment; whether one user may hold multiple roles.
+- Exact per-entity read, create, update, correction, and export permissions,
+  assignment lifecycle, correction workflow, audit detail, retention, and
+  archival behavior.
+- Which learner details advisers may update and how corrections are reviewed.
+- Attendance and assessment entry/correction scope, status rules, score
+  history, and whether initial entries need history events.
+- Warning categories, evidence, review actions, referral routing, recipients,
+  and notification/escalation rules.
+- Which support-case fields are visible to each assigned staff role, whether
+  a guidance assignment grants case access, and which records/notes must
+  remain guidance-only.
+- Whether to create a guardian-link entity, how identity and relationship are
+  verified, which learner data is visible, and whether parent messaging or
+  exports are permitted.
+- Announcement authoring/editing authority, audience definitions, recipient
+  authorization, read-receipt behavior, and whether edit history is needed.
+- Permitted report fields, aggregate thresholds if any, export recipients,
+  logging, and retention.
+- What operational audit fields administrators may read, and how to prevent
+  audit views from disclosing restricted record content.
+
+Do not implement authentication, authorization, RLS, database policies, or
+real-data access from this proposal alone. It does not assert LNHS approval or
+legal compliance.
