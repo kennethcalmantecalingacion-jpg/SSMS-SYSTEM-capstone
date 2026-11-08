@@ -74,6 +74,8 @@ let toastTimeout;
 let currentAttendanceKey = "";
 const academicDrafts = new Map();
 const savedAcademicScores = new Map();
+const academicStorageKey = "lnhs-smart-student-monitoring.academics.v1";
+let academicPersistenceMessage = "";
 let currentAcademicKey = "";
 let academicActivitySequence = 0;
 const interventionRecords = [];
@@ -451,11 +453,149 @@ function isValidAcademicScore(value, maxScore) {
   return value !== "" && Number.isFinite(score) && score >= 0 && score <= maxScore;
 }
 
+function getAcademicActivityIds() {
+  return new Set(Object.values(academicActivities).flat().map((activity) => activity.id));
+}
+
+function createAcademicActivityId() {
+  const existingIds = getAcademicActivityIds();
+  let activityId;
+  do {
+    activityId = `activity-${++academicActivitySequence}`;
+  } while (existingIds.has(activityId));
+  return activityId;
+}
+
+function restoreAcademicData() {
+  let storedValue;
+  try {
+    storedValue = localStorage.getItem(academicStorageKey);
+  } catch {
+    academicPersistenceMessage = "Browser storage is unavailable. Academic changes can be saved for this session only.";
+    return;
+  }
+
+  if (storedValue === null) {
+    return;
+  }
+
+  let stored;
+  try {
+    stored = JSON.parse(storedValue);
+  } catch {
+    academicPersistenceMessage = "Saved academic data could not be read and was skipped.";
+    return;
+  }
+
+  if (!stored || typeof stored !== "object" || stored.version !== 1) {
+    academicPersistenceMessage = "Saved academic data had an invalid format and was skipped.";
+    return;
+  }
+
+  let skippedRecord = false;
+  const customActivities = Array.isArray(stored.customActivities) ? stored.customActivities : [];
+  const savedScores = Array.isArray(stored.savedScores) ? stored.savedScores : [];
+  if (!Array.isArray(stored.customActivities) || !Array.isArray(stored.savedScores)) {
+    skippedRecord = true;
+  }
+
+  const activityIds = getAcademicActivityIds();
+  customActivities.forEach((activity) => {
+    const sequence = typeof activity?.id === "string" && /^activity-[1-9]\d*$/.test(activity.id)
+      ? Number(activity.id.slice("activity-".length))
+      : NaN;
+    if (!activity || typeof activity !== "object" || Array.isArray(activity)
+        || !Object.hasOwn(academicActivities, activity.subject)
+        || !Number.isSafeInteger(sequence)
+        || activityIds.has(activity.id)
+        || typeof activity.title !== "string" || !activity.title.trim()
+        || typeof activity.maxScore !== "number" || !Number.isFinite(activity.maxScore)
+        || activity.maxScore <= 0) {
+      skippedRecord = true;
+      return;
+    }
+
+    academicActivities[activity.subject].push({
+      id: activity.id,
+      title: activity.title.trim(),
+      maxScore: activity.maxScore,
+    });
+    activityIds.add(activity.id);
+    academicActivitySequence = Math.max(academicActivitySequence, sequence);
+  });
+
+  savedScores.forEach((entry) => {
+    if (!Array.isArray(entry) || entry.length !== 2 || typeof entry[0] !== "string"
+        || savedAcademicScores.has(entry[0])) {
+      skippedRecord = true;
+      return;
+    }
+
+    const [key, scores] = entry;
+    const [section, subject, activityId, ...extraKeyParts] = key.split("|");
+    const roster = sectionRosters[section];
+    const activity = Object.hasOwn(academicActivities, subject)
+      ? academicActivities[subject].find((item) => item.id === activityId)
+      : null;
+    if (extraKeyParts.length || !roster || !activity || !scores
+        || typeof scores !== "object" || Array.isArray(scores)) {
+      skippedRecord = true;
+      return;
+    }
+
+    const scoreEntries = Object.entries(scores);
+    if (scoreEntries.length === 0 || scoreEntries.some(([learnerId, score]) =>
+      !roster.includes(learnerId) || typeof score !== "number"
+      || !Number.isFinite(score) || score < 0 || score > activity.maxScore)) {
+      skippedRecord = true;
+      return;
+    }
+
+    savedAcademicScores.set(key, Object.fromEntries(
+      scoreEntries.map(([learnerId, score]) => [learnerId, String(score)]),
+    ));
+  });
+
+  if (skippedRecord) {
+    academicPersistenceMessage = "Some saved academic records were invalid or duplicated and have been skipped.";
+  }
+}
+
+function persistAcademicData() {
+  const customActivities = Object.entries(academicActivities).flatMap(([subject, activities]) =>
+    activities
+      .filter((activity) => /^activity-\d+$/.test(activity.id))
+      .map((activity) => ({
+        subject,
+        id: activity.id,
+        title: activity.title,
+        maxScore: activity.maxScore,
+      })),
+  );
+  const stored = {
+    version: 1,
+    customActivities,
+    savedScores: [...savedAcademicScores.entries()].map(([key, scores]) => [
+      key,
+      Object.fromEntries(Object.entries(scores).map(([learnerId, score]) => [learnerId, Number(score)])),
+    ]),
+  };
+
+  try {
+    localStorage.setItem(academicStorageKey, JSON.stringify(stored));
+    academicPersistenceMessage = "";
+    return true;
+  } catch {
+    academicPersistenceMessage = "Browser storage failed. Academic changes are available for this session only and may be lost on refresh.";
+    return false;
+  }
+}
+
 function setAcademicMessage(text = "", type = "") {
   const message = document.querySelector("#academic-message");
-  message.textContent = text;
-  message.classList.toggle("error", type === "error");
-  message.classList.toggle("success", type === "success");
+  message.textContent = [text, academicPersistenceMessage].filter(Boolean).join(" ");
+  message.classList.toggle("error", type === "error" || Boolean(academicPersistenceMessage));
+  message.classList.toggle("success", type === "success" && !academicPersistenceMessage);
 }
 
 function updateAcademicSummary() {
@@ -1015,6 +1155,12 @@ function saveAnnouncement(event) {
 
 function updateReportControls() {
   const type = document.querySelector("#report-type").value;
+  document.querySelector("#reports-view .page-subtitle").textContent =
+    "Create a printable summary from saved browser-local attendance or academic records and current-session data.";
+  document.querySelector("#reports-view .report-builder-heading p").textContent =
+    "Saved browser-local attendance and academic records and current-session records are included for the selected report.";
+  document.querySelector("#reports-view .report-prototype-note").textContent =
+    "Reports use browser-local attendance and academic data plus current-session support and synthetic roster records. No official grading, risk thresholds, or legal compliance determinations are included.";
   document.querySelector(".report-section-field").hidden = type === "interventions" || type === "roster";
   document.querySelector(".report-date-field").hidden = type !== "attendance";
   document.querySelector(".report-subject-field").hidden = type !== "academic";
@@ -1094,7 +1240,7 @@ function renderReport(title, subtitle, headers, rows, summaryItems = []) {
   generated.textContent = `Generated ${new Intl.DateTimeFormat(undefined, {
     dateStyle: "medium",
     timeStyle: "short",
-  }).format(new Date())} · Session-only summary`;
+  }).format(new Date())} · Prototype data summary`;
 
   const contents = [heading, generated];
   if (summaryItems.length) {
@@ -1718,8 +1864,13 @@ function saveAcademicScores(event) {
 
   savedAcademicScores.set(currentAcademicKey, { ...draft });
   const section = document.querySelector("#academic-section").selectedOptions[0].textContent;
-  setAcademicMessage(`Saved ${assessment.title} scores for ${section}.`, "success");
-  showToast("Activity scores saved.");
+  if (persistAcademicData()) {
+    setAcademicMessage(`Saved ${assessment.title} scores for ${section}.`, "success");
+    showToast("Activity scores saved.");
+  } else {
+    setAcademicMessage(`Scores updated for ${assessment.title} in ${section}.`, "error");
+    showToast("Scores saved for this session only.");
+  }
 }
 
 function createAcademicActivity(event) {
@@ -1743,21 +1894,28 @@ function createAcademicActivity(event) {
 
   const subject = document.querySelector("#academic-subject").value;
   const activity = {
-    id: `activity-${++academicActivitySequence}`,
+    id: createAcademicActivityId(),
     title,
     maxScore,
   };
   academicActivities[subject].push(activity);
+  const persisted = persistAcademicData();
   document.querySelector("#academic-activity-dialog").close();
   document.querySelector("#academic-activity-form").reset();
   document.querySelector("#academic-activity-points").value = "20";
   loadAcademicSelection();
   document.querySelector("#academic-activity").value = activity.id;
   loadAcademicSelection();
-  showToast(`${title} added.`);
+  if (persisted) {
+    showToast(`${title} added.`);
+  } else {
+    setAcademicMessage(`${title} added for this session only.`, "error");
+    showToast("Activity added for this session only.");
+  }
 }
 
 restoreAttendanceData();
+restoreAcademicData();
 updateDateAndGreeting();
 updateAttendanceChart(document.querySelector("#period-select").value);
 populateStructureControls();

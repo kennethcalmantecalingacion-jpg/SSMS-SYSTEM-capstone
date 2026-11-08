@@ -28,8 +28,9 @@ approved or deployed school system.
   mark-all, and save validation still cover every learner in the section.
 - Academic records support section/subject selection, custom activity names
   and possible points, per-learner scores, percentage class averages, search,
-  validation, and session-only saving. Search matches learner names and IDs;
-  official grade and GPA rules remain unconfigured.
+  validation, and browser-local saving of custom activities and submitted
+  scores. Unfinished score drafts are cleared on refresh. Search matches
+  learner names and IDs; official grade and GPA rules remain unconfigured.
 - The Early Warnings view lists four synthetic review prompts and supports
   category/status filtering, learner/topic search, session-only review
   acknowledgment, and opening a linked support plan. Counts reflect the
@@ -44,16 +45,19 @@ approved or deployed school system.
   labels do not enforce access.
 - Reports can preview and print saved attendance for a section/date, saved
   activity scores, intervention status, or a synthetic roster summary.
-  Reports use only current-session data and do not apply official grades or
-  early-warning rules.
+  Attendance and academic reports can use records saved in this browser;
+  intervention and roster reports use current-session data. Reports do not
+  apply official grades or early-warning rules.
 - Successfully saved attendance records and their history persist in this
   browser using localStorage; unfinished attendance drafts are cleared on
-  refresh. Student profiles, class structure, and directory changes also
-  exist only in the current session.
+  refresh. Custom academic activities and successfully saved scores also
+  persist in this browser; unfinished score drafts are cleared on refresh.
+  Student profiles, class structure, and directory changes exist only in the
+  current session.
   No real student records are stored.
 - Settings remain a future module. There is no backend, authentication, role
   enforcement, external messaging, or central database; only saved attendance
-  is persisted locally in this browser.
+  and academic data are persisted locally in this browser.
 - A provisional role-permission proposal for teachers, advisers, guidance
   counselors, parents, and system administration is documented in
   `docs/ACCESS-CONTROL-MATRIX.md`. It is not school-approved and is not
