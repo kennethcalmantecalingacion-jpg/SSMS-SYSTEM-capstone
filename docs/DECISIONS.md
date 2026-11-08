@@ -174,3 +174,36 @@ Update this log when a decision changes.
 - **Next step:** Confirm the evidence, categories, escalation, review meaning,
   authorized reviewers, audit requirements, and any approved thresholds
   before using real learner information.
+
+## 2026-11-08 — Define the attendance-first backend authorization boundary
+
+- **Decision:** Keep the future first shared-data workflow limited to
+  authenticated identity, approved role and assignment checks, the assigned
+  roster, an attendance session, its entries, and attributable corrections.
+  Roles and assignments must both be checked; UI navigation is not an
+  authorization boundary.
+- **Provisional scope:** An assigned Teacher may record only if LNHS approves
+  that attendance responsibility. An Adviser may record only within an
+  assigned advisory section if LNHS separately approves that permission.
+  Guidance Counselor, Parent/Guardian, and Designated System Administrator
+  receive no general attendance-table access. Any future referral or guardian
+  summary needs its own approved scope and data path.
+- **Role distinction:** The blueprint's proposed School Administrator is
+  separate from Designated System Administrator. School structure and staff
+  assignment administration remain ungranted until LNHS approves that
+  separate role; technical/account administration does not imply learner
+  access.
+- **Integrity direction:** Attendance entries reference the historical
+  enrollment valid for the session's section/date; enforce one entry per
+  session/enrollment, validate the relationship atomically, and append
+  actor-attributed before/after correction events. Do not define
+  section/date as a unique session key until the school decides whether a
+  section may have multiple sessions per day.
+- **Pending:** Teacher/Adviser recording and correction authority, session
+  type and date uniqueness, enrollment date-boundary rules, whether initial
+  status creation gets a history event, and who provisions/revokes roles and
+  assignments require adviser/LNHS confirmation.
+- **Validation status:** Design and test scenarios documented only. No SQL,
+  database, RLS policy, or backend test has been implemented or executed.
+- **Next step:** Review the attendance-first model and allow/deny test plan
+  before beginning local Supabase preparation.

@@ -15,6 +15,13 @@ The demo System Administrator's client-side navigation is limited to a
 data-free System Administration status page. This navigation preset does not
 approve or grant any entity permission in this proposal.
 
+The blueprint distinguishes a proposed **School Administrator** role for
+school structure and staff-assignment management from the **Designated System
+Administrator** for technical/account administration. School Administrator
+is not an active role in this matrix and has no grants here. The Designated
+System Administrator must not inherit school-structure or learner-record
+permissions from that proposed role.
+
 This update reconciles the conceptual entities in
 [DATA-MODEL-ERD.md](./DATA-MODEL-ERD.md) with their fields and unresolved
 details in [DATA-DICTIONARY.md](./DATA-DICTIONARY.md), the existing provisional
@@ -81,11 +88,16 @@ server-side enforcement are in place.
   learner relationship, and limited to information and communications
   explicitly approved for that relationship. The ERD does not yet include a
   guardian-link entity.
-- **Designated System Administrator:** technical/account and approved
-  structure administration does not grant routine learner, academic, warning,
-  support-note, or guidance-content access. Administrative corrections must
-  be attributable; an administrator must not grant or elevate their own
-  privileges.
+- **Designated System Administrator:** technical/account administration does
+  not grant routine learner, academic, attendance, warning, support-note, or
+  guidance-content access. This role is not the proposed School Administrator
+  role. School-structure and staff-assignment administration remain pending
+  approval of a separate role. An administrator must not grant or elevate
+  their own privileges.
+- **School Administrator:** a separate proposed school-management role from
+  the master blueprint, not included as an active or granted role in this
+  matrix. Its approval, account provisioning, and precise authority remain
+  pending LNHS review.
 
 A user may have multiple roles and multiple assignment records. Evaluate each
 role, assignment, entity, action, and record scope independently. Do not use
@@ -104,20 +116,20 @@ permissions have been approved.
 | ERD entity | Scope / boundary | Teacher | Adviser | Guidance Counselor | Parent/Guardian | Designated System Administrator |
 |---|---|---:|---:|---:|---:|---:|
 | `LEARNER` | Assigned class; assigned advisory; assigned referral; verified linked learner; no routine admin access | V | B | V | PARENT | DENY |
-| `GRADE_LEVEL` | Minimum structure context needed for an approved task | V | V | V | PENDING | M |
-| `SECTION` | Assigned class/advisory or case context; parent only linked learner context | V | V | V | PARENT | M |
-| `SCHOOL_YEAR` | Minimum structure context; use remains conditional on school-year approval | V | V | V | PENDING | M |
+| `GRADE_LEVEL` | Minimum structure context needed for an approved task; management authority requires a separately approved School Administrator role | V | V | V | PENDING | PENDING |
+| `SECTION` | Assigned class/advisory or case context; management authority requires a separately approved School Administrator role | V | V | V | DENY | PENDING |
+| `SCHOOL_YEAR` | Minimum structure context; use and management remain conditional on approval | V | V | V | PENDING | PENDING |
 | `ENROLLMENT` | Applicable learner and historical section context only | V | V | V | PARENT | DENY |
 | `USER_PROFILE` | Own minimum account details; admin technical identity references only | I | I | I | I | M |
 | `ROLE` | Role definitions; no self-grant or privilege escalation | PENDING | PENDING | PENDING | DENY | M |
 | `USER_ROLE` | Staff/parent can view own role assignment only; provisioning authority unresolved | O | O | O | O | M |
-| `SUBJECT` | Only subjects needed for assigned offering, advisory summary, referral, or approved parent summary | V | V | V | PARENT | M |
-| `SUBJECT_OFFERING` | Teacher's assigned offering; adviser section summary; referral or linked-learner summary only as approved | V | V | V | PARENT | M |
-| `TEACHING_ASSIGNMENT` | Staff may view own assignment only; assignment creation/approval is not granted by this role matrix | O | PENDING | PENDING | DENY | M |
-| `ADVISORY_ASSIGNMENT` | Adviser may view own assignment only; assignment creation/approval remains unresolved | PENDING | O | PENDING | DENY | M |
-| `ATTENDANCE_SESSION` | Assigned class or advisory section; referral view only; parent summary only | E | E | V | PARENT | DENY |
-| `ATTENDANCE_ENTRY` | Enrollment and section must match the applicable session; same scopes as session | E | E | V | PARENT | DENY |
-| `ATTENDANCE_CHANGE` | Read history only when needed in assigned work; event appended only by approved correction | H | H | V | DENY | DENY |
+| `SUBJECT` | Only subjects needed for assigned offering, advisory summary, or separately approved referral context; no parent access proposed here | V | V | V | DENY | PENDING |
+| `SUBJECT_OFFERING` | Teacher's assigned offering; adviser section summary; referral context only as separately approved | V | V | V | DENY | PENDING |
+| `TEACHING_ASSIGNMENT` | Staff may view own assignment only; assignment creation/approval is not granted by this role matrix | O | PENDING | PENDING | DENY | PENDING |
+| `ADVISORY_ASSIGNMENT` | Adviser may view own assignment only; assignment creation/approval remains unresolved | PENDING | O | PENDING | DENY | PENDING |
+| `ATTENDANCE_SESSION` | Assigned Teacher scope only if attendance recording is approved; assigned Adviser scope only if recording permission is approved. No direct attendance-table access for restricted roles | E | E | DENY | DENY | DENY |
+| `ATTENDANCE_ENTRY` | Applicable session and historical enrollment must match; same conditional scopes as session | E | E | DENY | DENY | DENY |
+| `ATTENDANCE_CHANGE` | Read history and append corrections only within approved assigned attendance scope; event rows are immutable | H | H | DENY | DENY | DENY |
 | `ASSESSMENT` | Teacher setup only for assigned offering; other views limited to approved summaries | A | V | V | PARENT | DENY |
 | `ASSESSMENT_SCORE` | Assigned offering and applicable enrollment; summaries only for other roles | E | V | V | PARENT | DENY |
 | `ASSESSMENT_SCORE_CHANGE` | Teacher correction history only for assigned offering; no routine parent/admin history access | H | V | V | DENY | DENY |
@@ -161,8 +173,8 @@ status legend and assignment restrictions as the entity matrix.
 | Existing module | Principal entities | Principal actions and provisional boundary |
 |---|---|---|
 | **Overview** | Derived from `LEARNER`, `ENROLLMENT`, attendance, assessment, warning, and support entities | Read scoped summaries only. Totals and charts must be computed from records the user may read; no extra access through dashboard aggregation. Parent summaries, if approved, are limited to linked learners. |
-| **Students** | `LEARNER`, `ENROLLMENT`, `SECTION`, `GRADE_LEVEL`, `SCHOOL_YEAR` | View class roster, advisory roster, assigned referral context, or verified linked learner only as approved. Profile updates are limited to the adviser `B` proposal; administrators manage structure, not learner content. |
-| **Attendance** | `ATTENDANCE_SESSION`, `ATTENDANCE_ENTRY`, `ATTENDANCE_CHANGE`, `ENROLLMENT` | Create/record and update only for approved assigned class/advisory scopes. Corrections require attributable history. Guidance and parent access is limited to approved relevant views; no admin routine edits. |
+| **Students** | `LEARNER`, `ENROLLMENT`, `SECTION`, `GRADE_LEVEL`, `SCHOOL_YEAR` | View class roster, advisory roster, assigned referral context, or verified linked learner only as approved. Profile updates are limited to the adviser `B` proposal. School structure management is reserved for a separately approved School Administrator role; Designated System Administrator receives no automatic grant. |
+| **Attendance** | `ATTENDANCE_SESSION`, `ATTENDANCE_ENTRY`, `ATTENDANCE_CHANGE`, `ENROLLMENT` | Candidate recording scope is an approved assigned Teacher offering and, if LNHS confirms, an assigned Adviser section. Corrections require attributable history. Guidance, Parent/Guardian, and Designated System Administrator have no general table access; any approved referral/guardian summary must be separately scoped and authorized. |
 | **Academics** | `SUBJECT`, `SUBJECT_OFFERING`, `ASSESSMENT`, `ASSESSMENT_SCORE`, `ASSESSMENT_SCORE_CHANGE`, `ENROLLMENT` | Teachers manage approved assessments and scores only for assigned offerings. Advisers, guidance staff, and parents receive only approved summaries within scope. Score corrections require history; official grading rules remain unconfirmed. |
 | **Early Warnings** | `WARNING_RECORD`, `WARNING_REVIEW_EVENT`, and source records where approved | Read/review only within assigned class, advisory, or referral scope. Review events are attributable and append-only. No parent internal alert queue, unapproved threshold administration, or administrator content access. |
 | **Interventions** | `SUPPORT_CASE`, `SUPPORT_UPDATE`, `GUIDANCE_RECORD`, `GUIDANCE_CASE_ASSIGNMENT`, `WARNING_RECORD` | Teacher referral/classroom follow-up, adviser coordination, and counselor case work are distinct scoped proposals. Preserve the actual warning link. Keep guidance records separately restricted; parents do not see internal case notes by default. |
@@ -190,17 +202,48 @@ status legend and assignment restrictions as the entity matrix.
 8. Do not add a guardian link, content field, role, permission, warning rule,
    or school-specific procedure unless it is approved and documented.
 
+## Attendance-first allow/deny test plan
+
+These are required future backend/RLS checks, not tests of the current demo.
+No scenario below makes a permission active; conditional allows require
+documented LNHS approval and server-side implementation.
+
+| Case | Expected backend result |
+|---|---|
+| Anonymous request reads or writes a session, entry, or change | Deny |
+| Authenticated Teacher with a current approved assignment for the selected offering and approved attendance permission reads roster and records that section | Allow only within that offering and applicable enrollment scope |
+| Teacher with no assignment, an inactive/revoked assignment, or an assignment for another offering/section | Deny, including direct API requests |
+| Authenticated Adviser with the current assigned advisory section | Attendance access remains pending LNHS confirmation; if approved, allow only that section |
+| Adviser without that assignment or with a different section assignment | Deny |
+| Guidance Counselor requests general session, entry, or correction-table access | Deny; any minimum referral context requires a separate approved data path and policy |
+| Disabled Parent/Guardian requests attendance data | Deny |
+| Designated System Administrator requests attendance records or corrections | Deny |
+| Proposed School Administrator role or grant before explicit approval | Deny; role remains unprovisioned |
+| Any actor submits an enrollment from another section, an enrollment outside its effective dates, or an unknown session | Reject atomically; create no partial batch |
+| Duplicate entry for the same session/enrollment, including concurrent submissions | Reject or idempotently avoid duplicate according to the reviewed transaction design |
+| User attempts to grant themselves a role or assignment | Deny |
+| Authorized correction | Require actor identity and append previous/new status and timestamp; do not overwrite or delete history |
+
+Review the Teacher and Adviser scenarios after LNHS decides who may record,
+whether advisers may correct records entered by another staff member, and how
+assignment effective dates are approved and revoked.
+
 ## Decisions requiring LNHS approval
 
 - Which staff positions map to Teacher, Adviser, Guidance Counselor, and
   Designated System Administrator; who approves accounts, role changes, and
   each assignment; whether one user may hold multiple roles.
+- Whether a separate School Administrator role is approved for school
+  structure and staff-assignment management, and how that authority is kept
+  separate from Designated System Administrator technical/account functions.
 - Exact per-entity read, create, update, correction, and export permissions,
   assignment lifecycle, correction workflow, audit detail, retention, and
   archival behavior.
 - Which learner details advisers may update and how corrections are reviewed.
-- Attendance and assessment entry/correction scope, status rules, score
-  history, and whether initial entries need history events.
+- Teacher and Adviser attendance recording/correction authority; attendance
+  status rules; whether initial entries need history events; and whether a
+  section may have multiple attendance sessions per date and what identifies
+  each session.
 - Warning categories, evidence, review actions, referral routing, recipients,
   and notification/escalation rules.
 - Which support-case fields are visible to each assigned staff role, whether

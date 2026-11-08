@@ -7,8 +7,9 @@ at the end.
 
 ## 1. Pre-test checks
 
-- [ ] Open the existing `index.html` application in a browser.
-- [ ] Confirm the application loads and the Overview screen appears.
+- [ ] Open the existing `index.html` application in a browser and select a
+  fictional demo account.
+- [ ] Confirm the account's permitted landing screen appears.
 - [ ] Open the browser console and check for errors during load and testing.
 - [ ] Use fictional names, IDs, notes, and messages exclusively.
 
@@ -41,6 +42,40 @@ because the screen appears correct.
 - [ ] **Reports and print preview:** Generate attendance, academic,
   intervention, and roster summaries where applicable. Check empty states and
   open print preview; confirm the application layout remains usable.
+
+## 2a. Future backend attendance authorization checks (not implemented)
+
+These are design acceptance cases for a future authenticated backend, not
+checks that can pass against the current browser-only prototype. Run them
+against the backend after the school approves the relevant roles and
+assignments. Use synthetic accounts, sections, and attendance data.
+
+- [ ] **Assigned Teacher:** Allow session creation and entry changes only for
+  an approved assigned offering/section; deny unassigned sections and
+  out-of-scope dates.
+- [ ] **Adviser:** Deny recording and correction unless LNHS explicitly
+  approves the Adviser permission; if approved, allow only the assigned
+  advisory section.
+- [ ] **Guidance Counselor:** Deny general attendance session and entry
+  access. Test any separately approved summary only through its specifically
+  scoped path.
+- [ ] **Parent/Guardian:** Deny general attendance table access. Test any
+  future approved child summary only through its separately scoped path.
+- [ ] **Designated System Administrator:** Deny general attendance session
+  and entry access; technical/account administration does not imply learner
+  data access.
+- [ ] **School Administrator:** Do not enable until LNHS approves this
+  separate proposed role and its scope.
+- [ ] **Historical enrollment:** Reject an entry if the enrollment did not
+  belong to the session section or was not effective on the session date.
+- [ ] **Entry uniqueness and atomicity:** Reject a second entry for the same
+  session/enrollment and ensure an invalid or partial session cannot be
+  persisted.
+- [ ] **Session uniqueness:** Test only the rule LNHS approves; do not assume
+  a section can have only one session per date.
+- [ ] **Correction history:** For an authorized correction, verify actor,
+  previous/new status, and timestamp are retained; determine whether initial
+  entry creation also requires a history event.
 
 ## 3. Dialog and form checks
 
@@ -94,16 +129,24 @@ At each size, check that:
 
 ## 6. Known limitations
 
-- Data is held for the current browser session and clears on refresh.
-- There is no real authentication or enforced role permission.
+- Roster/class structure, attendance, academic, and support demo records use
+  versioned browser-local storage; they are synthetic, local to this browser,
+  and not shared or protected by backend authorization. Other module data may
+  remain session-only.
+- Demo account selection and client-side role navigation are not real
+  authentication or enforced authorization; hidden views and local browser
+  data are not secured from direct access.
 - There is no backend or central database.
 - Offline record synchronization is not implemented.
-- Settings is still a placeholder.
+- Settings displays data-free technical/account capability status; no account
+  administration function is operational.
 - School-specific rules, fields, roles, and permissions remain provisional.
 - Dialog Escape-key dismissal still needs manual verification in Chrome.
 
-These are known prototype limitations, not results of a new test run. The
-prototype is for demonstration with fictional data, not operational use.
+Attendance backend authorization, database integrity, and RLS checks above are
+future tests and have not been implemented or run. These are known prototype
+limitations, not results of a new test run. The prototype is for
+demonstration with fictional data, not operational use.
 
 ## 7. Test record template
 

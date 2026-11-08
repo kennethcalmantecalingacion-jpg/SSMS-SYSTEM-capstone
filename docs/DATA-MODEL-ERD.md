@@ -3,10 +3,11 @@
 ## Purpose and scope
 
 This is a conceptual, source-grounded ERD for the current LNHS prototype and
-the data relationships needed to replace its session-only state. It is a
-design proposal, not an approved school policy or a finalized schema. Fields
-and enum values shown are illustrative; confirm them before implementation.
-No database, authentication, or persistence is implemented by this document.
+the data relationships needed for a future shared backend. It is a design
+proposal, not an approved school policy or a finalized schema. Fields and enum
+values shown are illustrative; confirm them before implementation. The
+prototype currently uses fictional demo account selection and browser-local
+stores; it has no database, real authentication, or backend authorization.
 
 The approved project title and direction remain unchanged. The diagrams cover
 school structure, learners and historical enrollment, staff identity and
@@ -132,6 +133,7 @@ erDiagram
     ATTENDANCE_SESSION {
         uuid attendance_session_id PK
         uuid section_id FK
+        uuid created_by_user_id FK
         date attendance_date
     }
     ATTENDANCE_ENTRY {
@@ -184,6 +186,7 @@ erDiagram
     SECTION ||--o{ ENROLLMENT : includes
     SCHOOL_YEAR ||--o{ ENROLLMENT : scopes
     SECTION ||--o{ ATTENDANCE_SESSION : has
+    USER_PROFILE ||--o{ ATTENDANCE_SESSION : creates
     ATTENDANCE_SESSION ||--o{ ATTENDANCE_ENTRY : records
     ENROLLMENT ||--o{ ATTENDANCE_ENTRY : identifies_learner_context
     ATTENDANCE_ENTRY ||--o{ ATTENDANCE_CHANGE : has_history
@@ -197,11 +200,30 @@ erDiagram
     USER_PROFILE ||--o{ ASSESSMENT_SCORE_CHANGE : changes
 ```
 
-An attendance session groups entries for a section and date. The current UI
-uses section/date keys; whether there can be multiple attendance sessions per
-section/day remains an open school workflow question. An attendance entry
-references the enrollment that was in effect, rather than only the learner's
-current section.
+An attendance session groups entries for a section and date and records its
+creator for provenance. Whether a section can have multiple sessions per day
+remains an open school workflow question; do not make `(section_id,
+attendance_date)` unique until LNHS confirms that one daily session is the
+intended rule. If multiple sessions are permitted, their discriminator and
+duplicate rule must be approved before adding a constraint. An attendance
+entry references the enrollment that was in effect, rather than only the
+learner's current section.
+
+The first backend workflow must verify the authenticated identity, active role,
+and applicable teaching or advisory assignment before reading a roster or
+writing a session. A role alone is not scope. Teacher recording is conditional
+on LNHS approval; adviser recording is also pending confirmation. Guidance
+Counselor, Parent/Guardian, and Designated System Administrator receive no
+general attendance-table access in this workflow. Any future referral or
+guardian summary is a separate, approval-dependent surface and must not imply
+direct access to attendance tables.
+
+Create entries under the session and applicable historical enrollment in one
+transaction-safe operation. Enforce one entry per `(attendance_session_id,
+enrollment_id)` and validate that the enrollment belongs to the session section
+and is effective on its date. Corrections append an `ATTENDANCE_CHANGE` with
+actor, previous/new statuses, and occurrence time. Whether initial entry
+creation also produces a history event remains unresolved.
 
 An assessment belongs to a section/subject offering, and each score refers to
 the learner's applicable enrollment. Validate that the enrollment's section

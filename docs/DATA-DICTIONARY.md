@@ -159,7 +159,14 @@ Purpose: group attendance entries for a section and date.
 |---|---|---|---|---|
 | `attendance_session_id` | UUID | PK | Required | Stable session identifier. |
 | `section_id` | UUID | FK → `SECTION.section_id` | Required | Section whose roster is recorded. |
+| `created_by_user_id` | UUID | FK → `USER_PROFILE.user_id` | Required once authenticated | Authenticated user who created the session. A session must not be attributed to an unverified client-supplied identity. |
 | `attendance_date` | DATE | — | Required | Date of the session. Session type, timezone implications, and permitted dates need confirmation. |
+
+**Session uniqueness:** do not assume `section_id + attendance_date` is
+unique. Confirm whether multiple sessions per section/day are possible and,
+if so, which approved session discriminator participates in uniqueness.
+Until decided, the stable session ID identifies the session; duplicate
+prevention for entries remains per session and applicable enrollment.
 
 ### `ATTENDANCE_ENTRY`
 
@@ -173,10 +180,13 @@ enrollment context that applied at the time.
 | `enrollment_id` | UUID | FK → `ENROLLMENT.enrollment_id` | Required | Applicable historical enrollment. Its section must match the session section, and its effective period must cover the session. |
 | `status` | TEXT | — | Required | Attendance result. Prototype examples are Present, Late, Absent, and Excused; approved values and treatment are pending. |
 
-**Integrity review:** candidate uniqueness is one entry per
-`attendance_session_id` and `enrollment_id`. The ERD does not decide whether a
-section may hold multiple sessions on a date; therefore, do not assume
-`section_id + attendance_date` alone is unique.
+**Integrity review:** require one entry per
+`attendance_session_id` and `enrollment_id`. Verify transactionally that the
+enrollment's section matches the session section and that its effective
+period covers the attendance date. Whether a section may hold multiple
+sessions on a date remains unresolved; therefore, do not assume
+`section_id + attendance_date` alone is unique. The authenticated creator is
+obtained from trusted auth context, not accepted as arbitrary client input.
 
 ### `ATTENDANCE_CHANGE`
 
@@ -191,9 +201,9 @@ Purpose: retain the before/after status and actor for an authorized correction.
 | `new_status` | TEXT | — | Required | Status after the change; use only approved status values. |
 | `occurred_at` | TIMESTAMPTZ | — | Required | Time the correction occurred. Time-source and retention rules require review. |
 
-The ERD models correction history, not whether the initial entry is also
-recorded as a change event. Define that distinction and immutable-history
-expectations before implementation.
+The ERD models authorized corrections as attributable before/after events,
+not whether the initial entry is also recorded as a change event. Define that
+distinction and immutable-history expectations before implementation.
 
 ## Academic records
 
