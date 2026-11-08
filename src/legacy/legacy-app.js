@@ -3,33 +3,6 @@
 import { canAccessView } from "../core/access/role-access.js";
 import { getCurrentSession } from "../core/auth/demo-auth.js";
 
-const periodData = {
-  today: {
-    labels: ["8 AM", "10 AM", "12 PM", "2 PM", "4 PM"],
-    rates: [92.8, 95.3, 93.7, 94.6, 94.6],
-    present: 1176,
-    late: 8,
-    absent: 54,
-    excused: 10,
-  },
-  week: {
-    labels: ["Mon", "Tue", "Wed", "Thu", "Fri"],
-    rates: [93, 94, 95, 94, 95],
-    present: 5878,
-    late: 50,
-    absent: 260,
-    excused: 52,
-  },
-  month: {
-    labels: ["Week 1", "Week 2", "Week 3", "Week 4", "Week 5"],
-    rates: [91, 93, 94, 95, 95],
-    present: 23363,
-    late: 150,
-    absent: 1100,
-    excused: 347,
-  },
-};
-
 let sectionRosters = {
   "7-A": ["L-0701", "L-0702", "L-0703", "L-0704", "L-0705", "L-0706", "L-0707", "L-0708"],
   "8-A": ["L-0801", "L-0802", "L-0803", "L-0804", "L-0805", "L-0806", "L-0807", "L-0808"],
@@ -128,51 +101,136 @@ function updateDateAndGreeting() {
 }
 
 function updateAttendanceChart(period) {
-  const data = periodData[period];
-  if (!data) {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  let startDate;
+  let endDate;
+  if (period === "today") {
+    startDate = today;
+    endDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+  } else if (period === "week") {
+    const daysSinceMonday = (today.getDay() + 6) % 7;
+    startDate = new Date(today.getFullYear(), today.getMonth(), today.getDate() - daysSinceMonday);
+    endDate = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate() + 7);
+  } else if (period === "month") {
+    startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+    endDate = new Date(today.getFullYear(), today.getMonth() + 1, 1);
+  } else {
     return;
   }
 
-  const average = data.rates.reduce((sum, rate) => sum + rate, 0) / data.rates.length;
-  const averageText = `${average.toFixed(1)}%`;
+  const grouped = new Map();
+  const totals = { present: 0, late: 0, absent: 0, excused: 0 };
+  for (const [key, record] of savedAttendance) {
+    const separator = key.lastIndexOf("|");
+    const dateValue = key.slice(separator + 1);
+    if (separator < 0 || !isValidAttendanceDate(dateValue)) {
+      continue;
+    }
+    const [year, month, day] = dateValue.split("-").map(Number);
+    const date = new Date(year, month - 1, day);
+    if (date < startDate || date >= endDate) {
+      continue;
+    }
+
+    let groupKey = dateValue;
+    let label = period === "today"
+      ? "Today"
+      : new Intl.DateTimeFormat(undefined, period === "week"
+        ? { weekday: "short" }
+        : { month: "short", day: "numeric" }).format(date);
+    if (period === "month") {
+      const weekNumber = Math.floor((day - 1) / 7) + 1;
+      groupKey = `week-${weekNumber}`;
+      const firstDay = new Date(year, month - 1, (weekNumber - 1) * 7 + 1);
+      const lastDay = new Date(year, month - 1, Math.min(weekNumber * 7, new Date(year, month, 0).getDate()));
+      label = `${firstDay.getDate()}–${lastDay.getDate()}`;
+    }
+
+    if (!grouped.has(groupKey)) {
+      grouped.set(groupKey, { label, counts: { present: 0, late: 0, absent: 0, excused: 0 } });
+    }
+    const group = grouped.get(groupKey);
+    Object.entries(record?.statuses || {}).forEach(([learnerId, status]) => {
+      if (!learnerId || !Object.hasOwn(totals, status)) {
+        return;
+      }
+      totals[status] += 1;
+      group.counts[status] += 1;
+    });
+  }
+
+  const groups = [...grouped.entries()]
+    .sort(([left], [right]) => left.localeCompare(right, undefined, { numeric: true }))
+    .map(([, group]) => ({
+      ...group,
+      total: Object.values(group.counts).reduce((sum, count) => sum + count, 0),
+    }))
+    .filter((group) => group.total > 0);
+  const totalEntries = Object.values(totals).reduce((sum, count) => sum + count, 0);
   const chartLine = document.querySelector("#chart-line");
   const chartArea = document.querySelector("#chart-area");
   const chart = document.querySelector("#attendance-chart");
   const chartLabels = document.querySelector("#chart-x-labels");
-
-  const points = data.rates.map((rate, index) => {
-    const x = (620 * index) / (data.rates.length - 1);
-    const y = ((100 - rate) / 15) * 180;
-    return { x, y };
-  });
-  const linePath = points.map((point, index) => `${index === 0 ? "M" : "L"}${point.x} ${point.y}`).join(" ");
-
-  chartLine.setAttribute("d", linePath);
-  chartArea.setAttribute("d", `${linePath} L620 180 L0 180Z`);
-  chart.setAttribute("aria-label", `Attendance rate trend: ${data.labels.join(", ")}`);
-
-  chart.querySelectorAll("circle").forEach((circle, index) => {
-    const point = points[index];
-    if (point) {
-      circle.setAttribute("cx", String(point.x));
-      circle.setAttribute("cy", String(point.y));
-      circle.style.display = "";
-    } else {
-      circle.style.display = "none";
-    }
-  });
-
-  chartLabels.replaceChildren(...data.labels.map((label) => {
+  const chartWrap = document.querySelector(".chart-wrap");
+  const emptyState = document.querySelector("#chart-empty");
+  const yLabels = document.querySelector("#chart-y-labels");
+  chartLabels.replaceChildren(...groups.map(({ label }) => {
     const item = document.createElement("span");
     item.textContent = label;
     return item;
   }));
-  document.querySelector("#chart-average").textContent = averageText;
-  document.querySelector("#attendance-metric").innerHTML = `${average.toFixed(1)}<span class="metric-unit">%</span>`;
-  document.querySelector("#present-count").textContent = formatNumber(data.present);
-  document.querySelector("#late-count").textContent = formatNumber(data.late);
-  document.querySelector("#absent-count").textContent = formatNumber(data.absent);
-  document.querySelector("#excused-count").textContent = formatNumber(data.excused);
+  document.querySelector("#chart-average").textContent = formatNumber(totalEntries);
+  document.querySelector("#attendance-metric").textContent = formatNumber(totalEntries);
+  document.querySelector("#chart-period-label").textContent = "recorded statuses";
+  document.querySelector("#attendance-chart-legend").textContent = "Saved statuses";
+  document.querySelector("#present-count").textContent = formatNumber(totals.present);
+  document.querySelector("#late-count").textContent = formatNumber(totals.late);
+  document.querySelector("#absent-count").textContent = formatNumber(totals.absent);
+  document.querySelector("#excused-count").textContent = formatNumber(totals.excused);
+  chart.setAttribute("aria-label", `Saved attendance statuses: ${totalEntries}`);
+  const hasData = groups.length > 0;
+  chartWrap.hidden = !hasData;
+  emptyState.hidden = hasData;
+  if (!hasData) {
+    chartLine.setAttribute("d", "");
+    chartArea.setAttribute("d", "");
+    yLabels.replaceChildren();
+    return;
+  }
+
+  const maxCount = Math.max(...groups.map((group) => group.total));
+  const points = groups.map((group, index) => ({
+    x: groups.length === 1 ? 310 : 20 + (580 * index) / (groups.length - 1),
+    y: 155 - (group.total / maxCount) * 125,
+  }));
+  const linePath = points
+    .map((point, index) => `${index === 0 ? "M" : "L"}${point.x} ${point.y}`)
+    .join(" ");
+  chartLine.setAttribute("d", linePath);
+  const lastPoint = points[points.length - 1];
+  const firstPoint = points[0];
+  chartArea.setAttribute(
+    "d",
+    `${linePath} L${lastPoint.x} 160 L${firstPoint.x} 160Z`,
+  );
+  chart.querySelectorAll("circle").forEach((circle) => circle.remove());
+  points.forEach((point) => {
+    const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    circle.setAttribute("cx", String(point.x));
+    circle.setAttribute("cy", String(point.y));
+    circle.setAttribute("r", "4");
+    chart.append(circle);
+  });
+  const middleCount = Math.round(maxCount / 2);
+  const yValues = maxCount === 1 ? [1, 0] : [maxCount, middleCount, 0];
+  yLabels.replaceChildren(
+    ...yValues.map((count) => {
+      const item = document.createElement("span");
+      item.textContent = formatNumber(count);
+      return item;
+    }),
+  );
 }
 
 function closeMobileNavigation() {
@@ -1314,6 +1372,34 @@ function renderDashboardInterventions() {
   container.replaceChildren(...openRecords.map((record) => createInterventionRow(record, true)));
 }
 
+function updateDashboardSupportSummary() {
+  const openRecords = interventionRecords.filter((record) => record.status !== "completed");
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const startOfWeek = new Date(
+    today.getFullYear(),
+    today.getMonth(),
+    today.getDate() - ((today.getDay() + 6) % 7),
+  );
+  const startOfNextWeek = new Date(
+    startOfWeek.getFullYear(),
+    startOfWeek.getMonth(),
+    startOfWeek.getDate() + 7,
+  );
+  const dueThisWeek = openRecords.filter((record) => {
+    if (!isValidAttendanceDate(record.dueDate)) {
+      return false;
+    }
+    const [year, month, day] = record.dueDate.split("-").map(Number);
+    const dueDate = new Date(year, month - 1, day);
+    return dueDate >= startOfWeek && dueDate < startOfNextWeek;
+  }).length;
+
+  document.querySelector("#support-plan-total").textContent = String(openRecords.length);
+  document.querySelector("#support-due-total").textContent = String(dueThisWeek);
+  document.querySelector("#support-due-label").textContent = dueThisWeek ? "due this week" : "no plans due this week";
+}
+
 function renderInterventions() {
   const selectedStatus = document.querySelector("#intervention-status-filter").value;
   const filtered = interventionRecords.filter((record) => selectedStatus === "all" || record.status === selectedStatus);
@@ -1334,6 +1420,7 @@ function renderInterventions() {
   document.querySelector("#intervention-completed-count").textContent = String(
     interventionRecords.filter((record) => record.status === "completed").length,
   );
+  updateDashboardSupportSummary();
   renderDashboardInterventions();
 }
 
@@ -1480,11 +1567,11 @@ function saveAnnouncement(event) {
 function updateReportControls() {
   const type = document.querySelector("#report-type").value;
   document.querySelector("#reports-view .page-subtitle").textContent =
-    "Create a printable summary from saved browser-local attendance or academic records and current-session data.";
+    "Create a printable summary from saved browser-local demo records.";
   document.querySelector("#reports-view .report-builder-heading p").textContent =
-    "Saved browser-local attendance and academic records and current-session records are included for the selected report.";
+    "Saved browser-local attendance, academic, and support records or the current synthetic roster are included for the selected report.";
   document.querySelector("#reports-view .report-prototype-note").textContent =
-    "Reports use browser-local attendance and academic data plus current-session support and synthetic roster records. No official grading, risk thresholds, or legal compliance determinations are included.";
+    "Reports use browser-local attendance, academic, and support records plus the current synthetic roster. No official grading, risk thresholds, or legal compliance determinations are included.";
   document.querySelector(".report-section-field").hidden = type === "interventions" || type === "roster";
   document.querySelector(".report-date-field").hidden = type !== "attendance";
   document.querySelector(".report-subject-field").hidden = type !== "academic";
@@ -1857,6 +1944,7 @@ function renderStudentDirectory() {
   const selectedSection = document.querySelector("#student-section-filter").value;
   const selectedGender = document.querySelector("#student-gender-filter").value;
   const records = getStudentRecords();
+  document.querySelector("#enrolled-learner-total").textContent = formatNumber(records.length);
   const filteredRecords = records.filter((record) => {
     const matchesSearch = !search || record.learnerId.toLowerCase().includes(search) || record.name.toLowerCase().includes(search);
     const matchesGrade = selectedGrade === "all" || record.grade === selectedGrade;
@@ -2151,6 +2239,7 @@ function saveAttendance(event) {
   }
 
   const persisted = persistAttendanceData();
+  updateAttendanceChart(document.querySelector("#period-select").value);
   renderAttendanceHistory();
   if (persisted) {
     setAttendanceMessage(`${title} for ${formatAttendanceDate(date)}.`, "success");
@@ -2510,7 +2599,7 @@ function createWarningCard(warning) {
 function updateWarningCounts() {
   const needsReview = warningRecords.filter((warning) => !warning.isReviewed).length;
   const reviewed = warningRecords.length - needsReview;
-  document.querySelector("#open-alert-total").textContent = String(needsReview);
+  document.querySelector("#open-alert-total").textContent = String(warningRecords.length);
   document.querySelector("#sidebar-alert-count").textContent = String(needsReview);
   document.querySelector("#warning-needs-review").textContent = String(needsReview);
   document.querySelector("#warning-reviewed").textContent = String(reviewed);

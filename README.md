@@ -7,11 +7,13 @@ approved or deployed school system.
 
 - A responsive dashboard is implemented in `index.html` and the Vite source
   under `src/`.
-- The dashboard uses fictional sample figures; period selection, warning
-  acknowledgment, filtering, and mobile navigation work in the browser.
-- Presentation screens omit demo labels, but the figures and learner IDs remain
-  fictional. This is still a prototype, not an official or deployed school
-  system.
+- Dashboard summaries use the current synthetic browser-local roster, saved
+  attendance statuses, and support plans. Period selection filters saved
+  attendance counts; no official attendance rate is calculated. Warning
+  prompts remain illustrative samples, not learner risk findings.
+- Dashboard figures and learner IDs are fictional demo data, not official
+  school-wide statistics. This is still a prototype, not an official or
+  deployed school system.
 - Dashboard and attendance typography has been increased for readability on
   laptop and mobile layouts.
 - The interface uses a blue and light-blue palette, shorter action-oriented

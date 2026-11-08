@@ -164,63 +164,64 @@
           <section class="metrics-grid" aria-label="Student monitoring summary">
             <article class="metric-card">
               <div class="metric-topline"><span class="metric-icon students-icon"><svg aria-hidden="true" viewBox="0 0 20 20"><circle cx="7" cy="6" r="3"/><path d="M1.8 17v-1.3A4.7 4.7 0 0 1 6.5 11h1a4.7 4.7 0 0 1 4.7 4.7V17ZM13 3.2a3 3 0 0 1 0 5.7M14 11.2a4.7 4.7 0 0 1 4.2 4.6V17h-3"/></svg></span><span class="metric-context">ENROLLED</span></div>
-              <div class="metric-value">1,248</div>
-              <div class="metric-footer"><span class="trend neutral"><span>↗</span> 24 this term</span><span class="metric-note">Across all sections</span></div>
+              <div class="metric-value" id="enrolled-learner-total">0</div>
+              <div class="metric-footer"><span class="trend neutral">Synthetic demo roster</span><span class="metric-note">Across current sections</span></div>
             </article>
             <article class="metric-card">
-              <div class="metric-topline"><span class="metric-icon attendance-icon"><svg aria-hidden="true" viewBox="0 0 20 20"><path d="m4 10 4 4 8-8"/></svg></span><span class="metric-context">ATTENDANCE</span></div>
-              <div class="metric-value" id="attendance-metric">94.2<span class="metric-unit">%</span></div>
-              <div class="metric-footer"><span class="trend positive"><span>↗</span> Period average</span><span class="metric-note">School-wide average</span></div>
+              <div class="metric-topline"><span class="metric-icon attendance-icon"><svg aria-hidden="true" viewBox="0 0 20 20"><path d="m4 10 4 4 8-8"/></svg></span><span class="metric-context">SAVED ENTRIES</span></div>
+              <div class="metric-value" id="attendance-metric">0</div>
+              <div class="metric-footer"><span class="trend neutral">Selected period</span><span class="metric-note">Recorded statuses</span></div>
             </article>
             <article class="metric-card">
-              <div class="metric-topline"><span class="metric-icon alerts-icon"><svg aria-hidden="true" viewBox="0 0 20 20"><path d="M15.5 7a5.5 5.5 0 0 0-11 0c0 6-2 6-2 7.5h15C17.5 13 15.5 13 15.5 7ZM8 17h4"/></svg></span><span class="metric-context">NEEDS REVIEW</span></div>
+              <div class="metric-topline"><span class="metric-icon alerts-icon"><svg aria-hidden="true" viewBox="0 0 20 20"><path d="M15.5 7a5.5 5.5 0 0 0-11 0c0 6-2 6-2 7.5h15C17.5 13 15.5 13 15.5 7ZM8 17h4"/></svg></span><span class="metric-context">SAMPLE PROMPTS</span></div>
               <div class="metric-value" id="open-alert-total">0</div>
-              <div class="metric-footer"><span class="trend attention"><span>•</span> Sample prompts</span><span class="metric-note">Awaiting staff review</span></div>
+              <div class="metric-footer"><span class="trend attention"><span>•</span> Illustrative only</span><span class="metric-note">Not risk findings</span></div>
             </article>
             <article class="metric-card">
               <div class="metric-topline"><span class="metric-icon support-icon"><svg aria-hidden="true" viewBox="0 0 20 20"><path d="M10 17s-7-4.2-7-9a4 4 0 0 1 7-2.6A4 4 0 0 1 17 8c0 4.8-7 9-7 9Z"/></svg></span><span class="metric-context">IN PROGRESS</span></div>
-              <div class="metric-value">12</div>
-              <div class="metric-footer"><span class="trend neutral"><span>↗</span> 4 due this week</span><span class="metric-note">Support follow-ups</span></div>
+              <div class="metric-value" id="support-plan-total">0</div>
+              <div class="metric-footer"><span class="trend neutral"><span id="support-due-total">0</span> <span id="support-due-label">no plans due this week</span></span><span class="metric-note">Saved demo plans</span></div>
             </article>
           </section>
+          <p class="dashboard-data-notice">Dashboard summaries use synthetic records saved in this browser. They are demo figures, not school-wide statistics; role navigation does not enforce record-level access.</p>
 
           <section class="main-grid">
             <article class="panel attendance-panel">
               <div class="panel-heading">
-                <div><h2>Attendance overview</h2><p>Daily attendance rate across all sections</p></div>
+                <div><h2>Attendance overview</h2><p>Saved attendance entries across demo sections</p></div>
                 <button class="icon-button more-button" type="button" aria-label="Attendance chart options" data-action="attendance"><svg aria-hidden="true" viewBox="0 0 20 20"><circle cx="4" cy="10" r="1"/><circle cx="10" cy="10" r="1"/><circle cx="16" cy="10" r="1"/></svg></button>
               </div>
-              <div class="chart-summary"><strong id="chart-average">94.2%</strong><span>average attendance</span><span class="chart-legend"><i></i> Attendance</span></div>
-              <div class="chart-wrap">
-                <div class="chart-y-labels" aria-hidden="true"><span>100%</span><span>95%</span><span>90%</span><span>85%</span></div>
+              <div class="chart-summary"><strong id="chart-average">0</strong><span id="chart-period-label">recorded statuses</span><span class="chart-legend"><i></i><span id="attendance-chart-legend">Saved statuses</span></span></div>
+              <div class="chart-wrap" hidden>
+                <div class="chart-y-labels" id="chart-y-labels" aria-hidden="true"></div>
                 <div class="chart">
                   <div class="chart-gridlines" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
-                  <svg class="chart-svg" id="attendance-chart" viewBox="0 0 620 180" preserveAspectRatio="none" role="img" aria-label="Attendance rate trend">
+                  <svg class="chart-svg" id="attendance-chart" viewBox="0 0 620 180" preserveAspectRatio="none" role="img" aria-label="Saved attendance statuses">
                     <defs><linearGradient id="chart-fill" x1="0" x2="0" y1="0" y2="1"><stop offset="0%" stop-color="#7868e5" stop-opacity=".18"/><stop offset="100%" stop-color="#7868e5" stop-opacity="0"/></linearGradient></defs>
-                    <path class="chart-area" id="chart-area" d="M0 94 C35 88 60 55 100 59 S165 105 205 87 S265 69 310 78 S370 110 410 77 S475 48 515 59 S580 66 620 31 L620 180 L0 180Z"/>
-                    <path class="chart-line" id="chart-line" d="M0 94 C35 88 60 55 100 59 S165 105 205 87 S265 69 310 78 S370 110 410 77 S475 48 515 59 S580 66 620 31"/>
-                    <circle cx="0" cy="94" r="4"/><circle cx="100" cy="59" r="4"/><circle cx="205" cy="87" r="4"/><circle cx="310" cy="78" r="4"/><circle cx="410" cy="77" r="4"/><circle cx="515" cy="59" r="4"/><circle cx="620" cy="31" r="4"/>
+                    <path class="chart-area" id="chart-area" d=""/>
+                    <path class="chart-line" id="chart-line" d=""/>
                   </svg>
-                  <div class="chart-x-labels" id="chart-x-labels"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div>
+                  <div class="chart-x-labels" id="chart-x-labels"></div>
                 </div>
               </div>
+              <p class="chart-empty" id="chart-empty" role="status" hidden>No saved attendance entries for this period.</p>
               <div class="attendance-breakdown">
-                <div><span class="breakdown-dot present-dot"></span><span>Present</span><strong id="present-count">1,176</strong></div>
-                <div><span class="breakdown-dot late-dot"></span><span>Late</span><strong id="late-count">8</strong></div>
-                <div><span class="breakdown-dot absent-dot"></span><span>Absent</span><strong id="absent-count">54</strong></div>
-                <div><span class="breakdown-dot excused-dot"></span><span>Excused</span><strong id="excused-count">10</strong></div>
+                <div><span class="breakdown-dot present-dot"></span><span>Present</span><strong id="present-count">0</strong></div>
+                <div><span class="breakdown-dot late-dot"></span><span>Late</span><strong id="late-count">0</strong></div>
+                <div><span class="breakdown-dot absent-dot"></span><span>Absent</span><strong id="absent-count">0</strong></div>
+                <div><span class="breakdown-dot excused-dot"></span><span>Excused</span><strong id="excused-count">0</strong></div>
               </div>
             </article>
 
             <article class="panel alerts-panel" id="alerts-panel">
               <div class="panel-heading">
-                <div><h2>Early warnings</h2><p>Items requiring staff review</p></div>
+                <div><h2>Early warnings</h2><p>Sample prompts only; not actual learner risk findings</p></div>
                 <button class="text-link" type="button" data-view="alerts">View all <span aria-hidden="true">→</span></button>
               </div>
               <div class="alert-list" id="alert-list">
               </div>
               <p class="empty-search" id="empty-search" hidden>No warnings match this filter.</p>
-              <div class="alert-panel-footer"><span><i></i> Alerts are prompts for staff review</span><button type="button" class="filter-button" id="alert-filter"><svg aria-hidden="true" viewBox="0 0 20 20"><path d="M3 5h14M5.5 10h9M8 15h4"/></svg> Filter</button></div>
+              <div class="alert-panel-footer"><span><i></i> Sample prompts; no risk findings</span><button type="button" class="filter-button" id="alert-filter"><svg aria-hidden="true" viewBox="0 0 20 20"><path d="M3 5h14M5.5 10h9M8 15h4"/></svg> Filter</button></div>
             </article>
           </section>
 
@@ -540,7 +541,7 @@
                 <span>Choose a report type and generate a summary.</span>
               </div>
             </section>
-            <p class="report-prototype-note">Reports use session-only data and synthetic learner records. No official grading, risk thresholds, or legal compliance determinations are included.</p>
+            <p class="report-prototype-note">Reports use browser-local demo records and synthetic learner data. No official grading, risk thresholds, or legal compliance determinations are included.</p>
           </section>
 
           <section class="system-admin-view" id="settings-view" aria-labelledby="settings-title" hidden>
