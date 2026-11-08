@@ -2,10 +2,12 @@
 
 ## Status and scope
 
-This is a proposed design for review, not an approved LNHS requirement or an
-implemented feature. The prototype remains session-only and has no
-authentication, durable database, offline synchronization, or enforced access
-controls. Use synthetic data only while designing and testing it.
+This is a proposed design for review, not an approved deployment requirement or an
+implemented feature. The prototype has fictional demo account selection and
+browser-local storage for roster, attendance, academic, and support records,
+but no real authentication, shared database, offline synchronization, or
+enforced access controls. Use synthetic data only while designing and testing
+it.
 
 The design follows the provisional data model and access boundaries in
 [DATA-MODEL-ERD.md](./DATA-MODEL-ERD.md),
@@ -21,10 +23,8 @@ These are known current behaviors, not fixes made by this design:
 
 - Attendance and academic changes overwrite saved values without complete
   correction history.
-- Section transfers move historical records instead of preserving the
-  original enrollment context.
-- Warning-to-intervention links lose the warning ID and retain displayed
-  text only.
+- Saved attendance and academic records remain browser-local and are not tied
+  to a backend enrollment-history model.
 - Announcement read status is global rather than per user.
 
 The target design below describes safeguards a future authorized,
@@ -67,17 +67,17 @@ as trusted authorization evidence.
 
 Cache only the minimum fields and records required for a specifically
 approved offline task. Partition cached data and queued operations by
-authenticated account and school/workspace context so one user or workspace
-cannot see another's local records on a shared browser. Workspace partitioning
-is a design requirement; the current ERD does not define a workspace entity or
-its identifier.
+authenticated account and the single configured deployment context so
+different accounts cannot see one another's local records on a shared browser.
+The product does not include multi-tenancy, institution switching, or a
+workspace-management model.
 
 The least-sensitive starting candidate is **assigned attendance**: a small,
 approved roster and the attendance session/entry context needed to record
 attendance for the user's active assignment. The applicable historical
 enrollment must remain attached; a section transfer must not move old
 attendance into the new enrollment context. Even this starter workflow
-requires LNHS approval of offline fields, scope, session rules, duration, and
+requires deployment institution approval of offline fields, scope, session rules, duration, and
 device protections.
 
 Guidance records and guidance-only content are unavailable offline by
@@ -160,7 +160,7 @@ account is deactivated, a role or assignment is revoked, or the user's scope
 changes, reject or hold affected operations for review; do not broaden access
 or silently discard unsynchronized work. Explain the outcome and preserve a
 safe, approved recovery path. Policy for rejected work and user support
-requires LNHS approval.
+requires deployment institution approval.
 
 ## 5. Conflicts, validation, and history
 
@@ -181,7 +181,7 @@ conflicting attempts.
 | Learner, enrollment, section, and assignment changes | Transfer, structure, role, or assignment changes may invalidate cached roster scope and queued work. Effective dates and assignment history are not fully modeled. | Revalidate online before applying. Hold queued operations against obsolete scope for review; only retry if historical context remains valid. | Historical enrollment, prior section context, or the assignment basis for an earlier operation. |
 
 Conflict authority, user-visible choices, and correction procedures are
-unresolved LNHS decisions. A system may detect and present a conflict, but
+unresolved deployment decisions. A system may detect and present a conflict, but
 must not invent who may resolve it or alter a record silently.
 
 ## 6. Shared-device and offline security
@@ -198,7 +198,7 @@ must not invent who may resolve it or alter a record silently.
 - Use a short-lived offline authorization/session lease where feasible.
   Require reauthentication when it expires before reopening protected offline
   content. The authorization lease duration and allowed offline functions
-  need LNHS approval.
+  need deployment institution approval.
 - A disconnected device cannot receive account deactivation or role/assignment
   revocation instantly. Minimize cached fields and offline duration; reject
   stale-scope operations when connectivity returns.
@@ -247,7 +247,7 @@ Recommended staged path:
 4. Consider broader offline support only after each workflow, data class,
    authorization boundary, and conflict procedure is separately approved.
 
-The following decisions remain for LNHS; this document does not settle them:
+The following decisions remain for the deployment institution; this document does not settle them:
 
 - Which data and fields, if any, are eligible for offline cache and for which
   roles and assignments.
@@ -266,6 +266,6 @@ The following decisions remain for LNHS; this document does not settle them:
   acknowledgement/audit design; these are not currently modeled ERD fields
   or entities.
 
-These are proposed design choices and open questions, not LNHS-approved
+These are proposed design choices and open questions, not approved for any deployment
 requirements. Do not claim offline synchronization, authentication,
 persistence, or these security controls are implemented.

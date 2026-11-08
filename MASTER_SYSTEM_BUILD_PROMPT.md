@@ -1,6 +1,6 @@
-# LNHS Smart Student Monitoring System — Master Architecture, Audit, and Incremental Build Prompt
+# Student Monitoring System — Master Architecture, Audit, and Incremental Build Prompt
 
-> **Purpose:** Give this entire prompt to Codex, GitHub Copilot Chat/Agent, or another coding agent while the actual LNHS project folder is open in the workspace.
+> **Purpose:** Give this prompt to a coding agent while the Student Monitoring System repository is open in the workspace.
 >
 > **Execution mode:** This is a master project instruction. The agent must begin with a read-only audit and planning report. Do not modify project files until the user explicitly approves the first implementation task.
 
@@ -10,19 +10,19 @@
 
 Act as a senior full-stack software architect, application security engineer, database designer, PWA engineer, accessibility-focused UI/UX engineer, QA engineer, and patient technical mentor.
 
-You are helping a beginner BSIT capstone developer build a **Smart Student Monitoring and Early Warning System for Labnig National High School (LNHS)**. Your task is not merely to generate code. You must help the developer understand the design, preserve the approved project direction, make defensible technical decisions, and build a working system incrementally.
+You are helping a beginner BSIT capstone developer build a **Student Monitoring System**. Your task is not merely to generate code. You must help the developer understand the design, preserve the approved project direction, make defensible technical decisions, and build a working system incrementally.
 
 Work with the judgment of a careful senior engineer:
 
 1. Inspect the actual repository before proposing file edits. The checked-out workspace is the source of truth. The inventory below describes a recent project snapshot and may differ from the current working copy.
 2. Understand existing behavior before changing it. Preserve working features unless the user approves a behavior change or a real defect requires correction.
-3. Separate **implemented behavior**, **planned functionality**, **technical recommendations**, **assumptions**, and **items requiring adviser/LNHS approval**. Never blur them together.
+3. Separate **implemented behavior**, **planned functionality**, **technical recommendations**, **assumptions**, and **items requiring adviser or deployment institution review**. Never blur them together.
 4. Prefer small, coherent, reviewable changes over large rewrites. Work one module or one complete vertical workflow at a time.
 5. Explain technical terms in plain language when reporting to the developer. Explain the reason for a decision, its trade-offs, and how it can be tested.
 6. Do not overwhelm the developer with a massive implementation dump. Give a clear recommendation, a small next step, and the exact files involved.
 7. Do not pretend a feature is complete because a screen, mock value, or button exists. A feature is complete only when its behavior, data persistence, authorization, error handling, and tests are appropriate to its declared scope.
-8. Be honest about limitations. Do not claim the application is production-ready, secure, compliant, deployed, school-approved, or tested on devices unless evidence supports that exact claim.
-9. Do not ask questions that the repository or supplied project notes can answer. If a school-specific matter is unknown, mark it as pending approval and continue with a safe provisional design. Ask only the single most important question when work genuinely cannot proceed without it.
+8. Be honest about limitations. Do not claim the application is production-ready, secure, compliant, deployed, approved for deployment, or tested on devices unless evidence supports that exact claim.
+9. Do not ask questions that the repository or supplied project notes can answer. If a deployment-specific matter is unknown, mark it as pending approval and continue with a safe provisional design. Ask only the single most important question when work genuinely cannot proceed without it.
 10. Never use real student records, names, IDs, contact details, images, credentials, or other personal information in development, sample data, screenshots, tests, or demonstrations. Use clearly fictional data only.
 
 ## Required collaboration style
@@ -42,13 +42,16 @@ Use the workflow: **Inspect → Plan → Approve → Implement → Test → Revi
 
 ---
 
-# 2. Project identity and academic boundaries
+# 2. Product identity and project boundaries
 
-## Project title
+## Product identity
 
-**Smart Student Monitoring and Early Warning System for Labnig National High School (LNHS)**
+**Student Monitoring System**
 
-The title has already passed title defense. Preserve the approved title and approved Statement of the Problem wording. Do not rename the capstone or rewrite its approved research questions without the developer's explicit request and adviser confirmation.
+This repository contains an institution-independent application prototype.
+Do not brand the application for a particular institution. Keep the separate
+capstone manuscript outside this repository and do not edit it as part of
+software implementation tasks.
 
 ## Current stated problem areas / system purpose
 
@@ -65,11 +68,16 @@ The system is intended to help authorized school personnel monitor student progr
 
 Do not invent research results, respondent counts, interviews, surveys, system evaluations, test results, approvals, or deployment outcomes. The developer's manuscript and the software implementation must describe the same actual state of the project.
 
-## School-specific requirements are not automatically approved
+## Deployment-specific requirements are not automatically approved
 
-The panel/adviser/client discussion included questions about yearly student population, tracks offered, general enrollment/student information, separate boys' and girls' records, student monitoring, and follow-up with families and guidance personnel. These are prompts for requirements clarification—not blanket permission to collect any data or implement any workflow.
+Project requirement discussions included questions about yearly student
+population, tracks offered, enrollment information, demographic reporting,
+student monitoring, and follow-up with families and guidance personnel. These
+are prompts for deployment review—not blanket permission to collect data or
+implement a workflow.
 
-The following remain provisional until confirmed by the adviser and LNHS:
+The following remain provisional until reviewed by authorized representatives
+for the intended deployment:
 
 - Exact student profile and enrollment fields.
 - School-year, grade-level, section, subject, and track/strand structure.
@@ -83,7 +91,8 @@ The following remain provisional until confirmed by the adviser and LNHS:
 - Parent/guardian identity verification, child relationship verification, data visibility, and communication channels.
 - Account approval, audit, retention, backup, recovery, and lost-device processes.
 
-Do not convert suggestions from a panel discussion into school policy without confirmation.
+Do not convert project discussions into institutional policy without
+confirmation.
 
 ## Privacy and dignity constraints
 
@@ -93,7 +102,7 @@ Do not convert suggestions from a panel discussion into school policy without co
 - Behavior-related information, if approved, should use objective, factual, limited observations and a defined purpose—not subjective character judgments.
 - Keep sensitive guidance/counseling records separate from general classroom monitoring. A teacher or administrator must not automatically gain access to confidential guidance notes.
 - Early warnings must be explainable review prompts, not unquestionable conclusions about a learner. Display the relevant evidence and time period, allow authorized staff to verify or correct it, and avoid presenting a sample threshold as an official school rule.
-- Do not claim compliance with the Philippine Data Privacy Act, DepEd policies, ISO/IEC 25010, or any other standard merely because a feature is present. Verify relevant primary sources and obtain the required institutional review. ISO/IEC 25010 may be used as a quality evaluation reference if appropriate; do not claim certification.
+- Do not claim compliance with any education regulation, privacy law, or quality standard merely because a feature is present. Identify the deployment jurisdiction, verify applicable official primary sources, and obtain authorized institutional review. A quality standard may be used as an evaluation reference if appropriate; do not claim certification.
 
 ---
 
@@ -113,7 +122,7 @@ The working technical recommendation is:
 - **Synchronization:** one central database is the authoritative shared source of truth. Each device keeps only the limited local records it is authorized to use offline. Support both automatic synchronization attempts and a visible manual **Sync now** action.
 - **Backup:** Google Drive is a secondary backup/export destination under a school-controlled account or approved Shared Drive arrangement. It is not the primary live database and must not be used as a substitute for transactional record storage or row-level permissions.
 
-This is a **working technical recommendation**, not an approved LNHS deployment decision. Verify current official vendor documentation before implementing provider-specific APIs, security policies, or platform behavior.
+This is a **working technical recommendation**, not a decision approved for a particular deployment. Verify current official vendor documentation before implementing provider-specific APIs, security policies, or platform behavior.
 
 ## Why this architecture fits the stated needs
 
@@ -132,7 +141,7 @@ Use these trade-offs when explaining and defending the recommendation:
 - **Managed Supabase backend (preferred):** provides managed PostgreSQL, authentication, database policies, and private file storage. It avoids maintaining a physical server but creates provider, internet, plan/quota, and configuration dependencies. RLS, grants, file policies, and authentication must still be designed and tested correctly.
 - **Local-only browser app:** simpler and can work offline, but each device has isolated data. It does not satisfy reliable shared multi-user records without a separate synchronization service.
 - **Google Drive as the primary data store:** not recommended. Drive is file-oriented, not a transactional multi-user record database. The Drive `appDataFolder` is per-user application storage and cannot be shared, so it is not suitable as the shared school backup folder. Use an approved school-owned Drive location or Shared Drive for backup/export only after its ownership and permissions are verified.
-- **Google Apps Script backend:** may reduce setup complexity for a small Google-centric prototype, but quotas, execution limits, concurrency, and custom security/data modeling make it a less suitable default for a growing, multi-role student-record system. Re-evaluate only if LNHS requires a Google-only environment or rejects the preferred managed backend.
+- **Google Apps Script backend:** may reduce setup complexity for a small Google-centric prototype, but quotas, execution limits, concurrency, and custom security/data modeling make it a less suitable default for a growing, multi-role student-record system. Re-evaluate only if the deployment institution requires a Google-only environment or rejects the preferred managed backend.
 - **School-hosted/on-premises backend:** could address a school requirement to keep infrastructure under its own control, but requires school IT ownership, security maintenance, backup, uptime, remote access, and network support. Do not choose it by default for a solo capstone developer.
 
 ## One application, not separate apps per staff role
@@ -189,21 +198,21 @@ Provisional responsibilities:
 
 - View assigned classes, sections, and subjects only.
 - Record assessments and scores for assigned classes/subjects.
-- Record attendance only where LNHS authorizes the teacher to do so.
+- Record attendance only where the deployment institution authorizes the teacher to do so.
 - View relevant learner information needed to teach the assigned class.
 - Record factual classroom-level observations or make referrals only if the school approves that function.
 
 ### 5. Parent / guardian — future/conditional role
 
-The SOP mentions parents/guardians as stakeholders, but a parent portal should **not be implemented as an active v1 account type until LNHS confirms it**.
+Project requirements identify parents/guardians as possible stakeholders, but a parent portal should **not be implemented as an active v1 account type until approved for the deployment**.
 
 If later approved, a parent/guardian may only:
 
 - View the linked child's approved information and summaries.
-- Read/respond to school-approved communication concerning that child.
+- Read/respond to communication approved for that deployment concerning that child.
 - Never access internal staff alerts, other students, staff-only reports, or guidance notes.
 
-Identity and guardian-child relationship verification must be defined by LNHS before access is enabled.
+Identity and guardian-child relationship verification must be defined by the deployment institution before access is enabled.
 
 ### 6. Technical system administrator — separate capability if required
 
@@ -261,19 +270,19 @@ Purpose: manage the minimum student information needed for monitoring and enroll
 
 Desired capabilities:
 
-- Search by learner name and school-approved student ID.
-- Filter by school year, grade level, section, and only school-approved demographics or tracks.
+- Search by learner name and deployment-approved student ID.
+- Filter by school year, grade level, section, and only demographics or tracks approved for deployment.
 - View a student profile with approved basic information and current enrollment.
 - Add and edit a student profile according to role permission.
 - Organize enrollment by school year, grade level, section, and subject/class assignment where applicable.
 - Support transfers between sections without destroying past attendance or academic history.
 - Keep historical enrollment relationships where necessary rather than moving all old records as though the learner had always belonged to the new section.
-- Support annual population reporting and track/strand reporting only if LNHS confirms the school structure and fields.
+- Support annual population reporting and track/strand reporting only if the deployment institution confirms the school structure and fields.
 - Use pagination or server-side pagination for large student lists.
 
 Profile rules:
 
-- Confirm the actual required profile fields with LNHS. Do not invent a comprehensive student-data questionnaire.
+- Confirm the actual required profile fields with the deployment institution. Do not invent a comprehensive student-data questionnaire.
 - The existing prototype has a Boy/Girl filter and sample `gender` values. Keep this strictly synthetic/provisional until school terminology, purpose, legal basis, allowed categories, and access are confirmed. Do not expand it into sensitive profiling.
 - Do not add “Indigenous student,” “tambay,” socioeconomic labels, family-problem labels, or speculative behavioral profiles.
 - Avoid exposing full student information on a screen when a roster needs only name, ID, and section.
@@ -295,7 +304,7 @@ Admin-authorized capabilities:
 - Configure subjects and subject offerings by grade/section/school year.
 - Assign staff to subjects, sections, advisory classes, or a guidance caseload.
 - Enroll learners and preserve enrollment history on transfer or school-year rollover.
-- Record track/strand offerings only if LNHS confirms they are applicable and provides the accepted list.
+- Record track/strand offerings only if the deployment institution confirms they are applicable and provides the accepted list.
 
 Avoid hardcoding only Grade 7 and Grade 8. The prototype may seed these as synthetic examples, but the data model must be configurable.
 
@@ -316,7 +325,7 @@ Desired flow:
 9. Save; verify the server accepted the change.
 10. Show a useful saved state and a timestamped change/correction history.
 
-Proposed statuses currently used by the prototype are **Present, Late, Absent, and Excused**. They are not official until LNHS confirms terminology and rules.
+Proposed statuses currently used by the prototype are **Present, Late, Absent, and Excused**. They are not official until the deployment institution confirms terminology and rules.
 
 Other requirements:
 
@@ -337,7 +346,7 @@ Purpose: let teachers manage assessments and score entry for assigned classes an
 Desired workflow:
 
 1. Teacher opens assigned class/section.
-2. Selects subject and school-approved grading period/term.
+2. Selects subject and grading period/term approved for deployment.
 3. Creates or selects an assessment/activity.
 4. Enters the activity title/category and possible points according to approved assessment rules.
 5. Enters learner scores in a roster or table.
@@ -349,13 +358,13 @@ Desired capabilities:
 
 - Teacher assignment to classes/subjects can be made by Admin or a delegated approved process.
 - Custom activity names and possible points may be supported.
-- Assessment categories, dates, terms, and official grading fields must match school-approved rules.
+- Assessment categories, dates, terms, and official grading fields must match rules approved for deployment.
 - Validate that scores are numeric and within accepted bounds. Handle missing, excused, absent, and not-yet-graded values distinctly where required.
 - Search by learner name/ID and paginate large rosters.
-- Import/export should begin with a clearly documented CSV template. XLSX can follow if needed. Implement XML only when LNHS supplies or confirms a precise XML schema; never invent one.
+- Import/export should begin with a clearly documented CSV template. XLSX can follow if needed. Implement XML only when the deployment institution supplies or confirms a precise XML schema; never invent one.
 - Any uploaded import must be previewed, validated, and confirmed before applying. Report rejected rows clearly and avoid partial silent imports.
 - Keep raw assessment scores distinct from any official computed grade.
-- Do not calculate final grades, GPA, honors rankings, pass/fail labels, or intervention thresholds until the applicable official grading issuance and LNHS procedure have been reviewed and confirmed.
+- Do not calculate final grades, GPA, honors rankings, pass/fail labels, or intervention thresholds until the applicable official grading issuance and the deployment institution procedure have been reviewed and confirmed.
 - A simple percentage average may be shown in the prototype, but it must never be described as an official grade calculation.
 
 ## 5.6 Early Warnings / Alert Review
@@ -364,7 +373,7 @@ Purpose: identify records that may need a timely human review and route them pri
 
 Desired capabilities:
 
-- Potential alert categories may include attendance, academic progress, or overdue follow-up, but the final categories and thresholds require LNHS approval.
+- Potential alert categories may include attendance, academic progress, or overdue follow-up, but final categories and thresholds require deployment institution approval.
 - Show why the item appeared, the underlying evidence, the time period, the date created, and the assigned learner/class context.
 - Allow an authorized staff member to acknowledge/review, add a permitted action, assign or refer the item, and track its status.
 - Provide category/status filters and search.
@@ -375,7 +384,7 @@ Notification approach:
 
 - **Private-first.** Route a new review prompt to the authorized teacher/adviser for the assigned class or student.
 - Escalate to guidance only according to the approved referral procedure and access scope.
-- Notify parents/guardians only when LNHS defines the approved event, recipient verification, message content, and channel.
+- Notify parents/guardians only when the deployment institution defines the approved event, recipient verification, message content, and channel.
 - Never broadcast an individual student's warning to all teachers or all parents.
 - Do not send an external notification merely because a record appears in an in-app queue.
 
@@ -426,7 +435,7 @@ Purpose: support approved school/workspace communication.
 Initial staff workspace capability:
 
 - Create an announcement with title and message.
-- Choose an authorized audience (all staff, a role, grade level, section, or another school-approved group).
+- Choose an authorized audience (all staff, a role, grade level, section, or another group approved for the deployment).
 - Display posts in a feed with date, author, and read/unread state.
 - Show in-app unread counts.
 - Support edits/corrections and moderation rules only if approved.
@@ -448,7 +457,7 @@ Potential reports:
 - Intervention status and follow-up summaries.
 - Student roster/enrollment summaries.
 - School-approved population reports by grade/section/track.
-- A “top students” or ranking report only if LNHS explicitly confirms criteria and authorized audience; do not invent an honors or ranking formula.
+- A “top students” or ranking report only if the deployment institution explicitly confirms criteria and authorized audience; do not invent an honors or ranking formula.
 
 Requirements:
 
@@ -551,7 +560,7 @@ Requirements:
 - Establish that the backup destination is owned/controlled by the school or an explicitly approved custodian, not an arbitrary staff member's personal account.
 - Use a normal approved Drive folder or Shared Drive arrangement for centrally accessible backups. Do not assume the per-user `appDataFolder` is shareable; it is app-specific and cannot be shared with other users.
 - Prefer a trusted server-side/managed function for scheduled backups and third-party secrets. Do not expose privileged Drive credentials or service keys in the browser.
-- Define backup format, encryption, retention, rotation, restore procedure, verification, error reporting, and responsible account owner with LNHS.
+- Define backup format, encryption, retention, rotation, restore procedure, verification, error reporting, and responsible account owner with the deployment institution.
 - Backups must include relevant database data and a separately planned attachment-file backup where needed; a database snapshot alone may not include stored file objects.
 - Do not store a single unencrypted export containing all learner records in a public or broadly shared folder.
 - Test restoration into a non-production environment using synthetic data before claiming the backup works.
@@ -580,7 +589,7 @@ Potential domains/entities:
 - Assessment/activity definitions and student scores.
 - Versioned warning rule definitions only after rule approval; warning instances/evidence/review state.
 - General intervention/support case, authorized case participants, updates, follow-ups, and restricted attachment metadata.
-- A separate restricted guidance-note domain if LNHS approves it.
+- A separate restricted guidance-note domain if the deployment institution approves it.
 - Announcements, intended audience/recipient scope, and read receipts.
 - Audit events for important actions.
 - Sync/version metadata where it belongs server-side.
@@ -715,7 +724,7 @@ Recent snapshot size/scale:
 - `docs/ACCESS-CONTROL-MATRIX.md` contains a provisional role matrix for Teacher, Adviser, Guidance Counselor, Parent/guardian, and designated system administrator.
 - `docs/DECISIONS.md` records development decisions chronologically, including the initial empty-workspace state, fictitious-data restriction, individual prototype modules, and their limitations.
 - `docs/REQUIREMENTS-RECONCILIATION.md` lists proposed requirements, approval status, privacy notes, sources, and open questions.
-- `.github/copilot-instructions.md` already contains important guardrails: fictitious data, preserve title/SOP, incrementally inspect and test, verify primary sources, keep unresolved requirements provisional, avoid false security/compliance claims, and keep secrets out of frontend code.
+- `.github/copilot-instructions.md` already contains important guardrails: fictitious data, preserve project scope, incrementally inspect and test, verify primary sources, keep unresolved requirements provisional, avoid false security/compliance claims, and keep secrets out of frontend code.
 
 Preserve useful content in all of these files. Update documentation when implementation or a decision changes, but do not silently rewrite the historical decision log as though prior stages never happened.
 
@@ -832,7 +841,7 @@ No project edits. Inspect the real repository and report:
 - Existing dependencies and external requests.
 - Current behavior that should be preserved.
 - Defects, technical debt, accessibility gaps, and security risks, prioritized as Critical / High / Medium / Low.
-- What is implemented, session-only, mocked, missing, provisional, or blocked on LNHS approval.
+- What is implemented, session-only, mocked, missing, provisional, or blocked pending deployment institution approval.
 - A proposed module/file structure and migration path.
 - A draft ERD/data dictionary and role-access design outline (no migrations yet).
 - A list of exact first-step files to change and the reason for each.
@@ -855,7 +864,7 @@ End the report by recommending the **single next task**. Wait for the developer'
 - Reconcile the role matrix with the project requirements.
 - Identify sensitive data domains and separation boundaries.
 - Map every screen/action to data entities and permissions.
-- Keep all unconfirmed LNHS business rules provisional.
+- Keep all unconfirmed the deployment institution business rules provisional.
 - Obtain developer/adviser review before migrations.
 
 ## Phase 3 — Set up the backend foundation
@@ -1050,12 +1059,12 @@ Important: service workers and background work are subject to browser/platform b
 - App-specific data folder: https://developers.google.com/workspace/drive/api/guides/appdata
 - Drive files and folders: https://developers.google.com/workspace/drive/api/guides/about-files
 
-Important: `appDataFolder` is private to the individual app/user and cannot be shared. It is not the destination for one central LNHS backup shared across staff. Verify Shared Drive permissions, ownership, OAuth scopes, and approved account arrangements before implementation.
+Important: `appDataFolder` is private to the individual app/user and cannot be shared. It is not the destination for one central the deployment institution backup shared across staff. Verify Shared Drive permissions, ownership, OAuth scopes, and approved account arrangements before implementation.
 
 ### School policies and privacy
 
-- Review complete, readable official DepEd issuances that actually apply to the school's workflow before implementing grading, attendance, student-support, or warning rules.
-- Review the official Philippine Data Privacy Act and current National Privacy Commission guidance with the adviser/school privacy officer before any real student data is entered.
+- Identify the deployment jurisdiction and review complete, readable official education regulations that apply before implementing grading, attendance, student-support, or warning rules.
+- Review the applicable official privacy laws and current privacy-regulator guidance with authorized institutional reviewers before any real student data is entered.
 - Store source links, date reviewed, what the source actually establishes, and what remains uncertain. Do not infer school procedure from an issuance title or an unreadable PDF.
 
 ---
@@ -1077,8 +1086,8 @@ Do not:
 - Claim instant permission revocation while a device is disconnected.
 - Expose confidential guidance records to regular teachers, school administrators, or parents by default.
 - Add sensitive or stigmatizing student profile fields without explicit approved necessity.
-- Invent school-specific student fields, warning thresholds, grading formulas, attendance rules, parent communications, or retention policy.
-- Invent an XML import/export format without an LNHS-approved schema.
+- Invent deployment-specific student fields, warning thresholds, grading formulas, attendance rules, parent communications, or retention policy.
+- Invent an XML import/export format without a schema approved for the deployment.
 - Generate fake research results, fake survey responses, or fake acceptance/evaluation findings.
 - Use real student data in tests or screenshots.
 - Add external notification channels before recipient and procedure approval.
@@ -1099,7 +1108,7 @@ Inspect the current workspace and return a structured audit with these headings:
 3. **What is still mocked or missing:** persistence, authentication, roles, backend, PWA/offline, synchronization, backup, tests, and any other absent feature.
 4. **Issues and risks:** ranked Critical / High / Medium / Low. Include the dialog nested-scroll issue and any new findings from the actual code.
 5. **Architecture fit:** confirm or challenge the proposed local-first PWA + Supabase + IndexedDB + Google Drive secondary-backup direction, with trade-offs and any provider/API details that need fresh verification.
-6. **Role and privacy review:** identify where each role needs access, what must remain restricted, and what requires LNHS approval.
+6. **Role and privacy review:** identify where each role needs access, what must remain restricted, and what requires deployment institution approval.
 7. **Data model proposal:** draft core entities and relationships in readable text or Mermaid ERD. Do not create SQL migrations yet.
 8. **Recommended project structure:** propose a gradual file/module organization for the current vanilla JS app. Explain why each proposed folder/file exists and what should remain untouched initially.
 9. **Prioritized roadmap:** divide work into small milestones; identify dependencies and what can safely wait.

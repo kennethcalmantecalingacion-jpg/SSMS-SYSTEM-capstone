@@ -6,9 +6,9 @@ Update this log when a decision changes.
 ## 2026-11-05 — Start from an empty workspace
 
 - **Decision:** Treat this as a fresh mock-system project, not a migration.
-- **Evidence:** The workspace contains only empty `index.html`, `style.css`, and
-  `script.js` files. No prior LNHS demo, assets, backend, or Git repository was
-  found.
+- **Evidence:** The workspace at that time contained only empty `index.html`,
+  `style.css`, and `script.js` files. No prior demo, assets, backend, or Git
+  repository was found.
 - **Implication:** There is no existing application behavior to preserve. Set
   up Git and a backup before application implementation.
 
@@ -24,11 +24,12 @@ Update this log when a decision changes.
 
 - **Decision:** Do not derive screens, data fields, or business rules from an
   issuance whose full text has not been reviewed.
-- **Evidence:** DepEd's official listing identifies DO_s2026_006r, but its PDF
-  was returned as binary by the available reader. NPC and Official Gazette
-  pages tested in this review returned HTTP 403.
-- **Next step:** Obtain and review readable official primary-source text; keep
-  policy-specific decisions pending in the requirements reconciliation.
+- **Evidence:** During the initial review, policy-source material was not
+  available in a readable form to verify. No jurisdiction-specific policy was
+  adopted as a requirement.
+- **Next step:** Identify the deployment jurisdiction and review applicable,
+  readable official primary sources; keep policy-specific decisions pending
+  in the requirements reconciliation.
 
 ## 2026-11-05 — Build the dashboard as the first UI increment
 
@@ -78,27 +79,27 @@ Update this log when a decision changes.
   The screen does not calculate final grades, apply pass/fail rules, or use
   intervention thresholds. Scores clear on refresh.
 - **Next step:** Confirm subjects, assessment plans, grading periods, and
-  school-approved calculations before extending this workflow.
+  deployment-approved calculations before extending this workflow.
 
 ## 2026-11-05 — Define provisional access boundaries before login
 
 - **Decision:** Document a draft least-access matrix for the roles named in
-  the SOP before adding any login or role-specific behavior.
-- **Basis:** The SOP identifies teachers, advisers, parents, and guidance
+  the project requirements before adding any login or role-specific behavior.
+- **Basis:** Project requirements identify teachers, advisers, parents, and guidance
   counselors as stakeholders in alerts, communication, and follow-up, but
   does not specify permissions. Official source references do not establish
-  LNHS-specific access assignments.
+  deployment-specific access assignments.
 - **Limitations:** The matrix is a proposal only. The prototype remains
   session-only, has no authentication or authorization, and must not be used
   with real learner data.
-- **Next step:** Review the matrix with the adviser, school client, and privacy
-  officer; approve role assignments, guardian linking, sensitive-record
+- **Next step:** Review the matrix with project and deployment reviewers;
+  approve role assignments, guardian linking, sensitive-record
   boundaries, audit procedures, and local sync design before implementation.
 
 ## 2026-11-05 — Extend student directory management
 
 - **Decision:** Add session-only learner profile editing, a Boy/Girl directory
-  filter from the defense notes, and management controls for grade levels and
+  filter from the project notes, and management controls for grade levels and
   sections.
 - **Behavior:** Updating a learner's section moves the learner between rosters
   and carries their in-session attendance and activity-score entries to the
@@ -108,14 +109,14 @@ Update this log when a decision changes.
   value without narrowing mark-all or save behavior.
 - **Limitations:** Profile information is limited to learner ID, section, and
   a synthetic name and the provisional gender value. No sensitive profiling
-  fields are collected. School terminology, purpose, access, and workflow need
-  confirmation.
+  fields are collected. Institution terminology, purpose, access, and workflow
+  need confirmation.
 - **Next step:** Confirm profile fields, demographic reporting purpose, and
-  class-transfer/history rules with the school before using real information.
+  class-transfer/history rules for a deployment before using real information.
 
 ## 2026-11-05 — Add session-only intervention tracking
 
-- **Decision:** Implement the SOP's alert-to-follow-up step as a small
+- **Decision:** Implement the project's alert-to-follow-up requirement as a small
   session-only workflow using synthetic learner records.
 - **Behavior:** A dashboard warning opens a new support plan with its learner
   and reason preselected. Staff can record a planned action, an assigned staff
@@ -123,16 +124,16 @@ Update this log when a decision changes.
   note. The dashboard and intervention list show the open plan status.
 - **Limitations:** Statuses and fields are provisional. Plans and notes are
   cleared on refresh; there is no role enforcement, persistence, external
-  messaging, or approval of school procedures. The interface advises keeping
+  messaging, or approval of institutional procedures. The interface advises keeping
   notes brief and avoiding sensitive details.
 - **Next step:** Confirm the status flow, required follow-up information,
   assignments, visibility, audit/correction rules, and any family communication
-  process with the adviser and school client before operational use.
+  process with authorized deployment reviewers before operational use.
 
 ## 2026-11-05 — Add a session-only announcement board
 
 - **Decision:** Turn the dashboard's announcement area into a small workspace
-  board for the SOP communication concept, without simulating delivery outside
+  board for the project communication requirement, without simulating delivery outside
   the app.
 - **Behavior:** Staff can post a title and message with an all-staff or
   grade/section audience label. Posts can be marked read in the current
@@ -144,7 +145,7 @@ Update this log when a decision changes.
   procedures remain unapproved.
 - **Next step:** Confirm communication channels, recipient scope, approved
   content, role boundaries, and delivery requirements with the adviser and
-  school client before building real notifications or family messaging.
+  deployment reviewers before building real notifications or family messaging.
 
 ## 2026-11-05 — Add session-based printable reports
 
@@ -158,7 +159,7 @@ Update this log when a decision changes.
   does not calculate official grades, GPA, warning thresholds, or compliance.
   Learner and profile fields remain synthetic and session-only.
 - **Next step:** Confirm report fields, audience/access, retention, and any
-  required official calculations with the adviser and school client.
+  required official calculations with authorized deployment reviewers.
 
 ## 2026-11-06 — Add a dedicated early-warning review view
 
@@ -168,7 +169,7 @@ Update this log when a decision changes.
   learner/topic search, session-only acknowledgement, live counts, and a
   shortcut to create a linked intervention plan.
 - **Limitations:** Categories and priority labels are illustrative, not
-  school-approved criteria. No warning threshold, automated classification,
+  criteria approved for the deployment. No warning threshold, automated classification,
   persistence, or real learner status is implemented; acknowledgements clear
   on refresh.
 - **Next step:** Confirm the evidence, categories, escalation, review meaning,
@@ -182,15 +183,15 @@ Update this log when a decision changes.
   roster, an attendance session, its entries, and attributable corrections.
   Roles and assignments must both be checked; UI navigation is not an
   authorization boundary.
-- **Provisional scope:** An assigned Teacher may record only if LNHS approves
+- **Provisional scope:** An assigned Teacher may record only if the deployment institution approves
   that attendance responsibility. An Adviser may record only within an
-  assigned advisory section if LNHS separately approves that permission.
+  assigned advisory section if the deployment institution separately approves that permission.
   Guidance Counselor, Parent/Guardian, and Designated System Administrator
   receive no general attendance-table access. Any future referral or guardian
   summary needs its own approved scope and data path.
 - **Role distinction:** The blueprint's proposed School Administrator is
   separate from Designated System Administrator. School structure and staff
-  assignment administration remain ungranted until LNHS approves that
+  assignment administration remain ungranted until the deployment institution approves that
   separate role; technical/account administration does not imply learner
   access.
 - **Integrity direction:** Attendance entries reference the historical
@@ -202,7 +203,7 @@ Update this log when a decision changes.
 - **Pending:** Teacher/Adviser recording and correction authority, session
   type and date uniqueness, enrollment date-boundary rules, whether initial
   status creation gets a history event, and who provisions/revokes roles and
-  assignments require adviser/LNHS confirmation.
+  assignments require adviser/the deployment institution confirmation.
 - **Validation status:** Design and test scenarios documented only. No SQL,
   database, RLS policy, or backend test has been implemented or executed.
 - **Next step:** Review the attendance-first model and allow/deny test plan

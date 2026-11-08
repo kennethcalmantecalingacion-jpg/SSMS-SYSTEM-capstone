@@ -1,6 +1,6 @@
 # QA Checklist
 
-Manual checks for the LNHS presentation prototype. This is a reusable
+Manual checks for the generic presentation prototype. This is a reusable
 checklist, not an automated test suite. Use fictional data only; never enter
 real learner information or credentials. Record each test run with the template
 at the end.
@@ -53,7 +53,7 @@ assignments. Use synthetic accounts, sections, and attendance data.
 - [ ] **Assigned Teacher:** Allow session creation and entry changes only for
   an approved assigned offering/section; deny unassigned sections and
   out-of-scope dates.
-- [ ] **Adviser:** Deny recording and correction unless LNHS explicitly
+- [ ] **Adviser:** Deny recording and correction unless the deployment institution explicitly
   approves the Adviser permission; if approved, allow only the assigned
   advisory section.
 - [ ] **Guidance Counselor:** Deny general attendance session and entry
@@ -64,14 +64,14 @@ assignments. Use synthetic accounts, sections, and attendance data.
 - [ ] **Designated System Administrator:** Deny general attendance session
   and entry access; technical/account administration does not imply learner
   data access.
-- [ ] **School Administrator:** Do not enable until LNHS approves this
+- [ ] **School Administrator:** Do not enable until the deployment institution approves this
   separate proposed role and its scope.
 - [ ] **Historical enrollment:** Reject an entry if the enrollment did not
   belong to the session section or was not effective on the session date.
 - [ ] **Entry uniqueness and atomicity:** Reject a second entry for the same
   session/enrollment and ensure an invalid or partial session cannot be
   persisted.
-- [ ] **Session uniqueness:** Test only the rule LNHS approves; do not assume
+- [ ] **Session uniqueness:** Test only the rule the deployment institution approves; do not assume
   a section can have only one session per date.
 - [ ] **Correction history:** For an authorized correction, verify actor,
   previous/new status, and timestamp are retained; determine whether initial

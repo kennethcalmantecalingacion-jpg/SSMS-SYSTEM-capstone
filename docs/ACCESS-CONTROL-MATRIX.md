@@ -2,12 +2,12 @@
 
 ## Status and source basis
 
-This is a proposal for review, not an LNHS-approved policy or an authorization
+This is a proposal for review, not a policy approved for a specific deployment or an authorization
 to access real learner data. The prototype now offers fictional demo account
 selection and client-side navigation restrictions. These are not real
 authentication or enforced permissions: assignment-level enforcement,
 backend authorization, and RLS do not exist. The roles below are provisional,
-and every conditional or pending entry requires LNHS approval and a trusted
+and every conditional or pending entry requires deployment institution approval and a trusted
 implementation before it can grant access. No entry is marked as currently
 allowed.
 
@@ -33,9 +33,9 @@ school policy, legal interpretation, or a permission architecture.
 Each entity cell refers to a profile defined below. Every profile specifies
 Read, Create, Update, Delete, Correct, and Export:
 
-- **C — Conditional:** a proposed, narrow permission only if LNHS approves the
+- **C — Conditional:** a proposed, narrow permission only if the deployment institution approves the
   stated purpose, role, and scope. It is not active now.
-- **P — Pending LNHS approval:** no permission is proposed until the relevant
+- **P — Pending deployment review:** no permission is proposed until the relevant
   workflow or boundary is decided. It is not active now.
 - **D — Denied:** denied by this draft/default, including routine access or
   destructive changes to historical records.
@@ -97,14 +97,14 @@ server-side enforcement are in place.
 - **School Administrator:** a separate proposed school-management role from
   the master blueprint, not included as an active or granted role in this
   matrix. Its approval, account provisioning, and precise authority remain
-  pending LNHS review.
+  pending deployment review.
 
 A user may have multiple roles and multiple assignment records. Evaluate each
 role, assignment, entity, action, and record scope independently. Do not use
 “highest role wins,” infer access from a role label, or let one assignment
 expand another assignment's scope. Record the acting identity and applicable
 authorization context for consequential changes. Assignment authority,
-effective dates, and role-combination rules still need LNHS decisions.
+effective dates, and role-combination rules still need deployment decisions.
 
 ## Role-to-entity permission matrix
 
@@ -174,12 +174,12 @@ status legend and assignment restrictions as the entity matrix.
 |---|---|---|
 | **Overview** | Derived from `LEARNER`, `ENROLLMENT`, attendance, assessment, warning, and support entities | Read scoped summaries only. Totals and charts must be computed from records the user may read; no extra access through dashboard aggregation. Parent summaries, if approved, are limited to linked learners. |
 | **Students** | `LEARNER`, `ENROLLMENT`, `SECTION`, `GRADE_LEVEL`, `SCHOOL_YEAR` | View class roster, advisory roster, assigned referral context, or verified linked learner only as approved. Profile updates are limited to the adviser `B` proposal. School structure management is reserved for a separately approved School Administrator role; Designated System Administrator receives no automatic grant. |
-| **Attendance** | `ATTENDANCE_SESSION`, `ATTENDANCE_ENTRY`, `ATTENDANCE_CHANGE`, `ENROLLMENT` | Candidate recording scope is an approved assigned Teacher offering and, if LNHS confirms, an assigned Adviser section. Corrections require attributable history. Guidance, Parent/Guardian, and Designated System Administrator have no general table access; any approved referral/guardian summary must be separately scoped and authorized. |
+| **Attendance** | `ATTENDANCE_SESSION`, `ATTENDANCE_ENTRY`, `ATTENDANCE_CHANGE`, `ENROLLMENT` | Candidate recording scope is an approved assigned Teacher offering and, if the deployment institution confirms, an assigned Adviser section. Corrections require attributable history. Guidance, Parent/Guardian, and Designated System Administrator have no general table access; any approved referral/guardian summary must be separately scoped and authorized. |
 | **Academics** | `SUBJECT`, `SUBJECT_OFFERING`, `ASSESSMENT`, `ASSESSMENT_SCORE`, `ASSESSMENT_SCORE_CHANGE`, `ENROLLMENT` | Teachers manage approved assessments and scores only for assigned offerings. Advisers, guidance staff, and parents receive only approved summaries within scope. Score corrections require history; official grading rules remain unconfirmed. |
 | **Early Warnings** | `WARNING_RECORD`, `WARNING_REVIEW_EVENT`, and source records where approved | Read/review only within assigned class, advisory, or referral scope. Review events are attributable and append-only. No parent internal alert queue, unapproved threshold administration, or administrator content access. |
 | **Interventions** | `SUPPORT_CASE`, `SUPPORT_UPDATE`, `GUIDANCE_RECORD`, `GUIDANCE_CASE_ASSIGNMENT`, `WARNING_RECORD` | Teacher referral/classroom follow-up, adviser coordination, and counselor case work are distinct scoped proposals. Preserve the actual warning link. Keep guidance records separately restricted; parents do not see internal case notes by default. |
 | **Announcements** | `ANNOUNCEMENT`, `ANNOUNCEMENT_READ_RECEIPT`, `USER_PROFILE`, `SECTION` | Read, publish, and edit only under an approved communication scope. Audience labels do not enforce access. Parent participation, recipient verification, and communication channels require approval. |
-| **Reports** | Derived from the underlying entities above | Every row, aggregate, print view, and export must apply the same authorization as its source data. No report or export can widen access; export remains pending unless LNHS approves the scope, fields, recipient, and audit process. |
+| **Reports** | Derived from the underlying entities above | Every row, aggregate, print view, and export must apply the same authorization as its source data. No report or export can widen access; export remains pending unless the deployment institution approves the scope, fields, recipient, and audit process. |
 
 ## Cross-cutting enforcement boundaries
 
@@ -200,20 +200,20 @@ status legend and assignment restrictions as the entity matrix.
 7. Do not infer access from a role alone. Multiple roles, assignments, and
    scopes must be checked independently for every action.
 8. Do not add a guardian link, content field, role, permission, warning rule,
-   or school-specific procedure unless it is approved and documented.
+   or deployment-specific procedure unless it is approved and documented.
 
 ## Attendance-first allow/deny test plan
 
 These are required future backend/RLS checks, not tests of the current demo.
 No scenario below makes a permission active; conditional allows require
-documented LNHS approval and server-side implementation.
+documented deployment institution approval and server-side implementation.
 
 | Case | Expected backend result |
 |---|---|
 | Anonymous request reads or writes a session, entry, or change | Deny |
 | Authenticated Teacher with a current approved assignment for the selected offering and approved attendance permission reads roster and records that section | Allow only within that offering and applicable enrollment scope |
 | Teacher with no assignment, an inactive/revoked assignment, or an assignment for another offering/section | Deny, including direct API requests |
-| Authenticated Adviser with the current assigned advisory section | Attendance access remains pending LNHS confirmation; if approved, allow only that section |
+| Authenticated Adviser with the current assigned advisory section | Attendance access remains pending the deployment institution confirmation; if approved, allow only that section |
 | Adviser without that assignment or with a different section assignment | Deny |
 | Guidance Counselor requests general session, entry, or correction-table access | Deny; any minimum referral context requires a separate approved data path and policy |
 | Disabled Parent/Guardian requests attendance data | Deny |
@@ -224,11 +224,11 @@ documented LNHS approval and server-side implementation.
 | User attempts to grant themselves a role or assignment | Deny |
 | Authorized correction | Require actor identity and append previous/new status and timestamp; do not overwrite or delete history |
 
-Review the Teacher and Adviser scenarios after LNHS decides who may record,
+Review the Teacher and Adviser scenarios after authorized deployment representatives decide who may record,
 whether advisers may correct records entered by another staff member, and how
 assignment effective dates are approved and revoked.
 
-## Decisions requiring LNHS approval
+## Decisions requiring deployment institution approval
 
 - Which staff positions map to Teacher, Adviser, Guidance Counselor, and
   Designated System Administrator; who approves accounts, role changes, and
@@ -260,5 +260,5 @@ assignment effective dates are approved and revoked.
   audit views from disclosing restricted record content.
 
 Do not implement authentication, authorization, RLS, database policies, or
-real-data access from this proposal alone. It does not assert LNHS approval or
+real-data access from this proposal alone. It does not assert deployment approval or
 legal compliance.

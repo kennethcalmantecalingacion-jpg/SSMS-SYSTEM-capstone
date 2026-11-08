@@ -147,7 +147,7 @@ button {
 
 .brand-copy strong {
   font-family: "Manrope", sans-serif;
-  font-size: 15px;
+  font-size: 12px;
   font-weight: 800;
   letter-spacing: -.025em;
 }
@@ -159,7 +159,7 @@ button {
   letter-spacing: .12em;
 }
 
-.school-switcher {
+.workspace-label {
   display: flex;
   min-height: 59px;
   align-items: center;
@@ -171,7 +171,7 @@ button {
   background: #fff;
 }
 
-.school-emblem {
+.workspace-mark {
   display: grid;
   width: 34px;
   height: 34px;
@@ -181,43 +181,33 @@ button {
   color: #6658cc;
   background: #f0edff;
   font-family: "Manrope", sans-serif;
-  font-size: 16px;
+  font-size: 12px;
   font-weight: 800;
 }
 
-.school-name {
+.workspace-name {
   display: grid;
   min-width: 0;
   flex: 1;
   gap: 3px;
 }
 
-.school-name strong,
-.school-name small {
+.workspace-name strong,
+.workspace-name small {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.school-name strong {
+.workspace-name strong {
   color: #3b3d50;
   font-size: 10px;
   font-weight: 700;
 }
 
-.school-name small {
+.workspace-name small {
   color: #999bab;
   font-size: 10px;
-}
-
-.school-switcher > svg {
-  width: 15px;
-  height: 15px;
-  fill: none;
-  stroke: #9698a9;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 1.5;
 }
 
 .nav-group {
@@ -2991,8 +2981,8 @@ body {
   font-size: 10px;
 }
 
-.school-name strong,
-.school-name small,
+.workspace-name strong,
+.workspace-name small,
 .profile-info small {
   font-size: 11px;
 }
@@ -3812,30 +3802,29 @@ body,
   background: #27628f;
 }
 
-.school-switcher,
+.workspace-label,
 .help-card {
   border-color: #315779;
   background: #12385f;
 }
 
-.school-name strong,
+.workspace-name strong,
 .help-card strong,
 .profile-info strong {
   color: #f2f7fd;
 }
 
-.school-name small,
+.workspace-name small,
 .help-card small,
 .profile-info small {
   color: #b2c7df;
 }
 
-.school-switcher > svg,
 .help-arrow {
   color: #b2c7df;
 }
 
-.school-emblem,
+.workspace-mark,
 .profile-avatar,
 .help-icon {
   border-color: #3a6289;

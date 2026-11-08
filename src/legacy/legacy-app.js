@@ -24,8 +24,11 @@ let learnerProfiles = new Map(
 const attendanceDrafts = new Map();
 const savedAttendance = new Map();
 const attendanceHistory = [];
-const attendanceStorageKey = "lnhs-smart-student-monitoring.attendance.v1";
-const rosterStorageKey = "lnhs-smart-student-monitoring.roster.v1";
+const attendanceStorageKey = "student-monitoring-system.attendance.v1";
+// Read-only compatibility keys; retain old values after successful migration.
+const legacyAttendanceStorageKey = "lnhs-smart-student-monitoring.attendance.v1";
+const rosterStorageKey = "student-monitoring-system.roster.v1";
+const legacyRosterStorageKey = "lnhs-smart-student-monitoring.roster.v1";
 const attendanceStatuses = [
   ["present", "Present"],
   ["late", "Late"],
@@ -41,7 +44,8 @@ const academicActivities = {
 };
 
 const toast = document.querySelector("#toast");
-const supportStorageKey = "lnhs-smart-student-monitoring.support.v1";
+const supportStorageKey = "student-monitoring-system.support.v1";
+const legacySupportStorageKey = "lnhs-smart-student-monitoring.support.v1";
 const warningRecords = [
   { id: "warning-0801", learnerId: "L-0801", category: "Attendance", priority: "high", details: "Repeated absences are ready for a staff check-in.", source: "Attendance: repeated absences", recency: "Review prompt" },
   { id: "warning-0811", learnerId: "L-0811", category: "Academic", priority: "medium", details: "Recent results may benefit from a supportive check-in.", source: "Academic: recent results", recency: "Review prompt" },
@@ -52,7 +56,8 @@ let toastTimeout;
 let currentAttendanceKey = "";
 const academicDrafts = new Map();
 const savedAcademicScores = new Map();
-const academicStorageKey = "lnhs-smart-student-monitoring.academics.v1";
+const academicStorageKey = "student-monitoring-system.academics.v1";
+const legacyAcademicStorageKey = "lnhs-smart-student-monitoring.academics.v1";
 let academicPersistenceMessage = "";
 let currentAcademicKey = "";
 let academicActivitySequence = 0;
@@ -79,6 +84,15 @@ function showToast(text) {
   toastTimeout = window.setTimeout(() => {
     toast.classList.remove("visible");
   }, 2800);
+}
+
+function readStorageForRestore(storageKey, legacyStorageKey) {
+  const currentValue = localStorage.getItem(storageKey);
+  if (currentValue !== null) {
+    return { value: currentValue, migrate: false };
+  }
+  const legacyValue = localStorage.getItem(legacyStorageKey);
+  return { value: legacyValue, migrate: legacyValue !== null };
 }
 
 function formatNumber(value) {
@@ -517,8 +531,12 @@ function setRosterPersistenceMessage(message, isError = false) {
 
 function restoreRosterData() {
   let storedValue;
+  let migrate = false;
   try {
-    storedValue = localStorage.getItem(rosterStorageKey);
+    ({ value: storedValue, migrate } = readStorageForRestore(
+      rosterStorageKey,
+      legacyRosterStorageKey,
+    ));
   } catch {
     setRosterPersistenceMessage(
       "Browser storage is unavailable. Directory and class changes are available for this session only.",
@@ -558,9 +576,13 @@ function restoreRosterData() {
   gradeLevels = restored.gradeLevels;
   sectionLabels = restored.sectionLabels;
   learnerProfiles = restored.learnerProfiles;
-  setRosterPersistenceMessage(
-    "Directory and class information restored from this browser. Synthetic records only; not shared across devices.",
-  );
+  if (migrate) {
+    persistRosterData();
+  } else {
+    setRosterPersistenceMessage(
+      "Directory and class information restored from this browser. Synthetic records only; not shared across devices.",
+    );
+  }
 }
 
 function persistRosterData() {
@@ -693,8 +715,12 @@ function createAcademicActivityId() {
 
 function restoreAcademicData() {
   let storedValue;
+  let migrate = false;
   try {
-    storedValue = localStorage.getItem(academicStorageKey);
+    ({ value: storedValue, migrate } = readStorageForRestore(
+      academicStorageKey,
+      legacyAcademicStorageKey,
+    ));
   } catch {
     academicPersistenceMessage = "Browser storage is unavailable. Academic changes can be saved for this session only.";
     return;
@@ -782,6 +808,8 @@ function restoreAcademicData() {
 
   if (skippedRecord) {
     academicPersistenceMessage = "Some saved academic records were invalid or duplicated and have been skipped.";
+  } else if (migrate) {
+    persistAcademicData();
   }
 }
 
@@ -828,8 +856,12 @@ function updateSupportPersistenceNotice() {
 
 function restoreSupportData() {
   let storedValue;
+  let migrate = false;
   try {
-    storedValue = localStorage.getItem(supportStorageKey);
+    ({ value: storedValue, migrate } = readStorageForRestore(
+      supportStorageKey,
+      legacySupportStorageKey,
+    ));
   } catch {
     supportPersistenceMessage = "Browser storage is unavailable. Warning and support changes can be saved for this session only.";
     return;
@@ -932,6 +964,8 @@ function restoreSupportData() {
 
   if (skippedRecord) {
     supportPersistenceMessage = "Some saved warning or support records were invalid, duplicated, or linked to an unknown warning and were skipped or safely unlinked.";
+  } else if (migrate) {
+    persistSupportData();
   }
 }
 
@@ -1150,8 +1184,12 @@ function isValidTimestamp(value) {
 
 function restoreAttendanceData() {
   let storedValue;
+  let migrate = false;
   try {
-    storedValue = localStorage.getItem(attendanceStorageKey);
+    ({ value: storedValue, migrate } = readStorageForRestore(
+      attendanceStorageKey,
+      legacyAttendanceStorageKey,
+    ));
   } catch {
     attendancePersistenceMessage = "Browser storage is unavailable. Attendance can be saved for this session only.";
     return;
@@ -1225,6 +1263,8 @@ function restoreAttendanceData() {
   attendanceHistory.splice(12);
   if (skippedRecord) {
     attendancePersistenceMessage = "Some saved attendance records were invalid and have been skipped.";
+  } else if (migrate && stored.attendanceHistory.length <= 12) {
+    persistAttendanceData();
   }
 }
 
@@ -2169,7 +2209,7 @@ function setCurrentView(view) {
   document.querySelector("#settings-view").hidden = !isSettings;
   const title = isAttendance ? "Attendance" : isStudents ? "Student records" : isAcademics ? "Academics" : isAlerts ? "Early warnings" : isInterventions ? "Interventions" : isAnnouncements ? "Announcements" : isReports ? "Reports" : isSettings ? "System Administration" : "Overview";
   document.querySelector("#breadcrumb-current").textContent = title;
-  document.title = `${title} · LNHS Monitoring System`;
+  document.title = `${title} · Student Monitoring System`;
   document.querySelectorAll(".nav-link[data-view]").forEach((navLink) => {
     const isActive = navLink.dataset.view === view;
     navLink.classList.toggle("active", isActive);

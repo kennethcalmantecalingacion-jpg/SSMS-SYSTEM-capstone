@@ -46,7 +46,7 @@ function renderSession(session) {
   if (!session) {
     appShell.hidden = true;
     loginView.hidden = false;
-    document.title = "Sign in · LNHS Monitoring System";
+    document.title = "Sign in · Student Monitoring System";
     return;
   }
 
@@ -56,13 +56,13 @@ function renderSession(session) {
   if (overviewAvailable) {
     sidebarBrand.dataset.view = "overview";
     sidebarBrand.setAttribute("href", "#");
-    sidebarBrand.setAttribute("aria-label", "LNHS Monitoring System overview");
+    sidebarBrand.setAttribute("aria-label", "Student Monitoring System overview");
     sidebarBrand.removeAttribute("aria-disabled");
     sidebarBrand.removeAttribute("tabindex");
   } else {
     sidebarBrand.removeAttribute("data-view");
     sidebarBrand.removeAttribute("href");
-    sidebarBrand.setAttribute("aria-label", "LNHS Monitoring System");
+    sidebarBrand.setAttribute("aria-label", "Student Monitoring System");
     sidebarBrand.setAttribute("aria-disabled", "true");
     sidebarBrand.setAttribute("tabindex", "-1");
   }
@@ -83,7 +83,7 @@ function renderSession(session) {
   document.querySelector("#profile-assignment").textContent = session.assignmentLabel;
   document.querySelector("#demo-access-notice").textContent = session.persistence === "memory"
     ? "This demo sign-in lasts only until this page is refreshed. Navigation presets are provisional; assignment-level and server-side permissions are not active."
-    : "Demo mode uses fictional records. Navigation presets are provisional, not school-approved; assignment-level and server-side permissions are not active.";
+    : "Demo mode uses fictional records. Navigation presets are provisional and not approved for a deployment; assignment-level and server-side permissions are not active.";
   document.querySelector("#profile-avatar").textContent = session.displayName
     .split(/\s+/)
     .map((part) => part[0])
@@ -93,12 +93,17 @@ function renderSession(session) {
 
   loginView.hidden = true;
   appShell.hidden = false;
-  setLoginMessage("Demo accounts and records are fictional. Navigation presets are provisional, not school-approved; assignment-level isolation and server-side permissions are future work.");
+  setLoginMessage("Demo accounts and records are fictional. Navigation presets are provisional and not approved for a deployment; assignment-level isolation and server-side permissions are future work.");
   if (session.persistence === "memory") {
     setLoginMessage("This browser tab cannot retain the demo sign-in after refresh. Navigation presets are provisional; assignment-level and server-side permissions are future work.");
   }
   const firstView = getAllowedViews(role)[0];
-  document.title = `${firstView === "settings" ? "System Administration" : "Overview"} · LNHS Monitoring System`;
+  const firstViewTitle = firstView === "settings"
+    ? "System Administration"
+    : firstView === "alerts"
+      ? "Early Warnings"
+      : firstView.charAt(0).toUpperCase() + firstView.slice(1);
+  document.title = `${firstViewTitle} · Student Monitoring System`;
   document.querySelector(`.nav-link[data-view="${firstView}"]`).click();
 }
 

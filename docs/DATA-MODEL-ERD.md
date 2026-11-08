@@ -2,14 +2,14 @@
 
 ## Purpose and scope
 
-This is a conceptual, source-grounded ERD for the current LNHS prototype and
+This is a conceptual ERD for the current generic prototype and
 the data relationships needed for a future shared backend. It is a design
-proposal, not an approved school policy or a finalized schema. Fields and enum
+proposal, not an approved institutional policy or a finalized schema. Fields and enum
 values shown are illustrative; confirm them before implementation. The
 prototype currently uses fictional demo account selection and browser-local
 stores; it has no database, real authentication, or backend authorization.
 
-The approved project title and direction remain unchanged. The diagrams cover
+The generic product identity is **Student Monitoring System**. The diagrams cover
 school structure, learners and historical enrollment, staff identity and
 assignments, attendance, academics, warning review, support follow-up,
 announcements, and audit history. Dashboard summaries and reports are derived
@@ -95,8 +95,8 @@ erDiagram
     SECTION ||--o{ ADVISORY_ASSIGNMENT : advised
 ```
 
-`SCHOOL_YEAR` and school-year links are conditional on LNHS confirming the
-school-year model and its use in enrollment and subject offerings.
+`SCHOOL_YEAR` and school-year links are conditional on confirming the
+deployment's school-year model and its use in enrollment and subject offerings.
 `SUBJECT_OFFERING` represents a subject available to a section; the current
 prototype has only synthetic subjects and does not model offerings or staff
 assignments. The proposed teaching, advisory, and guidance assignments are
@@ -203,7 +203,7 @@ erDiagram
 An attendance session groups entries for a section and date and records its
 creator for provenance. Whether a section can have multiple sessions per day
 remains an open school workflow question; do not make `(section_id,
-attendance_date)` unique until LNHS confirms that one daily session is the
+attendance_date)` unique until authorized deployment representatives confirm that one daily session is the
 intended rule. If multiple sessions are permitted, their discriminator and
 duplicate rule must be approved before adding a constraint. An attendance
 entry references the enrollment that was in effect, rather than only the
@@ -212,7 +212,7 @@ learner's current section.
 The first backend workflow must verify the authenticated identity, active role,
 and applicable teaching or advisory assignment before reading a roster or
 writing a session. A role alone is not scope. Teacher recording is conditional
-on LNHS approval; adviser recording is also pending confirmation. Guidance
+on deployment institution approval; adviser recording is also pending confirmation. Guidance
 Counselor, Parent/Guardian, and Designated System Administrator receive no
 general attendance-table access in this workflow. Any future referral or
 guardian summary is a separate, approval-dependent surface and must not imply
@@ -379,7 +379,7 @@ reviewable.
 ## Conditional or deferred entities
 
 - **School year, terms, and effective enrollment dates:** likely relevant for
-  preserving history, but exact school-year and term structures require LNHS
+  preserving history, but exact school-year and term structures require deployment
   confirmation.
 - **Subject offerings, staff roles, and assignments:** needed for a future
   scoped multi-role workflow; exact roles, assignments, and authority are
@@ -389,7 +389,7 @@ reviewable.
   categories, evidence, thresholds, review/escalation procedure, and
   notification recipients are approved. Current warnings are synthetic
   prompts, not generated classifications.
-- **Restricted guidance records:** shown as a separate entity only if LNHS
+- **Restricted guidance records:** shown as a separate entity only if the deployment institution
   approves collection and handling. They must not be copied into ordinary
   support updates or exposed by general case access.
 - **Guardian links and parent accounts:** excluded from the core ERD until

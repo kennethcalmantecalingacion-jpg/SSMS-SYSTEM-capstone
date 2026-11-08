@@ -3,19 +3,19 @@
 ## Purpose and status
 
 This dictionary describes the conceptual entities and fields in
-[DATA-MODEL-ERD.md](./DATA-MODEL-ERD.md), informed by the Phase 2.1
-source-grounded inventory. It is a proposal for review, not a finalized
-database schema, school policy, or claim of LNHS approval. The suggested
+[DATA-MODEL-ERD.md](./DATA-MODEL-ERD.md), informed by the project requirements
+and current prototype. It is a proposal for review, not a finalized database
+schema, institutional policy, or claim of deployment approval. The suggested
 PostgreSQL-compatible types and nullability must be reviewed before
 implementation. No SQL or migrations are included.
 
 **Nullability:** “Required” means the field should be non-null in a future
 schema unless noted. “Nullable” means no value can be valid in the described
-case. “Conditional” means the field/entity relationship depends on LNHS
-approval or a still-unconfirmed workflow. PK and FK labels follow the ERD.
+case. “Conditional” means the field/entity relationship depends on deployment
+institution approval or a still-unconfirmed workflow. PK and FK labels follow the ERD.
 Foreign keys to `USER_PROFILE` also depend on authenticated identities being
 implemented. Enumerated values are not fixed here unless explicitly identified
-as current prototype values; school-approved values must be confirmed.
+as current prototype values; values must be reviewed for each deployment.
 
 ## Learner and school structure
 
@@ -26,7 +26,7 @@ Purpose: identify a learner independently of their current section.
 | Field | Suggested type | Key | Nullability | Description and integrity |
 |---|---|---|---|---|
 | `learner_id` | UUID | PK | Required | Stable internal identifier; do not use a visible row index. |
-| `learner_identifier` | TEXT | — | Required, provisional | School-facing identifier. Require uniqueness if LNHS confirms its format and lifecycle; prototype IDs are fictional. |
+| `learner_identifier` | TEXT | — | Required, provisional | School-facing identifier. Require uniqueness if the deployment institution confirms its format and lifecycle; prototype IDs are fictional. |
 | `name` | TEXT | — | Required | Minimum approved learner display name; exact profile fields remain unconfirmed. |
 
 ### `GRADE_LEVEL`
@@ -51,7 +51,7 @@ Purpose: group enrollments and organize offerings and attendance.
 ### `SCHOOL_YEAR`
 
 Purpose: optionally scope enrollments and subject offerings to a school year.
-Its use and boundaries require LNHS confirmation.
+Its use and boundaries require deployment institution review.
 
 | Field | Suggested type | Key | Nullability | Description and integrity |
 |---|---|---|---|---|
@@ -89,7 +89,7 @@ Purpose: application profile linked to a trusted authentication identity.
 
 ### `ROLE`
 
-Purpose: define a school-approved permission grouping; role names and authority
+Purpose: define a proposed permission grouping for deployment review; role names and authority
 remain provisional.
 
 | Field | Suggested type | Key | Nullability | Description and integrity |
@@ -115,7 +115,7 @@ examples; the official subject list is unconfirmed.
 | Field | Suggested type | Key | Nullability | Description and integrity |
 |---|---|---|---|---|
 | `subject_id` | UUID | PK | Required | Stable identifier. |
-| `name` | TEXT | — | Required | Subject display name. Uniqueness rules and school-approved names require confirmation. |
+| `name` | TEXT | — | Required | Subject display name. Uniqueness rules and names for a particular deployment require review. |
 
 ### `SUBJECT_OFFERING`
 
@@ -216,7 +216,7 @@ Purpose: define an activity/assessment within a subject offering.
 | `assessment_id` | UUID | PK | Required | Stable assessment identifier. |
 | `subject_offering_id` | UUID | FK → `SUBJECT_OFFERING.subject_offering_id` | Required | Offering to which this activity belongs. |
 | `title` | TEXT | — | Required | Activity title; current prototype allows a custom title. |
-| `possible_points` | NUMERIC | — | Required | Maximum points. Must be positive; accepted precision and assessment rules require LNHS confirmation. |
+| `possible_points` | NUMERIC | — | Required | Maximum points. Must be positive; accepted precision and assessment rules require deployment review. |
 
 The ERD does not include category, date, term, or grading-period fields.
 Do not infer or add official grading rules from the prototype's percentage
@@ -319,7 +319,7 @@ confidential guidance notes outside this general update stream.
 ### `GUIDANCE_RECORD`
 
 Purpose: placeholder for a distinct, more restricted guidance/counseling record
-domain, only if LNHS approves such records.
+domain, only if the deployment institution approves such records.
 
 | Field | Suggested type | Key | Nullability | Description and integrity |
 |---|---|---|---|---|

@@ -1,4 +1,4 @@
-# Smart Student Monitoring and Early Warning System for LNHS
+# Student Monitoring System
 
 This is a mock system for presenting an academic capstone concept. It is not an
 approved or deployed school system.
@@ -27,7 +27,9 @@ approved or deployed school system.
   labels persist in this browser using the versioned roster localStorage key.
   Valid saved rosters restore before attendance, academic, and support data;
   invalid roster data is skipped as a whole without being overwritten during
-  startup.
+  startup. When no generic-key record exists, validated data from the prior
+  application storage namespace is restored and copied to the generic key;
+  legacy values are retained as a recovery source.
 - Moving a learner changes current section membership without moving or
   deleting saved attendance and academic records. Unsaved attendance and
   academic entries for that learner are discarded rather than transferred.
@@ -67,10 +69,14 @@ approved or deployed school system.
   protected by real authentication or backend authorization.
   No real student records are stored. Browser-local demo storage is not
   suitable for real student information.
+- Existing browser-local roster, attendance, academic, support, and demo
+  session records are migrated from the previous application storage keys
+  only when the corresponding generic key is absent and the data validates.
+  The original values are left in place as a recovery source.
 - Demo account selection and client-side navigation presets are available.
   Settings shows a data-free System Administration status page; account
   administration and school configuration are not operational.
-- The demo navigation presets are provisional and not school-approved. There
+- The demo navigation presets are provisional and not approved for deployment. There
   is no real authentication, assignment-level enforcement, backend
   authorization, RLS, external messaging, or central database. Client-side
   navigation restrictions do not protect records from direct browser/API
@@ -78,18 +84,18 @@ approved or deployed school system.
   browser.
 - A provisional role-permission proposal for teachers, advisers, guidance
   counselors, parents, and system administration is documented in
-  `docs/ACCESS-CONTROL-MATRIX.md`. It is not school-approved or enforced as
+  `docs/ACCESS-CONTROL-MATRIX.md`. It is not approved for deployment or enforced as
   data authorization; only demo-level client-side navigation restrictions
   exist.
 - Use fictitious data only. Do not enter real learner information or credentials.
-- School-specific fields, roles, thresholds, and procedures remain provisional
-  until reviewed with the adviser and school client.
+- Institution-configurable fields, roles, thresholds, and procedures remain
+  provisional until reviewed for the intended deployment.
 - No legal or policy compliance is claimed.
 
-## Project title
+## Product identity
 
-Smart Student Monitoring and Early Warning System for Labnig National High
-School (LNHS).
+The application is the **Student Monitoring System**. It is not branded for,
+owned by, or approved by a particular institution.
 
 ## Development approach
 
@@ -103,6 +109,7 @@ configured.
 
 ## Project records
 
+- [Master system build prompt](MASTER_SYSTEM_BUILD_PROMPT.md)
 - [Requirements reconciliation](docs/REQUIREMENTS-RECONCILIATION.md)
 - [Decision log](docs/DECISIONS.md)
 

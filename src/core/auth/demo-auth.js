@@ -1,4 +1,7 @@
-const demoSessionKey = "lnhs-smart-student-monitoring.demo-session.v1";
+const demoSessionKey = "student-monitoring-system.demo-session.v1";
+const demoSessionMigrationKey = "student-monitoring-system.demo-session-migration.v1";
+// Read-only compatibility source; keep it so the prior session remains recoverable.
+const legacyDemoSessionKey = "lnhs-smart-student-monitoring.demo-session.v1";
 const demoSessionVersion = 1;
 
 const demoAccounts = [
@@ -39,7 +42,7 @@ const demoAccounts = [
     displayName: "Parent/Guardian",
     role: "Parent/Guardian",
     assignmentLabel: "Unavailable",
-    description: "Activation requires LNHS approval.",
+    description: "Activation is unavailable until configured for a deployment.",
     available: false,
   },
 ];
@@ -66,7 +69,11 @@ export function getDemoAccounts() {
 
 export function getCurrentSession() {
   try {
-    const storedValue = sessionStorage.getItem(demoSessionKey);
+    let storedValue = sessionStorage.getItem(demoSessionKey);
+    const migrateLegacySession = storedValue === null;
+    if (migrateLegacySession && sessionStorage.getItem(demoSessionMigrationKey) !== "1") {
+      storedValue = sessionStorage.getItem(legacyDemoSessionKey);
+    }
     if (storedValue === null) {
       return memorySession;
     }
@@ -88,6 +95,13 @@ export function getCurrentSession() {
     }
 
     memorySession = createSession(account);
+    if (migrateLegacySession) {
+      sessionStorage.setItem(demoSessionKey, JSON.stringify({
+        version: demoSessionVersion,
+        accountId: account.accountId,
+      }));
+      sessionStorage.setItem(demoSessionMigrationKey, "1");
+    }
     return memorySession;
   } catch {
     return memorySession;
@@ -116,6 +130,7 @@ export function signOutDemo() {
   memorySession = null;
   try {
     sessionStorage.removeItem(demoSessionKey);
+    sessionStorage.setItem(demoSessionMigrationKey, "1");
     return true;
   } catch {
     return false;

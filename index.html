@@ -4,8 +4,8 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#eaf3fc">
-    <meta name="description" content="LNHS student monitoring and early warning dashboard.">
-    <title>Overview · LNHS Monitoring System</title>
+    <meta name="description" content="Student Monitoring System for attendance, academic progress, early-warning review, and student interventions.">
+    <title>Overview · Student Monitoring System</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -14,16 +14,16 @@
   <body>
     <main class="login-view" id="login-view" aria-labelledby="login-title">
       <section class="login-card">
-        <a class="login-brand" href="#" aria-label="LNHS Monitoring System">
+        <a class="login-brand" href="#" aria-label="Student Monitoring System">
           <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
-          <span class="brand-copy"><strong>LNHS</strong><small>STUDENT MONITORING</small></span>
+          <span class="brand-copy"><strong>Student Monitoring</strong><small>SYSTEM</small></span>
         </a>
         <p class="login-eyebrow">WORKSPACE ACCESS</p>
         <h1 id="login-title">Sign in to your workspace</h1>
         <p class="login-intro">Choose a fictional demo account to explore role-based navigation.</p>
         <div class="demo-account-list" id="demo-account-list" aria-label="Demo accounts"></div>
         <p class="login-message" id="login-message" role="status" aria-live="polite">
-          Demo accounts and records are fictional. Navigation presets are provisional, not school-approved; assignment-level isolation and server-side permissions are future work.
+          Demo accounts and records are fictional. Navigation presets are provisional and not approved for a deployment; assignment-level isolation and server-side permissions are future work.
         </p>
       </section>
     </main>
@@ -31,19 +31,18 @@
     <div class="app-shell" id="app-shell" hidden>
       <aside class="sidebar" id="sidebar" aria-label="Main navigation">
         <div class="brand-row">
-          <a class="brand" href="#" aria-label="LNHS Monitoring System overview" data-view="overview">
+          <a class="brand" href="#" aria-label="Student Monitoring System overview" data-view="overview">
             <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
-            <span class="brand-copy"><strong>LNHS</strong><small>STUDENT MONITORING</small></span>
+            <span class="brand-copy"><strong>Student Monitoring</strong><small>SYSTEM</small></span>
           </a>
           <button class="sidebar-close" id="sidebar-close" type="button" aria-label="Close navigation">
             <svg aria-hidden="true" viewBox="0 0 20 20"><path d="m5 5 10 10M15 5 5 15"/></svg>
           </button>
         </div>
 
-        <div class="school-switcher">
-          <span class="school-emblem" aria-hidden="true">L</span>
-          <span class="school-name"><strong>Labnig National</strong><small>High School</small></span>
-          <svg aria-hidden="true" viewBox="0 0 16 16"><path d="m4 6 4 4 4-4"/></svg>
+        <div class="workspace-label">
+          <span class="workspace-mark" aria-hidden="true">SM</span>
+          <span class="workspace-name"><strong>DEMO WORKSPACE</strong><small>Student Monitoring System</small></span>
         </div>
 
         <div class="nav-group" data-navigation-group>
@@ -116,7 +115,7 @@
               <small class="profile-assignment" id="profile-assignment"></small>
             </span>
           </div>
-          <p class="demo-access-notice" id="demo-access-notice">Demo mode uses fictional records. Navigation presets are provisional, not school-approved; assignment-level and server-side permissions are not active.</p>
+          <p class="demo-access-notice" id="demo-access-notice">Demo mode uses fictional records. Navigation presets are provisional and not approved for a deployment; assignment-level and server-side permissions are not active.</p>
           <button class="sign-out-button" id="sign-out-button" type="button">Sign out</button>
         </div>
       </aside>
@@ -126,7 +125,7 @@
           <button class="mobile-menu" id="mobile-menu" type="button" aria-label="Open navigation" aria-expanded="false">
             <svg aria-hidden="true" viewBox="0 0 20 20"><path d="M3 5h14M3 10h14M3 15h14"/></svg>
           </button>
-          <div class="breadcrumbs"><span>LNHS</span><span class="breadcrumb-divider">/</span><strong id="breadcrumb-current">Overview</strong></div>
+          <div class="breadcrumbs"><span>Student Monitoring System</span><span class="breadcrumb-divider">/</span><strong id="breadcrumb-current">Overview</strong></div>
           <div class="topbar-actions">
             <button class="icon-button notification-button" type="button" id="notification-button" aria-label="Open announcements">
               <svg aria-hidden="true" viewBox="0 0 20 20"><path d="M15.5 7a5.5 5.5 0 0 0-11 0c0 6-2 6-2 7.5h15C17.5 13 15.5 13 15.5 7ZM8 17h4"/></svg>
@@ -242,7 +241,7 @@
             </article>
           </section>
 
-          <footer class="content-footer"><span>LNHS Student Monitoring System</span><span>Student monitoring overview</span></footer>
+          <footer class="content-footer"><span>Student Monitoring System</span><span>Student monitoring overview</span></footer>
           </div>
 
           <section class="alerts-view" id="alerts-view" aria-labelledby="alerts-title" hidden>
@@ -562,7 +561,7 @@
               <article class="system-admin-card">
                 <span class="system-admin-status">Demo presets only</span>
                 <h2>Role and access configuration</h2>
-                <p>Client-side navigation presets demonstrate provisional roles; they are not LNHS-approved permissions.</p>
+                <p>Client-side navigation presets demonstrate provisional roles; they are not approved deployment permissions.</p>
               </article>
               <article class="system-admin-card">
                 <span class="system-admin-status">Not implemented</span>
