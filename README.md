@@ -32,32 +32,35 @@ approved or deployed school system.
   scores. Unfinished score drafts are cleared on refresh. Search matches
   learner names and IDs; official grade and GPA rules remain unconfigured.
 - The Early Warnings view lists four synthetic review prompts and supports
-  category/status filtering, learner/topic search, session-only review
+  category/status filtering, learner/topic search, browser-local review
   acknowledgment, and opening a linked support plan. Counts reflect the
   current review state. Priority labels are illustrative only; no thresholds
   or automatic learner classifications are implemented.
 - Staff can record a planned action, an assigned staff label, and a next
   check-in date, then add progress updates and outcomes through completion.
-  Plans and their update history remain in memory for the current page session.
+  Support plans and their update history persist in this browser using
+  localStorage. Plans created from warnings retain the warning's record ID.
 - The announcements board supports session-only staff-workspace posts,
   section labels, unread/read-in-session state, and an in-app unread count.
   These posts are not delivered to families or external services; audience
   labels do not enforce access.
 - Reports can preview and print saved attendance for a section/date, saved
-  activity scores, intervention status, or a synthetic roster summary.
-  Attendance and academic reports can use records saved in this browser;
-  intervention and roster reports use current-session data. Reports do not
-  apply official grades or early-warning rules.
+  activity scores, support-plan status, or a synthetic roster summary.
+  Attendance, academic, and support-plan reports can use records saved in
+  this browser; roster reports use current-session data. Reports do not apply
+  official grades or early-warning rules.
 - Successfully saved attendance records and their history persist in this
   browser using localStorage; unfinished attendance drafts are cleared on
   refresh. Custom academic activities and successfully saved scores also
   persist in this browser; unfinished score drafts are cleared on refresh.
-  Student profiles, class structure, and directory changes exist only in the
-  current session.
+  Warning acknowledgements, support plans, and plan update history also
+  persist in this browser. These are local browser records, not shared or
+  server-side data. Student profiles, class structure, and directory changes
+  exist only in the current session.
   No real student records are stored.
 - Settings remain a future module. There is no backend, authentication, role
-  enforcement, external messaging, or central database; only saved attendance
-  and academic data are persisted locally in this browser.
+  enforcement, external messaging, or central database; only attendance,
+  academic, and support data are persisted locally in this browser.
 - A provisional role-permission proposal for teachers, advisers, guidance
   counselors, parents, and system administration is documented in
   `docs/ACCESS-CONTROL-MATRIX.md`. It is not school-approved and is not

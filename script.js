@@ -64,6 +64,7 @@ const academicActivities = {
 };
 
 const toast = document.querySelector("#toast");
+const supportStorageKey = "lnhs-smart-student-monitoring.support.v1";
 const warningRecords = [
   { id: "warning-0801", learnerId: "L-0801", category: "Attendance", priority: "high", details: "Repeated absences are ready for a staff check-in.", source: "Attendance: repeated absences", recency: "Review prompt" },
   { id: "warning-0811", learnerId: "L-0811", category: "Academic", priority: "medium", details: "Recent results may benefit from a supportive check-in.", source: "Academic: recent results", recency: "Review prompt" },
@@ -88,6 +89,7 @@ const interventionStatuses = {
   completed: "Completed",
 };
 let interventionSequence = 0;
+let supportPersistenceMessage = "";
 let interventionDialogMode = "create";
 let editingInterventionId = "";
 let studentDialogMode = "add";
@@ -587,6 +589,161 @@ function persistAcademicData() {
     return true;
   } catch {
     academicPersistenceMessage = "Browser storage failed. Academic changes are available for this session only and may be lost on refresh.";
+    return false;
+  }
+}
+
+function updateSupportPersistenceNotice() {
+  const warningNote = document.querySelector(".warning-prototype-note");
+  const interventionNote = document.querySelector(".intervention-prototype-note");
+  if (warningNote) {
+    warningNote.textContent = `Sample warnings only. Their categories and priority labels are not approved thresholds and do not determine a learner's status.${supportPersistenceMessage ? ` ${supportPersistenceMessage}` : ""}`;
+  }
+  if (interventionNote) {
+    interventionNote.textContent = `Plans and follow-up notes stay in this browser. Keep notes brief and avoid sensitive personal details.${supportPersistenceMessage ? ` ${supportPersistenceMessage}` : ""}`;
+  }
+}
+
+function restoreSupportData() {
+  let storedValue;
+  try {
+    storedValue = localStorage.getItem(supportStorageKey);
+  } catch {
+    supportPersistenceMessage = "Browser storage is unavailable. Warning and support changes can be saved for this session only.";
+    return;
+  }
+
+  if (storedValue === null) {
+    return;
+  }
+
+  let stored;
+  try {
+    stored = JSON.parse(storedValue);
+  } catch {
+    supportPersistenceMessage = "Saved warning and support data could not be read and was skipped.";
+    return;
+  }
+
+  if (!stored || typeof stored !== "object" || stored.version !== 1) {
+    supportPersistenceMessage = "Saved warning and support data had an unsupported format and was skipped.";
+    return;
+  }
+
+  let skippedRecord = false;
+  const warningIds = new Set(warningRecords.map((warning) => warning.id));
+  const reviewedIds = new Set();
+  const reviewedWarningIds = Array.isArray(stored.reviewedWarningIds) ? stored.reviewedWarningIds : [];
+  const savedRecords = Array.isArray(stored.supportRecords) ? stored.supportRecords : [];
+  if (!Array.isArray(stored.reviewedWarningIds) || !Array.isArray(stored.supportRecords)) {
+    skippedRecord = true;
+  }
+
+  reviewedWarningIds.forEach((warningId) => {
+    if (typeof warningId !== "string" || !warningIds.has(warningId) || reviewedIds.has(warningId)) {
+      skippedRecord = true;
+      return;
+    }
+    reviewedIds.add(warningId);
+  });
+  warningRecords.forEach((warning) => {
+    warning.isReviewed = reviewedIds.has(warning.id);
+  });
+
+  const supportIds = new Set();
+  savedRecords.forEach((record) => {
+    if (!record || typeof record !== "object" || Array.isArray(record)
+        || typeof record.id !== "string" || !/^support-[1-9]\d*$/.test(record.id)
+        || !Number.isSafeInteger(Number(record.id.slice("support-".length)))
+        || supportIds.has(record.id)
+        || typeof record.learnerId !== "string" || !/^[A-Za-z0-9_-]{1,64}$/.test(record.learnerId)
+        || typeof record.source !== "string" || !record.source.trim()
+        || typeof record.action !== "string" || !record.action.trim()
+        || typeof record.assignedTo !== "string" || !record.assignedTo.trim()
+        || !isValidAttendanceDate(record.dueDate)
+        || !Object.hasOwn(interventionStatuses, record.status)
+        || !Array.isArray(record.updates)) {
+      skippedRecord = true;
+      return;
+    }
+
+    const updates = record.updates.flatMap((update) => {
+      if (!update || typeof update !== "object" || Array.isArray(update)
+          || typeof update.note !== "string" || !update.note.trim()
+          || !Object.hasOwn(interventionStatuses, update.status)
+          || !isValidTimestamp(update.timestamp)) {
+        skippedRecord = true;
+        return [];
+      }
+      return [{
+        note: update.note,
+        status: update.status,
+        timestamp: new Date(update.timestamp),
+      }];
+    });
+
+    const sourceWarningId = record.sourceWarningId === null
+      || warningIds.has(record.sourceWarningId)
+      ? record.sourceWarningId
+      : null;
+    if (sourceWarningId !== record.sourceWarningId) {
+      skippedRecord = true;
+    }
+
+    interventionRecords.push({
+      id: record.id,
+      learnerId: record.learnerId,
+      sourceWarningId,
+      source: record.source.trim(),
+      action: record.action.trim(),
+      assignedTo: record.assignedTo.trim(),
+      dueDate: record.dueDate,
+      status: record.status,
+      updates,
+    });
+    supportIds.add(record.id);
+    interventionSequence = Math.max(
+      interventionSequence,
+      Number(record.id.slice("support-".length)),
+    );
+  });
+
+  if (skippedRecord) {
+    supportPersistenceMessage = "Some saved warning or support records were invalid, duplicated, or linked to an unknown warning and were skipped or safely unlinked.";
+  }
+}
+
+function persistSupportData() {
+  const stored = {
+    version: 1,
+    reviewedWarningIds: warningRecords
+      .filter((warning) => warning.isReviewed)
+      .map((warning) => warning.id),
+    supportRecords: interventionRecords.map((record) => ({
+      id: record.id,
+      learnerId: record.learnerId,
+      sourceWarningId: record.sourceWarningId,
+      source: record.source,
+      action: record.action,
+      assignedTo: record.assignedTo,
+      dueDate: record.dueDate,
+      status: record.status,
+      updates: record.updates.map((update) => ({
+        note: update.note,
+        status: update.status,
+        timestamp: update.timestamp.toISOString(),
+      })),
+    })),
+  };
+
+  try {
+    localStorage.setItem(supportStorageKey, JSON.stringify(stored));
+    supportPersistenceMessage = "";
+    updateSupportPersistenceNotice();
+    return true;
+  } catch {
+    supportPersistenceMessage = "Browser storage failed. Warning and support changes are available for this session only and may be lost on refresh.";
+    updateSupportPersistenceNotice();
     return false;
   }
 }
@@ -1471,9 +1628,11 @@ function saveIntervention(event) {
       return;
     }
 
+    const sourceWarningId = source.value === "general" ? null : source.value;
     interventionRecords.unshift({
       id: `support-${++interventionSequence}`,
       learnerId: learner.value,
+      sourceWarningId,
       source: source.selectedOptions[0].textContent,
       action: action.value.trim(),
       assignedTo: assignee.value.trim(),
@@ -1485,9 +1644,10 @@ function saveIntervention(event) {
         timestamp: new Date(),
       }],
     });
+    const persisted = persistSupportData();
     document.querySelector("#intervention-dialog").close();
     renderInterventions();
-    showToast("Support plan created.");
+    showToast(persisted ? "Support plan created." : "Support plan created for this session only.");
     return;
   }
 
@@ -1508,9 +1668,10 @@ function saveIntervention(event) {
     status: status.value,
     timestamp: new Date(),
   });
+  const persisted = persistSupportData();
   document.querySelector("#intervention-dialog").close();
   renderInterventions();
-  showToast("Support plan updated.");
+  showToast(persisted ? "Support plan updated." : "Support plan updated for this session only.");
 }
 
 function getStudentRecords() {
@@ -1916,6 +2077,7 @@ function createAcademicActivity(event) {
 
 restoreAttendanceData();
 restoreAcademicData();
+restoreSupportData();
 updateDateAndGreeting();
 updateAttendanceChart(document.querySelector("#period-select").value);
 populateStructureControls();
@@ -1925,6 +2087,7 @@ loadAcademicSelection();
 renderInterventions();
 renderAnnouncements();
 updateReportControls();
+updateSupportPersistenceNotice();
 const attendanceDate = document.querySelector("#attendance-date");
 attendanceDate.value = getLocalDateValue();
 attendanceDate.max = getLocalDateValue();
@@ -2167,6 +2330,7 @@ function updateWarningCounts() {
   document.querySelector("#warning-needs-review").textContent = String(needsReview);
   document.querySelector("#warning-reviewed").textContent = String(reviewed);
   document.querySelector("#warning-total").textContent = String(warningRecords.length);
+  document.querySelector("#warning-reviewed").nextElementSibling.textContent = "Acknowledged in this browser";
 }
 
 function renderWarningBoard() {
@@ -2220,8 +2384,9 @@ document.addEventListener("click", (event) => {
   }
   if (button.dataset.warningAction === "review" && !warning.isReviewed) {
     warning.isReviewed = true;
+    const persisted = persistSupportData();
     renderWarningBoard();
-    showToast("Warning acknowledged.");
+    showToast(persisted ? "Warning acknowledged." : "Warning acknowledged for this session only.");
   } else if (button.dataset.warningAction === "plan") {
     setCurrentView("interventions");
     openInterventionCreate(warning.id, warning.learnerId);
