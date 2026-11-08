@@ -2055,6 +2055,20 @@ p {
   font-size: 10px;
 }
 
+.roster-persistence-status {
+  margin: 0;
+  padding: 9px 20px;
+  background: #f5f9ff;
+  color: #53677d;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.roster-persistence-status.error {
+  background: #fff6f3;
+  color: #9c3d2c;
+}
+
 .visually-hidden {
   position: absolute;
   width: 1px;

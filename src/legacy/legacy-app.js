@@ -30,18 +30,18 @@ const periodData = {
   },
 };
 
-const sectionRosters = {
+let sectionRosters = {
   "7-A": ["L-0701", "L-0702", "L-0703", "L-0704", "L-0705", "L-0706", "L-0707", "L-0708"],
   "8-A": ["L-0801", "L-0802", "L-0803", "L-0804", "L-0805", "L-0806", "L-0807", "L-0808"],
   "8-B": ["L-0811", "L-0812", "L-0813", "L-0814", "L-0815", "L-0816", "L-0817", "L-0818"],
 };
-const gradeLevels = ["7", "8"];
-const sectionLabels = {
+let gradeLevels = ["7", "8"];
+let sectionLabels = {
   "7-A": "Grade 7 · Section A",
   "8-A": "Grade 8 · Section A",
   "8-B": "Grade 8 · Section B",
 };
-const learnerProfiles = new Map(
+let learnerProfiles = new Map(
   Object.values(sectionRosters).flatMap((roster) => roster.map((learnerId, index) => [
     learnerId,
     { name: `Learner ${learnerId}`, gender: index % 2 === 0 ? "boy" : "girl" },
@@ -52,6 +52,7 @@ const attendanceDrafts = new Map();
 const savedAttendance = new Map();
 const attendanceHistory = [];
 const attendanceStorageKey = "lnhs-smart-student-monitoring.attendance.v1";
+const rosterStorageKey = "lnhs-smart-student-monitoring.roster.v1";
 const attendanceStatuses = [
   ["present", "Present"],
   ["late", "Late"],
@@ -380,6 +381,161 @@ function renderClassSetup() {
   }));
 }
 
+function validateRosterData(stored) {
+  if (!stored || typeof stored !== "object" || Array.isArray(stored)
+      || stored.version !== 1 || !Array.isArray(stored.gradeLevels)
+      || !Array.isArray(stored.sections) || !Array.isArray(stored.learnerProfiles)
+      || stored.gradeLevels.length === 0 || stored.sections.length === 0) {
+    return null;
+  }
+
+  const grades = new Set();
+  for (const grade of stored.gradeLevels) {
+    if (typeof grade !== "string" || !/^[A-Z0-9]+$/.test(grade) || grades.has(grade)) {
+      return null;
+    }
+    grades.add(grade);
+  }
+
+  const rosters = Object.create(null);
+  const labels = Object.create(null);
+  const memberships = new Set();
+  for (const section of stored.sections) {
+    if (!section || typeof section !== "object" || Array.isArray(section)
+        || typeof section.code !== "string" || typeof section.label !== "string"
+        || !section.label.trim() || section.label.length > 100
+        || !Array.isArray(section.learnerIds) || Object.hasOwn(rosters, section.code)) {
+      return null;
+    }
+    const codeMatch = section.code.match(/^([A-Z0-9]+)-([A-Z0-9]+)$/);
+    if (!codeMatch || !grades.has(codeMatch[1])) {
+      return null;
+    }
+    rosters[section.code] = [];
+    labels[section.code] = section.label.trim();
+    for (const learnerId of section.learnerIds) {
+      if (typeof learnerId !== "string" || !/^L-\d{4}$/.test(learnerId)
+          || memberships.has(learnerId)) {
+        return null;
+      }
+      memberships.add(learnerId);
+      rosters[section.code].push(learnerId);
+    }
+  }
+
+  const profiles = new Map();
+  for (const profile of stored.learnerProfiles) {
+    if (!profile || typeof profile !== "object" || Array.isArray(profile)
+        || typeof profile.learnerId !== "string" || !/^L-\d{4}$/.test(profile.learnerId)
+        || !memberships.has(profile.learnerId) || profiles.has(profile.learnerId)
+        || typeof profile.name !== "string" || !profile.name.trim()
+        || profile.name.length > 80 || !["boy", "girl"].includes(profile.gender)) {
+      return null;
+    }
+    profiles.set(profile.learnerId, {
+      name: profile.name.trim(),
+      gender: profile.gender,
+    });
+  }
+
+  if (profiles.size !== memberships.size) {
+    return null;
+  }
+  return {
+    sectionRosters: rosters,
+    gradeLevels: [...stored.gradeLevels],
+    sectionLabels: labels,
+    learnerProfiles: profiles,
+  };
+}
+
+function setRosterPersistenceMessage(message, isError = false) {
+  const status = document.querySelector("#roster-persistence-status");
+  if (status) {
+    status.textContent = message;
+    status.classList.toggle("error", isError);
+  }
+}
+
+function restoreRosterData() {
+  let storedValue;
+  try {
+    storedValue = localStorage.getItem(rosterStorageKey);
+  } catch {
+    setRosterPersistenceMessage(
+      "Browser storage is unavailable. Directory and class changes are available for this session only.",
+      true,
+    );
+    return;
+  }
+
+  if (storedValue === null) {
+    setRosterPersistenceMessage(
+      "Learner and class information is saved locally in this browser when updated. Synthetic records only; not shared across devices.",
+    );
+    return;
+  }
+
+  let stored;
+  try {
+    stored = JSON.parse(storedValue);
+  } catch {
+    setRosterPersistenceMessage(
+      "Saved directory data could not be read. Built-in synthetic data is being used; the saved value was left unchanged.",
+      true,
+    );
+    return;
+  }
+
+  const restored = validateRosterData(stored);
+  if (!restored) {
+    setRosterPersistenceMessage(
+      "Saved directory data is invalid. Built-in synthetic data is being used; the saved value was left unchanged.",
+      true,
+    );
+    return;
+  }
+
+  sectionRosters = restored.sectionRosters;
+  gradeLevels = restored.gradeLevels;
+  sectionLabels = restored.sectionLabels;
+  learnerProfiles = restored.learnerProfiles;
+  setRosterPersistenceMessage(
+    "Directory and class information restored from this browser. Synthetic records only; not shared across devices.",
+  );
+}
+
+function persistRosterData() {
+  const stored = {
+    version: 1,
+    gradeLevels: [...gradeLevels],
+    sections: Object.keys(sectionRosters).map((code) => ({
+      code,
+      label: sectionLabels[code],
+      learnerIds: [...sectionRosters[code]],
+    })),
+    learnerProfiles: [...learnerProfiles.entries()].map(([learnerId, profile]) => ({
+      learnerId,
+      name: profile.name,
+      gender: profile.gender,
+    })),
+  };
+
+  try {
+    localStorage.setItem(rosterStorageKey, JSON.stringify(stored));
+    setRosterPersistenceMessage(
+      "Directory and class information is saved locally in this browser. Synthetic records only; not shared across devices.",
+    );
+    return true;
+  } catch {
+    setRosterPersistenceMessage(
+      "Browser storage failed. Directory and class changes are available for this session only and may be lost on refresh.",
+      true,
+    );
+    return false;
+  }
+}
+
 function addGradeLevel() {
   const input = document.querySelector("#new-grade-level");
   const error = document.querySelector("#class-setup-error");
@@ -402,7 +558,10 @@ function addGradeLevel() {
   populateStructureControls();
   renderClassSetup();
   renderStudentDirectory();
-  showToast(`${getGradeLabel(grade)} added.`);
+  const persisted = persistRosterData();
+  showToast(persisted
+    ? `${getGradeLabel(grade)} added.`
+    : `${getGradeLabel(grade)} added for this session only.`);
 }
 
 function addSection() {
@@ -429,7 +588,10 @@ function addSection() {
   populateStructureControls();
   renderClassSetup();
   renderStudentDirectory();
-  showToast(`${getSectionLabel(code)} added.`);
+  const persisted = persistRosterData();
+  showToast(persisted
+    ? `${getSectionLabel(code)} added.`
+    : `${getSectionLabel(code)} added for this session only.`);
 }
 
 function getAcademicAssessment() {
@@ -538,11 +700,10 @@ function restoreAcademicData() {
 
     const [key, scores] = entry;
     const [section, subject, activityId, ...extraKeyParts] = key.split("|");
-    const roster = sectionRosters[section];
     const activity = Object.hasOwn(academicActivities, subject)
       ? academicActivities[subject].find((item) => item.id === activityId)
       : null;
-    if (extraKeyParts.length || !roster || !activity || !scores
+    if (extraKeyParts.length || !Object.hasOwn(sectionRosters, section) || !activity || !scores
         || typeof scores !== "object" || Array.isArray(scores)) {
       skippedRecord = true;
       return;
@@ -550,7 +711,7 @@ function restoreAcademicData() {
 
     const scoreEntries = Object.entries(scores);
     if (scoreEntries.length === 0 || scoreEntries.some(([learnerId, score]) =>
-      !roster.includes(learnerId) || typeof score !== "number"
+      !learnerProfiles.has(learnerId) || typeof score !== "number"
       || !Number.isFinite(score) || score < 0 || score > activity.maxScore)) {
       skippedRecord = true;
       return;
@@ -868,7 +1029,10 @@ function loadAcademicSelection() {
   currentAcademicKey = getAcademicKey();
   if (!academicDrafts.has(currentAcademicKey)) {
     const saved = savedAcademicScores.get(currentAcademicKey);
-    academicDrafts.set(currentAcademicKey, saved ? { ...saved } : createBlankAcademicScores());
+    const roster = sectionRosters[document.querySelector("#academic-section").value];
+    academicDrafts.set(currentAcademicKey, Object.fromEntries(
+      roster.map((learnerId) => [learnerId, saved?.[learnerId] ?? ""]),
+    ));
   }
   setAcademicMessage();
   renderAcademicRoster();
@@ -1791,36 +1955,23 @@ function openStudentDialog(record) {
   setStudentDialogMode("edit", record);
 }
 
-function moveLearnerRecords(map, oldSection, newSection, learnerId, nestedKey = "") {
-  for (const [key, record] of map) {
-    if (!key.startsWith(`${oldSection}|`)) {
-      continue;
-    }
-
-    const source = nestedKey ? record[nestedKey] : record;
-    if (!(learnerId in source)) {
-      continue;
-    }
-
-    const nextKey = `${newSection}${key.slice(oldSection.length)}`;
-    const destinationRecord = map.get(nextKey) || (nestedKey ? { ...record, [nestedKey]: {} } : {});
-    const destination = nestedKey ? destinationRecord[nestedKey] : destinationRecord;
-    destination[learnerId] = source[learnerId];
-    delete source[learnerId];
-    map.set(nextKey, destinationRecord);
-  }
-}
-
 function moveLearnerToSection(learnerId, oldSection, newSection) {
   if (oldSection === newSection) {
-    return;
+    return false;
   }
   sectionRosters[oldSection] = sectionRosters[oldSection].filter((id) => id !== learnerId);
   sectionRosters[newSection].push(learnerId);
-  moveLearnerRecords(attendanceDrafts, oldSection, newSection, learnerId);
-  moveLearnerRecords(savedAttendance, oldSection, newSection, learnerId, "statuses");
-  moveLearnerRecords(academicDrafts, oldSection, newSection, learnerId);
-  moveLearnerRecords(savedAcademicScores, oldSection, newSection, learnerId);
+  for (const [key, draft] of attendanceDrafts) {
+    if (key.startsWith(`${oldSection}|`)) {
+      delete draft[learnerId];
+    }
+  }
+  for (const [key, draft] of academicDrafts) {
+    if (key.startsWith(`${oldSection}|`)) {
+      delete draft[learnerId];
+    }
+  }
+  return true;
 }
 
 function addStudent(event) {
@@ -1844,12 +1995,15 @@ function addStudent(event) {
     }
     moveLearnerToSection(editingLearnerId, record.section, sectionSelect.value);
     learnerProfiles.set(editingLearnerId, { name: learnerName, gender: genderSelect.value });
+    const persisted = persistRosterData();
     document.querySelector("#student-dialog").close();
     renderStudentDirectory();
     renderRoster();
     renderAcademicRoster();
     populateStructureControls();
-    showToast("Learner profile updated.");
+    showToast(persisted
+      ? "Learner profile updated."
+      : "Learner profile updated for this session only.");
     return;
   }
 
@@ -1871,36 +2025,31 @@ function addStudent(event) {
       draft[learnerId] = "";
     }
   }
-  for (const [key, record] of savedAttendance) {
-    if (key.startsWith(`${section}|`)) {
-      record.statuses[learnerId] = "";
-    }
-  }
   for (const [key, scores] of academicDrafts) {
     if (key.startsWith(`${section}|`)) {
       scores[learnerId] = "";
     }
   }
-  for (const [key, scores] of savedAcademicScores) {
-    if (key.startsWith(`${section}|`)) {
-      scores[learnerId] = "";
-    }
-  }
-
+  const persisted = persistRosterData();
   document.querySelector("#student-dialog").close();
   document.querySelector("#student-dialog-form").reset();
   populateStructureControls();
   renderStudentDirectory();
   renderRoster();
   renderAcademicRoster();
-  showToast("Learner added to the section.");
+  showToast(persisted
+    ? "Learner added to the section."
+    : "Learner added for this session only.");
 }
 
 function loadAttendanceSelection() {
   currentAttendanceKey = getAttendanceKey();
   if (!attendanceDrafts.has(currentAttendanceKey)) {
     const saved = savedAttendance.get(currentAttendanceKey);
-    attendanceDrafts.set(currentAttendanceKey, saved ? { ...saved.statuses } : createBlankAttendance());
+    const section = document.querySelector("#attendance-section").value;
+    attendanceDrafts.set(currentAttendanceKey, Object.fromEntries(
+      sectionRosters[section].map((learnerId) => [learnerId, saved?.statuses[learnerId] ?? ""]),
+    ));
   }
   setAttendanceMessage();
   renderRoster();
@@ -1980,8 +2129,15 @@ function saveAttendance(event) {
     ? `Updated ${changes} attendance ${changes === 1 ? "record" : "records"}`
     : `Recorded attendance for ${changes} learners`;
   const savedAt = new Date();
+  const statuses = { ...draft };
+  const currentLearners = new Set(sectionRosters[document.querySelector("#attendance-section").value]);
+  Object.entries(previous || {}).forEach(([learnerId, status]) => {
+    if (!currentLearners.has(learnerId)) {
+      statuses[learnerId] = status;
+    }
+  });
   savedAttendance.set(currentAttendanceKey, {
-    statuses: { ...draft },
+    statuses,
     savedAt,
   });
   attendanceHistory.unshift({
@@ -2035,7 +2191,14 @@ function saveAcademicScores(event) {
     return;
   }
 
-  savedAcademicScores.set(currentAcademicKey, { ...draft });
+  const scores = { ...draft };
+  const currentLearners = new Set(sectionRosters[document.querySelector("#academic-section").value]);
+  Object.entries(previous || {}).forEach(([learnerId, score]) => {
+    if (!currentLearners.has(learnerId)) {
+      scores[learnerId] = score;
+    }
+  });
+  savedAcademicScores.set(currentAcademicKey, scores);
   const section = document.querySelector("#academic-section").selectedOptions[0].textContent;
   if (persistAcademicData()) {
     setAcademicMessage(`Saved ${assessment.title} scores for ${section}.`, "success");
@@ -2087,6 +2250,7 @@ function createAcademicActivity(event) {
   }
 }
 
+restoreRosterData();
 restoreAttendanceData();
 restoreAcademicData();
 restoreSupportData();

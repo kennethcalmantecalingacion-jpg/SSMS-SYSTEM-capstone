@@ -21,8 +21,14 @@ approved or deployed school system.
   history for successfully saved attendance.
 - The student directory supports section/grade and Boy/Girl filters,
   name/ID search, learner name and profile editing, and adding learners.
-- Grade levels and sections can be added in the current session; profile
-  changes also update attendance and academic rosters.
+- Learner names, profiles, section membership, grade levels, and section
+  labels persist in this browser using the versioned roster localStorage key.
+  Valid saved rosters restore before attendance, academic, and support data;
+  invalid roster data is skipped as a whole without being overwritten during
+  startup.
+- Moving a learner changes current section membership without moving or
+  deleting saved attendance and academic records. Unsaved attendance and
+  academic entries for that learner are discarded rather than transferred.
 - Attendance supports section/date selection, gender filtering, and
   name/ID search. The filter only changes visible rows: summary totals,
   mark-all, and save validation still cover every learner in the section.
@@ -47,17 +53,18 @@ approved or deployed school system.
 - Reports can preview and print saved attendance for a section/date, saved
   activity scores, support-plan status, or a synthetic roster summary.
   Attendance, academic, and support-plan reports can use records saved in
-  this browser; roster reports use current-session data. Reports do not apply
-  official grades or early-warning rules.
+  this browser; roster reports use the current directory and class structure.
+  Reports do not apply official grades or early-warning rules.
 - Successfully saved attendance records and their history persist in this
   browser using localStorage; unfinished attendance drafts are cleared on
   refresh. Custom academic activities and successfully saved scores also
   persist in this browser; unfinished score drafts are cleared on refresh.
   Warning acknowledgements, support plans, and plan update history also
-  persist in this browser. These are local browser records, not shared or
-  server-side data. Student profiles, class structure, and directory changes
-  exist only in the current session.
-  No real student records are stored.
+  persist in this browser. Roster, attendance, academic, and support records
+  are local browser records, not shared or server-side data, and are not
+  protected by real authentication or backend authorization.
+  No real student records are stored. Browser-local demo storage is not
+  suitable for real student information.
 - Demo account selection and client-side navigation presets are available.
   Settings shows a data-free System Administration status page; account
   administration and school configuration are not operational.
