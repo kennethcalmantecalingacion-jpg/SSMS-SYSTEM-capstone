@@ -3,10 +3,17 @@
 ## Status and source basis
 
 This is a proposal for review, not an LNHS-approved policy or an authorization
-to access real learner data. The prototype has no authentication or enforced
-permissions. The roles below are provisional, and every conditional or pending
-entry requires LNHS approval and a trusted implementation before it can grant
-access. No entry is marked as currently allowed.
+to access real learner data. The prototype now offers fictional demo account
+selection and client-side navigation restrictions. These are not real
+authentication or enforced permissions: assignment-level enforcement,
+backend authorization, and RLS do not exist. The roles below are provisional,
+and every conditional or pending entry requires LNHS approval and a trusted
+implementation before it can grant access. No entry is marked as currently
+allowed.
+
+The demo System Administrator's client-side navigation is limited to a
+data-free System Administration status page. This navigation preset does not
+approve or grant any entity permission in this proposal.
 
 This update reconciles the conceptual entities in
 [DATA-MODEL-ERD.md](./DATA-MODEL-ERD.md) with their fields and unresolved

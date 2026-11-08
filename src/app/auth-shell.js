@@ -1,5 +1,5 @@
 import { getCurrentSession, getDemoAccounts, signInDemo, signOutDemo } from "../core/auth/demo-auth.js";
-import { canAccessView, getRoleLabel } from "../core/access/role-access.js";
+import { canAccessView, getAllowedViews, getRoleLabel } from "../core/access/role-access.js";
 
 function setLoginMessage(message) {
   document.querySelector("#login-message").textContent = message;
@@ -51,12 +51,31 @@ function renderSession(session) {
   }
 
   const role = getRoleLabel(session.role);
+  const overviewAvailable = canAccessView(role, "overview");
+  const sidebarBrand = document.querySelector(".sidebar .brand");
+  if (overviewAvailable) {
+    sidebarBrand.dataset.view = "overview";
+    sidebarBrand.setAttribute("href", "#");
+    sidebarBrand.setAttribute("aria-label", "LNHS Monitoring System overview");
+    sidebarBrand.removeAttribute("aria-disabled");
+    sidebarBrand.removeAttribute("tabindex");
+  } else {
+    sidebarBrand.removeAttribute("data-view");
+    sidebarBrand.removeAttribute("href");
+    sidebarBrand.setAttribute("aria-label", "LNHS Monitoring System");
+    sidebarBrand.setAttribute("aria-disabled", "true");
+    sidebarBrand.setAttribute("tabindex", "-1");
+  }
   document.querySelectorAll(".nav-link[data-view]").forEach((link) => {
     link.hidden = !canAccessView(role, link.dataset.view);
   });
   document.querySelectorAll("[data-navigation-group]").forEach((group) => {
     group.hidden = ![...group.querySelectorAll(".nav-link[data-view]")]
       .some((link) => !link.hidden);
+  });
+  document.querySelector("#notification-button").hidden = !canAccessView(role, "announcements");
+  document.querySelectorAll("[data-action='attendance']").forEach((shortcut) => {
+    shortcut.hidden = !canAccessView(role, "attendance");
   });
 
   document.querySelector("#profile-name").textContent = session.displayName;
@@ -78,8 +97,9 @@ function renderSession(session) {
   if (session.persistence === "memory") {
     setLoginMessage("This browser tab cannot retain the demo sign-in after refresh. Navigation presets are provisional; assignment-level and server-side permissions are future work.");
   }
-  document.title = "Overview · LNHS Monitoring System";
-  document.querySelector('.nav-link[data-view="overview"]').click();
+  const firstView = getAllowedViews(role)[0];
+  document.title = `${firstView === "settings" ? "System Administration" : "Overview"} · LNHS Monitoring System`;
+  document.querySelector(`.nav-link[data-view="${firstView}"]`).click();
 }
 
 export function initializeAuthShell() {

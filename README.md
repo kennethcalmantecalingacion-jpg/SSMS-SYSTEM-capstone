@@ -5,8 +5,8 @@ approved or deployed school system.
 
 ## Current status
 
-- A responsive dashboard is implemented in `index.html`, `style.css`, and
-  `script.js`.
+- A responsive dashboard is implemented in `index.html` and the Vite source
+  under `src/`.
 - The dashboard uses fictional sample figures; period selection, warning
   acknowledgment, filtering, and mobile navigation work in the browser.
 - Presentation screens omit demo labels, but the figures and learner IDs remain
@@ -58,13 +58,20 @@ approved or deployed school system.
   server-side data. Student profiles, class structure, and directory changes
   exist only in the current session.
   No real student records are stored.
-- Settings remain a future module. There is no backend, authentication, role
-  enforcement, external messaging, or central database; only attendance,
-  academic, and support data are persisted locally in this browser.
+- Demo account selection and client-side navigation presets are available.
+  Settings shows a data-free System Administration status page; account
+  administration and school configuration are not operational.
+- The demo navigation presets are provisional and not school-approved. There
+  is no real authentication, assignment-level enforcement, backend
+  authorization, RLS, external messaging, or central database. Client-side
+  navigation restrictions do not protect records from direct browser/API
+  access. Attendance, academic, and support data are persisted only in this
+  browser.
 - A provisional role-permission proposal for teachers, advisers, guidance
   counselors, parents, and system administration is documented in
-  `docs/ACCESS-CONTROL-MATRIX.md`. It is not school-approved and is not
-  enforced by the prototype.
+  `docs/ACCESS-CONTROL-MATRIX.md`. It is not school-approved or enforced as
+  data authorization; only demo-level client-side navigation restrictions
+  exist.
 - Use fictitious data only. Do not enter real learner information or credentials.
 - School-specific fields, roles, thresholds, and procedures remain provisional
   until reviewed with the adviser and school client.
@@ -81,8 +88,9 @@ Build and verify one small increment at a time. Review official sources before
 translating policy into requirements. Review the data model and access design
 before adding database migrations or connecting a real backend.
 
-Open `index.html` in a browser to preview the current frontend. No build step or
-backend is configured yet.
+Run `npm run dev` to preview the frontend, `npm run build` to create a
+production bundle, or `npm run preview` to serve that bundle. No backend is
+configured.
 
 ## Project records
 

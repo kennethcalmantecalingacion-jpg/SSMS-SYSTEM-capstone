@@ -1920,7 +1920,8 @@ function setCurrentView(view) {
   const isInterventions = view === "interventions";
   const isAnnouncements = view === "announcements";
   const isReports = view === "reports";
-  document.querySelector("#overview-view").hidden = isAttendance || isStudents || isAcademics || isAlerts || isInterventions || isAnnouncements || isReports;
+  const isSettings = view === "settings";
+  document.querySelector("#overview-view").hidden = isAttendance || isStudents || isAcademics || isAlerts || isInterventions || isAnnouncements || isReports || isSettings;
   document.querySelector("#attendance-view").hidden = !isAttendance;
   document.querySelector("#students-view").hidden = !isStudents;
   document.querySelector("#academics-view").hidden = !isAcademics;
@@ -1928,7 +1929,8 @@ function setCurrentView(view) {
   document.querySelector("#interventions-view").hidden = !isInterventions;
   document.querySelector("#announcements-view").hidden = !isAnnouncements;
   document.querySelector("#reports-view").hidden = !isReports;
-  const title = isAttendance ? "Attendance" : isStudents ? "Student records" : isAcademics ? "Academics" : isAlerts ? "Early warnings" : isInterventions ? "Interventions" : isAnnouncements ? "Announcements" : isReports ? "Reports" : "Overview";
+  document.querySelector("#settings-view").hidden = !isSettings;
+  const title = isAttendance ? "Attendance" : isStudents ? "Student records" : isAcademics ? "Academics" : isAlerts ? "Early warnings" : isInterventions ? "Interventions" : isAnnouncements ? "Announcements" : isReports ? "Reports" : isSettings ? "System Administration" : "Overview";
   document.querySelector("#breadcrumb-current").textContent = title;
   document.title = `${title} · LNHS Monitoring System`;
   document.querySelectorAll(".nav-link[data-view]").forEach((navLink) => {
@@ -2258,6 +2260,10 @@ document.querySelectorAll("[data-view]").forEach((button) => {
 
     if (view === "alerts") {
       setCurrentView("alerts");
+      return;
+    }
+    if (view === "settings") {
+      setCurrentView("settings");
       return;
     }
 
