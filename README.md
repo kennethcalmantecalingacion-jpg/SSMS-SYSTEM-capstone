@@ -17,7 +17,8 @@ approved or deployed school system.
 - The interface uses a blue and light-blue palette, shorter action-oriented
   copy, and no demo labels in presentation screens.
 - The attendance screen supports section/date selection, recording status for
-  fictional learner IDs, validation, totals, and an in-session change history.
+  fictional learner IDs, validation, totals, and a browser-local change
+  history for successfully saved attendance.
 - The student directory supports section/grade and Boy/Girl filters,
   name/ID search, learner name and profile editing, and adding learners.
 - Grade levels and sections can be added in the current session; profile
@@ -45,12 +46,14 @@ approved or deployed school system.
   activity scores, intervention status, or a synthetic roster summary.
   Reports use only current-session data and do not apply official grades or
   early-warning rules.
-- Attendance edits exist only in the current page session and are cleared on
-  refresh. Student profiles, class structure, and directory changes also exist
-  only in the current session.
+- Successfully saved attendance records and their history persist in this
+  browser using localStorage; unfinished attendance drafts are cleared on
+  refresh. Student profiles, class structure, and directory changes also
+  exist only in the current session.
   No real student records are stored.
 - Settings remain a future module. There is no backend, authentication, role
-  enforcement, external messaging, or persistent application data.
+  enforcement, external messaging, or central database; only saved attendance
+  is persisted locally in this browser.
 - A provisional role-permission proposal for teachers, advisers, guidance
   counselors, parents, and system administration is documented in
   `docs/ACCESS-CONTROL-MATRIX.md`. It is not school-approved and is not

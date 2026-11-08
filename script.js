@@ -48,12 +48,15 @@ const learnerProfiles = new Map(
 const attendanceDrafts = new Map();
 const savedAttendance = new Map();
 const attendanceHistory = [];
+const attendanceStorageKey = "lnhs-smart-student-monitoring.attendance.v1";
 const attendanceStatuses = [
   ["present", "Present"],
   ["late", "Late"],
   ["absent", "Absent"],
   ["excused", "Excused"],
 ];
+const validAttendanceStatuses = new Set(attendanceStatuses.map(([status]) => status));
+let attendancePersistenceMessage = "";
 const academicActivities = {
   english: [{ id: "english-reading-check", title: "Reading check", maxScore: 20 }],
   mathematics: [{ id: "mathematics-fractions-quiz", title: "Fractions quiz", maxScore: 20 }],
@@ -222,9 +225,9 @@ function updateAttendanceSummary() {
 
 function setAttendanceMessage(text = "", type = "") {
   const message = document.querySelector("#attendance-message");
-  message.textContent = text;
-  message.classList.toggle("error", type === "error");
-  message.classList.toggle("success", type === "success");
+  message.textContent = [text, attendancePersistenceMessage].filter(Boolean).join(" ");
+  message.classList.toggle("error", type === "error" || Boolean(attendancePersistenceMessage));
+  message.classList.toggle("success", type === "success" && !attendancePersistenceMessage);
 }
 
 function updateAttendanceDraftMessage() {
@@ -609,6 +612,126 @@ function renderAttendanceHistory() {
     item.append(icon, copy, time);
     historyList.append(item);
   });
+}
+
+function isValidAttendanceDate(value) {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return false;
+  }
+  const parsed = new Date(`${value}T00:00:00.000Z`);
+  return Number.isFinite(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value;
+}
+
+function isValidTimestamp(value) {
+  return typeof value === "string" && Number.isFinite(new Date(value).getTime());
+}
+
+function restoreAttendanceData() {
+  let storedValue;
+  try {
+    storedValue = localStorage.getItem(attendanceStorageKey);
+  } catch {
+    attendancePersistenceMessage = "Browser storage is unavailable. Attendance can be saved for this session only.";
+    return;
+  }
+
+  if (storedValue === null) {
+    return;
+  }
+
+  let stored;
+  try {
+    stored = JSON.parse(storedValue);
+  } catch {
+    attendancePersistenceMessage = "Saved attendance data could not be read and was skipped.";
+    return;
+  }
+
+  if (!stored || typeof stored !== "object" || stored.version !== 1
+      || !Array.isArray(stored.savedAttendance) || !Array.isArray(stored.attendanceHistory)) {
+    attendancePersistenceMessage = "Saved attendance data had an invalid format and was skipped.";
+    return;
+  }
+
+  let skippedRecord = false;
+  stored.savedAttendance.forEach((entry) => {
+    if (!Array.isArray(entry) || entry.length !== 2) {
+      skippedRecord = true;
+      return;
+    }
+
+    const [key, record] = entry;
+    const keyParts = typeof key === "string" ? key.split("|") : [];
+    if (keyParts.length !== 2 || !keyParts[0] || !isValidAttendanceDate(keyParts[1])
+        || savedAttendance.has(key) || !record || typeof record !== "object"
+        || Array.isArray(record) || !record.statuses || typeof record.statuses !== "object"
+        || Array.isArray(record.statuses) || !isValidTimestamp(record.savedAt)) {
+      skippedRecord = true;
+      return;
+    }
+
+    const statuses = Object.entries(record.statuses);
+    if (statuses.length === 0 || statuses.some(([learnerId, status]) =>
+      !/^[A-Za-z0-9_-]{1,64}$/.test(learnerId) || !validAttendanceStatuses.has(status))) {
+      skippedRecord = true;
+      return;
+    }
+
+    savedAttendance.set(key, {
+      statuses: { ...record.statuses },
+      savedAt: new Date(record.savedAt),
+    });
+  });
+
+  stored.attendanceHistory.forEach((entry) => {
+    if (!entry || typeof entry !== "object" || Array.isArray(entry)
+        || typeof entry.title !== "string" || !entry.title
+        || typeof entry.section !== "string" || !entry.section
+        || !isValidAttendanceDate(entry.date) || !isValidTimestamp(entry.timestamp)) {
+      skippedRecord = true;
+      return;
+    }
+
+    attendanceHistory.push({
+      title: entry.title,
+      section: entry.section,
+      date: entry.date,
+      timestamp: new Date(entry.timestamp),
+    });
+  });
+
+  attendanceHistory.splice(12);
+  if (skippedRecord) {
+    attendancePersistenceMessage = "Some saved attendance records were invalid and have been skipped.";
+  }
+}
+
+function persistAttendanceData() {
+  const stored = {
+    version: 1,
+    savedAttendance: [...savedAttendance.entries()].map(([key, record]) => [
+      key,
+      {
+        statuses: record.statuses,
+        savedAt: record.savedAt.toISOString(),
+      },
+    ]),
+    attendanceHistory: attendanceHistory.map((entry) => ({
+      title: entry.title,
+      section: entry.section,
+      date: entry.date,
+      timestamp: entry.timestamp.toISOString(),
+    })),
+  };
+
+  try {
+    localStorage.setItem(attendanceStorageKey, JSON.stringify(stored));
+    attendancePersistenceMessage = "";
+    return true;
+  } catch {
+    attendancePersistenceMessage = "Browser storage failed. This attendance is available for this session only and may be lost on refresh.";
+    return false;
+  }
 }
 
 function getInterventionLearnerLabel(learnerId) {
@@ -1537,23 +1660,30 @@ function saveAttendance(event) {
   const title = previous
     ? `Updated ${changes} attendance ${changes === 1 ? "record" : "records"}`
     : `Recorded attendance for ${changes} learners`;
+  const savedAt = new Date();
   savedAttendance.set(currentAttendanceKey, {
     statuses: { ...draft },
-    savedAt: new Date(),
+    savedAt,
   });
   attendanceHistory.unshift({
     title,
     section,
     date,
-    timestamp: new Date(),
+    timestamp: savedAt,
   });
   if (attendanceHistory.length > 12) {
     attendanceHistory.pop();
   }
 
+  const persisted = persistAttendanceData();
   renderAttendanceHistory();
-  setAttendanceMessage(`${title} for ${formatAttendanceDate(date)}.`, "success");
-  showToast("Attendance saved.");
+  if (persisted) {
+    setAttendanceMessage(`${title} for ${formatAttendanceDate(date)}.`, "success");
+    showToast("Attendance saved.");
+  } else {
+    setAttendanceMessage(`${title} for ${formatAttendanceDate(date)}.`, "error");
+    showToast("Attendance saved for this session only.");
+  }
 }
 
 function saveAcademicScores(event) {
@@ -1627,6 +1757,7 @@ function createAcademicActivity(event) {
   showToast(`${title} added.`);
 }
 
+restoreAttendanceData();
 updateDateAndGreeting();
 updateAttendanceChart(document.querySelector("#period-select").value);
 populateStructureControls();
