@@ -4886,6 +4886,113 @@ stop-color: #2583c9;
     background: #fafbfc;
   }
 
+.auth-form-panel {
+    margin-top: 26px;
+    padding-top: 18px;
+    border-top: 1px solid #edf2f8;
+  }
+
+.auth-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+
+.auth-tab {
+    min-height: 33px;
+    padding: 0 12px;
+    border: 1px solid #dfeaf6;
+    border-radius: 9px;
+    color: #4d5f76;
+    background: #f7fbff;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+.auth-tab.active {
+    border-color: #6a8fc0;
+    color: #1f4c72;
+    background: #edf7ff;
+  }
+
+.auth-form {
+    display: grid;
+    gap: 12px;
+  }
+
+.auth-field-row {
+    display: grid;
+  }
+
+.auth-field {
+    display: grid;
+    gap: 6px;
+    color: #43596b;
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+.auth-field input {
+    min-height: 42px;
+    padding: 0 12px;
+    border: 1px solid #dfe8f2;
+    border-radius: 9px;
+    color: #2b3d4f;
+    background: #fff;
+    font: inherit;
+  }
+
+.auth-field input:focus {
+    border-color: #7da6cc;
+    outline: 0;
+    box-shadow: 0 0 0 4px rgba(126, 166, 204, .12);
+  }
+
+.auth-submit {
+    margin-top: 4px;
+  }
+
+.workspace-switcher {
+    margin-top: 18px;
+    padding: 12px 0 0;
+    border-top: 1px solid #eef3f8;
+  }
+
+.workspace-switcher-title {
+    margin-bottom: 10px;
+    color: #4c6480;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+  }
+
+.workspace-switch-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+.workspace-switch-button {
+    min-height: 32px;
+    padding: 0 10px;
+    border: 1px solid #dfeaf4;
+    border-radius: 8px;
+    color: #4f677e;
+    background: #f8fbff;
+    cursor: pointer;
+    font-size: 10px;
+    font-weight: 700;
+  }
+
+.workspace-switch-button.active {
+    border-color: #7c8adf;
+    color: #3340a1;
+    background: #eef0ff;
+  }
+
 .login-message {
     margin: 19px 0 0;
     padding: 12px 14px;

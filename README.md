@@ -76,6 +76,11 @@ approved or deployed school system.
 - Demo account selection and client-side navigation presets are available.
   Settings shows a data-free System Administration status page; account
   administration and school configuration are not operational.
+- Local demo registration and workspace access are available in-browser: users can
+  sign in with seeded workspace accounts or create an account using a registration
+  invitation code, then create a workspace when a valid grant is supplied.
+  Workspace switching remains a browser-local prototype only; it does not
+  connect to a live Supabase backend or enforce real authorization.
 - The demo navigation presets are provisional and not approved for deployment. There
   is no real authentication, assignment-level enforcement, backend
   authorization, RLS, external messaging, or central database. Client-side
