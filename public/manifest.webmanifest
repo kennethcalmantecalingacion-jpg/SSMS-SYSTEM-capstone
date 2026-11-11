@@ -1,0 +1,20 @@
+{
+  "id": "/",
+  "name": "Student Monitoring System",
+  "short_name": "Student Monitor",
+  "description": "A student monitoring system prototype.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#eaf3fc",
+  "theme_color": "#eaf3fc",
+  "icons": [
+    {
+      "src": "/icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

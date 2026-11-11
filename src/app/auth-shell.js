@@ -17,8 +17,14 @@ import {
   getProductionAuthConfigurationError,
   isProductionAuthConfigured,
 } from "../core/auth/production-auth.js";
+import {
+  initializeProductionWorkspace,
+  refreshProductionWorkspaces,
+  resetProductionWorkspace,
+} from "./production-workspace.js";
 
 let activeProductionUser = null;
+let activeProductionClient = null;
 let passwordRecoveryActive = false;
 
 function setLoginMessage(message) {
@@ -33,6 +39,7 @@ function showMainLogin(message) {
   const productionSessionView = document.querySelector("#production-session-view");
   const demoPortal = document.querySelector("#demo-portal-view");
   const appShell = document.querySelector("#app-shell");
+  resetProductionWorkspace();
 
   if (loginView) {
     loginView.hidden = false;
@@ -466,6 +473,7 @@ function renderProductionSession(user, message = "", passwordRecovery = false) {
   const email = document.querySelector("#production-account-email");
   const status = document.querySelector("#production-session-message");
   const resetForm = document.querySelector("#production-reset-password-form");
+  const registrationForm = document.querySelector("#production-registration-form");
 
   if (loginView) loginView.hidden = true;
   if (demoPortal) demoPortal.hidden = true;
@@ -475,7 +483,28 @@ function renderProductionSession(user, message = "", passwordRecovery = false) {
   if (email) email.textContent = user?.email || "";
   if (status) status.textContent = message;
   if (resetForm) resetForm.hidden = !passwordRecovery;
+  if (registrationForm) registrationForm.hidden = true;
+  if (!passwordRecovery && activeProductionClient) {
+    void initializeProductionWorkspace(activeProductionClient, user);
+  }
   document.title = `${passwordRecovery ? "Set password" : "Account"} · Student Monitoring System`;
+}
+
+async function getFunctionErrorMessage(error, data, fallback) {
+  if (typeof data?.error === "string") {
+    return data.error;
+  }
+  if (error?.context instanceof Response) {
+    try {
+      const body = await error.context.clone().json();
+      if (typeof body?.error === "string") {
+        return body.error;
+      }
+    } catch {
+      return fallback;
+    }
+  }
+  return error?.message || fallback;
 }
 
 function bindProductionAuth(client) {
@@ -561,9 +590,59 @@ function bindProductionAuth(client) {
   }
 
   const createAccountButton = document.querySelector("#create-account-button");
+  const registrationForm = document.querySelector("#production-registration-form");
+  const cancelRegistrationButton = document.querySelector("#cancel-registration-button");
   if (createAccountButton) {
     createAccountButton.addEventListener("click", () => {
-      setLoginMessage("Production registration is not enabled. It requires a trusted invitation-validation backend; demo registration is available only in the separate Demo Portal.");
+      if (!client) {
+        setLoginMessage("Production registration requires a configured Supabase project.");
+        return;
+      }
+      if (registrationForm) {
+        registrationForm.hidden = false;
+        registrationForm.querySelector('input[name="username"]')?.focus();
+      }
+      setLoginMessage("Create an account only with a valid platform-issued registration invitation. A password is established through the emailed Supabase invitation link.");
+    });
+  }
+
+  if (cancelRegistrationButton && registrationForm) {
+    cancelRegistrationButton.addEventListener("click", () => {
+      registrationForm.reset();
+      registrationForm.hidden = true;
+      setLoginMessage("Enter your account credentials to sign in, or use the separate Demo Mode for synthetic data.");
+    });
+  }
+
+  if (registrationForm) {
+    registrationForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const formData = new FormData(registrationForm);
+      const body = {
+        username: String(formData.get("username") || "").trim(),
+        email: String(formData.get("email") || "").trim(),
+        invitationCode: String(formData.get("invitationCode") || "").trim(),
+      };
+      setFormBusy(registrationForm, true, "Requesting invitation…");
+      try {
+        const { data, error } = await client.functions.invoke("register-with-invitation", { body });
+        if (error) {
+          setLoginMessage(await getFunctionErrorMessage(
+            error,
+            data,
+            "The account invitation could not be requested. Try again later.",
+          ));
+          return;
+        }
+        setLoginMessage(data?.message
+          || "If the invitation is valid, an email with next steps will be sent.");
+        registrationForm.reset();
+        registrationForm.hidden = true;
+      } catch (error) {
+        setLoginMessage(`The account invitation could not be requested: ${error instanceof Error ? error.message : "Unexpected registration error."}`);
+      } finally {
+        setFormBusy(registrationForm, false, "Requesting invitation…");
+      }
     });
   }
 
@@ -584,6 +663,7 @@ function bindProductionAuth(client) {
           return;
         }
         resetForm.reset();
+        window.history.replaceState({}, document.title, window.location.pathname);
         renderProductionSession(activeProductionUser, "Your password was updated.", false);
       } catch (error) {
         renderProductionSession(activeProductionUser, `Password update failed: ${error instanceof Error ? error.message : "Unexpected authentication error."}`, true);
@@ -612,6 +692,105 @@ function bindProductionAuth(client) {
       }
     });
   }
+
+  const createWorkspaceForm = document.querySelector("#production-create-workspace-form");
+  if (createWorkspaceForm) {
+    createWorkspaceForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const formData = new FormData(createWorkspaceForm);
+      const workspaceMessage = document.querySelector("#production-workspace-message");
+      setFormBusy(createWorkspaceForm, true, "Creating workspace…");
+      try {
+        const { data, error } = await client.functions.invoke("create-workspace-with-grant", {
+          body: {
+            workspaceName: String(formData.get("workspaceName") || "").trim(),
+            grantCode: String(formData.get("grantCode") || "").trim(),
+          },
+        });
+        if (error) {
+          if (workspaceMessage) {
+            workspaceMessage.textContent = await getFunctionErrorMessage(
+              error,
+              data,
+              "The workspace could not be created.",
+            );
+          }
+          return;
+        }
+        createWorkspaceForm.reset();
+        if (workspaceMessage) {
+          workspaceMessage.textContent = `Workspace "${data.workspace.name}" was created with this account as Workspace Owner.`;
+        }
+        await refreshProductionWorkspaces(data.workspace.id);
+      } catch (error) {
+        if (workspaceMessage) {
+          workspaceMessage.textContent = `Workspace creation failed: ${error instanceof Error ? error.message : "Unexpected error."}`;
+        }
+      } finally {
+        setFormBusy(createWorkspaceForm, false, "Creating workspace…");
+      }
+    });
+  }
+
+  const platformOperations = document.querySelector("#platform-operations");
+  document.querySelector("#platform-operations-toggle")?.addEventListener("click", () => {
+    if (platformOperations) {
+      platformOperations.hidden = !platformOperations.hidden;
+    }
+  });
+
+  const bindGrantIssueForm = (formSelector, functionName, successLabel) => {
+    const form = document.querySelector(formSelector);
+    if (!form) {
+      return;
+    }
+    form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const formData = new FormData(form);
+      const body = {
+        email: String(formData.get("email") || "").trim(),
+        expiresInDays: Number(formData.get("expiresInDays") || 7),
+        maxRedemptions: Number(formData.get("maxRedemptions") || 1),
+      };
+      const output = document.querySelector("#platform-operation-message");
+      setFormBusy(form, true, "Issuing code…");
+      if (output) {
+        output.textContent = "";
+      }
+      try {
+        const { data, error } = await client.functions.invoke(functionName, { body });
+        if (error) {
+          if (output) {
+            output.textContent = await getFunctionErrorMessage(
+              error,
+              data,
+              "The operation could not be completed.",
+            );
+          }
+          return;
+        }
+        if (output) {
+          output.textContent = `${successLabel}: ${data.code}. Copy it now; this code will not be shown again.`;
+        }
+      } catch (error) {
+        if (output) {
+          output.textContent = `The operation failed: ${error instanceof Error ? error.message : "Unexpected error."}`;
+        }
+      } finally {
+        setFormBusy(form, false, "Issuing code…");
+      }
+    });
+  };
+  bindGrantIssueForm(
+    "#platform-registration-invite-form",
+    "issue-platform-registration-invitation",
+    "Registration invitation",
+  );
+  bindGrantIssueForm(
+    "#platform-workspace-grant-form",
+    "issue-workspace-creation-grant",
+    "Workspace creation grant",
+  );
 }
 
 export async function initializeAuthShell() {
@@ -619,6 +798,7 @@ export async function initializeAuthShell() {
   bindDemoPortal();
   renderSession(null);
   const client = getProductionAuthClient();
+  activeProductionClient = client;
   bindProductionAuth(client);
 
   const loginIntro = document.querySelector("#production-login-intro");
@@ -627,7 +807,7 @@ export async function initializeAuthShell() {
     loginIntro.textContent = configurationError
       ? `Production authentication is unavailable: ${configurationError}`
       : isProductionAuthConfigured()
-      ? "Sign in with your account. Workspace membership and student-record access are not enabled until the backend authorization layer is configured."
+      ? "Sign in with your account. Shared workspace access requires the versioned database migrations and trusted backend functions to be deployed."
       : "Production sign-in requires Supabase configuration. Workspace authorization and student-record access are not available yet.";
   }
 
@@ -654,7 +834,13 @@ export async function initializeAuthShell() {
 
   client.auth.onAuthStateChange((event, session) => {
     if (session) {
-      renderProductionSession(session.user, "", event === "PASSWORD_RECOVERY");
+      const urlParams = new URLSearchParams(window.location.hash.slice(1));
+      const passwordSetup = event === "PASSWORD_RECOVERY"
+        || (event === "SIGNED_IN" && (
+          urlParams.get("type") === "invite"
+          || new URLSearchParams(window.location.search).get("auth") === "invite"
+        ));
+      renderProductionSession(session.user, "", passwordSetup);
     } else if (event === "SIGNED_OUT") {
       activeProductionUser = null;
       showMainLogin("You have signed out of the authenticated account.");

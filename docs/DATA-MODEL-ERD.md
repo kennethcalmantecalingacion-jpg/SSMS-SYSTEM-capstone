@@ -1,15 +1,16 @@
-# Initial Data Model ERD
+# Data Model ERD
 
 ## Purpose and scope
 
-This is a conceptual ERD for the Student Monitoring System target and the
-current prototype. It is a design proposal, not an approved institutional
-policy or finalized schema. Fields and enum values are illustrative; keep
-deployment-specific rules provisional. Supabase Auth password sign-in and
-recovery are implemented in source but no Supabase project is configured.
-There is no application database schema, migration set, workspace backend,
-RLS foundation, or server authorization yet; monitoring records remain
-synthetic and browser-local.
+This document combines a conceptual ERD with the current versioned schema
+inventory. It is not an approved institutional policy or a claim that the
+schema has been executed or security-tested. Fields and enum values in the
+conceptual diagrams remain illustrative; deployment-specific rules stay
+provisional. Three migrations define profiles, workspace authorization,
+school structure, assignments, attendance, and data foundations for
+gradebook, warning review, support, restricted guidance, and announcements.
+The migrations and pgTAP isolation test have not been run because local
+Docker/Podman are unavailable. No hosted database has been changed.
 
 The generic product identity is **Student Monitoring System**. The diagrams cover
 school structure, learners and historical enrollment, staff identity and
@@ -17,25 +18,49 @@ assignments, attendance, academics, warning review, support follow-up,
 announcements, and audit history. Dashboard summaries and reports are derived
 from these records rather than stored as independent learner data.
 
-The target deployment uses Vercel for the Vite frontend and Supabase for
-backend services and Supabase-managed PostgreSQL. PostgreSQL is not a separate
-host in this architecture. Real workspace-owned records must include workspace
-context; RLS and appropriate grants must be designed and tested before any
-table is exposed.
+The user reports the existing Vercel/Supabase integration and
+`https://pwassms.vercel.app` deployment are configured; this is not
+independently verified. Preview isolation is not confirmed. Vercel hosts the
+Vite frontend; Supabase provides backend services and Supabase-managed
+PostgreSQL. PostgreSQL is not a separate host in this architecture. Real
+workspace-owned records must include workspace context. Source RLS/grants are
+present but remain unverified until migrations and direct allow/deny tests
+run.
 
-## Platform and workspace entities to add to the schema
+## Platform and workspace entities in the schema
 
-The current diagrams do not yet model the complete multi-workspace foundation.
-The eventual schema must review and add, as appropriate:
+The implementation includes the following corresponding tables:
 
-- Global identity and platform authorization: `USER_PROFILE`,
-  `PLATFORM_ROLE`, `PLATFORM_USER_ROLE`, `PLATFORM_REGISTRATION_INVITE`, and
-  `WORKSPACE_CREATION_GRANT`.
-- Workspace: `WORKSPACE`, `WORKSPACE_MEMBERSHIP`, `WORKSPACE_MEMBER_ROLE`,
-  `WORKSPACE_INVITE`, `WORKSPACE_JOIN_REQUEST`, and workspace-scoped audit
-  events.
-- Workspace-owning foreign keys and composite relationships on every
-  workspace-owned record needed to prevent cross-workspace references.
+- Identity and platform authorization: `user_profiles`, `platform_roles`,
+  `platform_user_roles`, `platform_registration_invites`, and
+  `workspace_creation_grants`.
+- Workspace: `workspaces`, `workspace_memberships`,
+  `workspace_member_roles`, `workspace_invites`, `workspace_join_requests`,
+  and `workspace_audit_events`.
+- School and attendance: `school_years`, `grade_levels`, `sections`,
+  `subjects`, `subject_offerings`, `learner_profiles`,
+  `learner_profile_history`, `enrollments`,
+  `teaching_assignments`, `advisory_assignments`, `guidance_assignments`,
+  `attendance_sessions`, `attendance_entries`, and
+  `attendance_change_history`.
+- Monitoring foundations: `gradebook_activities`, `gradebook_scores`, their
+  history tables, `warning_review_items`/events, `support_cases`/participants/
+  events, restricted `guidance_records`/history, `staff_announcements`, and
+  `announcement_receipts`.
+
+The definitions are in `supabase/migrations/`; they are not yet a tested
+deployed schema. Member lifecycle screens/operations and connected workflows
+for most monitoring tables are incomplete.
+
+The real-account UI source now reads authorized learner profiles and current
+enrollments. Workspace Owners and Administrators can create a learner with
+its first enrollment in one database function, add grade levels/sections, and
+transfer an active enrollment through a database function that closes the
+prior row and creates the next row transactionally. Managers can also correct
+the minimal learner identifier/display name through an atomic audited
+operation; previous values, reason, and actor are retained in a manager-only
+history table. These operations remain unexecuted and untested against
+PostgreSQL; teacher access remains read-only and limited by section assignment.
 
 An authenticated identity does not imply membership. Pending join requests are
 not memberships. A client-supplied workspace ID is never authorization proof.
@@ -54,6 +79,13 @@ erDiagram
         uuid learner_id PK
         string learner_identifier
         string name
+    }
+    LEARNER_PROFILE_CHANGE {
+        uuid change_id PK
+        uuid learner_id FK
+        uuid changed_by FK
+        string reason
+        timestamp changed_at
     }
     GRADE_LEVEL {
         uuid grade_level_id PK
@@ -111,6 +143,8 @@ erDiagram
     }
     GRADE_LEVEL ||--o{ SECTION : groups
     LEARNER ||--o{ ENROLLMENT : has
+    LEARNER ||--o{ LEARNER_PROFILE_CHANGE : corrected
+    USER_PROFILE ||--o{ LEARNER_PROFILE_CHANGE : changes
     SECTION ||--o{ ENROLLMENT : includes
     SCHOOL_YEAR ||--o{ ENROLLMENT : scopes
     SECTION ||--o{ SUBJECT_OFFERING : offers

@@ -27,8 +27,13 @@ and synthetic test accounts; they have not been verified by this checklist:
   service-role key through a `VITE_` variable.
 - [ ] Verify password sign-in, persistent session restoration, sign-out,
   expired-session behavior, password recovery, and recovery redirect handling.
-- [ ] Verify production registration remains disabled until trusted
-  server-side registration-invitation validation is implemented.
+- [ ] Verify public Auth sign-up is disabled and the trusted registration
+  function accepts only valid, unexpired, bounded invitation codes. Confirm
+  failed Auth invitations release their reservation and do not consume the
+  code. The function is implemented in source but this flow has not been run.
+- [ ] Verify invitation/password-establishment and recovery links on the
+  exact configured origins. Confirm that registration does not grant workspace
+  membership or workspace-creation authority.
 - [ ] Confirm an authenticated user without workspace membership cannot enter
   the demo shell or see browser-local demo learner records.
 
@@ -78,19 +83,40 @@ because the screen appears correct.
   intervention, and roster summaries where applicable. Check empty states and
   open print preview; confirm the application layout remains usable.
 
-## 2a. Future backend attendance authorization checks (not implemented)
+## 2a. Backend authorization, attendance, and directory checks (source implemented; not run)
 
-These are design acceptance cases for a future authenticated backend, not
-checks that can pass against the current browser-only prototype. Run them
-against the backend after the school approves the relevant roles and
-assignments. Use synthetic accounts, sections, and attendance data.
+The migrations and attendance RPC implement the intended backend checks, but
+the local database was unavailable because Docker/Podman are missing. These
+are required database/API acceptance checks, not passing results. Run them
+against a local Supabase stack after it is available. Use synthetic accounts,
+sections, and attendance data.
+
+The current pgTAP source declares 83 assertions. It exercises synthetic
+Workspace A/B access to learners, attendance, memberships, invitations, join
+requests, audit events, and restricted guidance; denial of client-side
+membership/invitation/join-request/audit writes; assigned-counselor access;
+Workspace B Owner denial for confidential guidance reads, creation, and
+updates; an audited update-only path with append-only history; assigned
+counselor creation and update with appended history; direct attendance write
+denials; cross-workspace foreign-key rejection; revoked-member denial; and
+manager-only atomic learner creation and enrollment transfer, including
+duplicate identifier rejection, initial enrollment creation, prior-enrollment
+closure, attendance-history preservation, and attributable workspace audit
+events; and manager-only learner profile correction with old-value/reason/
+actor history, audit attribution, duplicate-identifier rollback, and
+teacher/cross-workspace denial. It also denies direct writes that would
+bypass the atomic learner/enrollment/profile operations and checks that
+paginated learner search respects RLS scope. These membership, directory,
+transfer, historical assignment, and other database source tests have not
+been executed.
 
 - [ ] **Assigned Teacher:** Allow session creation and entry changes only for
   an approved assigned offering/section; deny unassigned sections and
   out-of-scope dates.
-- [ ] **Adviser:** Deny recording and correction unless the deployment institution explicitly
-  approves the Adviser permission; if approved, allow only the assigned
-  advisory section.
+- [ ] **Adviser:** Deny recording and correction by default. The current
+  migration grants attendance only to an assigned Teacher for the exact
+  school year; do not enable Adviser recording without explicit approval and
+  a reviewed policy change.
 - [ ] **Guidance Counselor:** Deny general attendance session and entry
   access. Test any separately approved summary only through its specifically
   scoped path.
@@ -99,9 +125,10 @@ assignments. Use synthetic accounts, sections, and attendance data.
 - [ ] **Designated System Administrator:** Deny general attendance session
   and entry access; technical/account administration does not imply learner
   data access.
-- [ ] **Workspace Owner/Administrator:** Verify any structure-management
-  capability is workspace-scoped and does not grant cross-workspace or
-  confidential guidance access.
+- [ ] **Workspace Owner/Administrator:** Verify structure-management
+  capability is workspace-scoped and does not grant attendance access,
+  cross-workspace access, or confidential guidance access without separate
+  approved assignments.
 - [ ] **Platform Operator:** Deny routine attendance and learner-record
   access unless a separately approved, audited support workflow specifically
   requires it.
@@ -115,6 +142,39 @@ assignments. Use synthetic accounts, sections, and attendance data.
 - [ ] **Correction history:** For an authorized correction, verify actor,
   previous/new status, and timestamp are retained; determine whether initial
   entry creation also requires a history event.
+- [ ] **Directory read scope:** Verify a manager sees only its workspace and
+  an assigned Teacher sees only learners in authorized sections.
+- [ ] **Atomic learner creation:** Verify an authorized manager creates one
+  learner plus its initial active-year enrollment; a duplicate identifier or
+  invalid section/date leaves no partial record.
+- [ ] **Enrollment transfer:** Verify a manager transfer closes the prior
+  enrollment and starts the next enrollment on the requested date, preserves
+  prior attendance, and rejects unauthorized, cross-workspace, same-day,
+  retroactive, and attendance-invalidating attempts.
+- [ ] **Learner profile correction:** Verify only workspace managers can
+  correct the approved identifier/display name; duplicate identifiers roll
+  back without partial history; previous values, reason, actor, and audit
+  event are recorded; teachers and other workspaces are denied.
+- [ ] **Class setup:** Verify only Workspace Owners/Administrators can create
+  grade levels and sections, with duplicate labels and cross-workspace grade
+  IDs rejected.
+- [ ] **Real-account surface:** Confirm the real account never opens
+  browser-local demo records and that unfinished monitoring modules remain
+  explicitly unavailable.
+
+## 2b. PWA app shell (local browser check required)
+
+- [ ] Validate manifest name, scope, start URL, display mode, theme color,
+  and icon response on the built preview.
+- [ ] Verify service-worker registration and installation on a first visit.
+- [ ] After a successful online visit, switch the browser offline and reload.
+  Confirm the shell, built same-origin JS/CSS, and login screen render.
+- [ ] Confirm cross-origin Supabase requests fail visibly offline and no
+  authenticated API response or learner record is present in Cache Storage.
+- [ ] Verify update notification is user-controlled and activation does not
+  unexpectedly replace a page with unsaved state.
+- [ ] Check online/offline status changes and mobile installability where
+  supported.
 
 ## 3. Dialog and form checks
 
@@ -175,27 +235,32 @@ At each size, check that:
 - Demo account selection and client-side role navigation are not real
   authentication or enforced authorization; hidden views and local browser
   data are not secured from direct access.
-- Supabase Auth password sign-in and recovery are implemented in source but
-  require project configuration and have not been remotely tested.
-- Production registration is disabled. There is no complete application
-  schema, migration set, workspace persistence, grants/RLS foundation, or
-  trusted membership backend.
-- Multi-workspace functionality is browser-local simulation. Student
-  monitoring records remain synthetic, browser-local, and unauthorized.
-- Vercel hosting/deployment, Supabase/Vercel integration, and PWA installation
-  have not been configured or verified.
-- Offline record synchronization is not implemented.
+- Production Auth, invitation registration, workspace functions, and
+  attendance UI/RPC source are implemented, but remote Auth and database
+  behavior have not been tested.
+- Versioned migrations, grants, RLS, synthetic two-workspace seed data, and
+  pgTAP isolation test source exist. None were executed: Docker/Podman are
+  unavailable. Do not claim tenant isolation is verified.
+- The production UI connects workspace listing/creation and attendance only.
+  Student/class CRUD, membership administration, gradebook, warnings, support,
+  announcements, reports, and dashboard remain unconnected for real accounts.
+- The user reports Vercel project `ssms_front`, Supabase integration, and
+  Production/Preview/Development public variables are configured, and the
+  application URL is `https://pwassms.vercel.app`. The public URL returned
+  its account sign-in page in a browser. Auth operations, backend workflows,
+  exact environment settings, and Preview isolation were not verified.
+- The PWA shell, static-asset service worker, online/offline status, and
+  update handling are in source. Offline login-shell reload was verified in a
+  local browser; actual device installation and hosted PWA acceptance remain
+  unverified. Offline record synchronization is not implemented.
 - Settings displays data-free technical/account capability status; no account
   administration function is operational.
 - School-specific rules, fields, roles, and permissions remain provisional.
 - Dialog Escape-key dismissal still needs manual verification in Chrome.
 
-Attendance backend authorization, database integrity, and RLS checks above
-are future tests and have not been implemented or run. Remote Supabase Auth,
-Vercel deployment, workspace isolation, and offline sync also remain untested
-without configured external projects and implementation. These are known
-prototype limitations, not results of a new test run. The prototype is for
-demonstration with fictional data, not operational use.
+Database integrity, attendance authorization, RLS, Auth, and hosted workflows
+are untested. The prototype is for demonstration with fictional data, not
+operational use.
 
 ## 7. Test record template
 
@@ -221,3 +286,20 @@ text-rendering cases with synthetic input; `node --check script.js` and
 `git diff --check` also passed at that time. Those results do not replace
 running this checklist on a later build. Chrome Escape dismissal remains a
 manual verification item.
+
+### Connected implementation checks
+
+- `npm.cmd run build` passed.
+- `npm.cmd test` passed (1 Node test: PWA manifest).
+- `node --check` passed for `src/app/auth-shell.js`,
+  `src/app/production-workspace.js`, `src/app/pwa.js`, and `public/sw.js`.
+- `git diff --check` passed.
+- Local preview browser: manifest and service worker registered; the current
+  cache contained only the app shell, manifest, icon, and built JS/CSS. Offline
+  reload rendered the login shell and offline status. Demo Portal and Demo
+  Teacher entry worked. The synthetic install-prompt event displayed the
+  install action; this did not install the application on a device. At
+  375 × 667, the Demo Overview had no horizontal overflow.
+- `supabase start` could not run because Docker and Podman are unavailable.
+  Database migrations, pgTAP tests, Edge Function execution, and real Auth or
+  attendance flows were not run. No remote migration or deployment occurred.

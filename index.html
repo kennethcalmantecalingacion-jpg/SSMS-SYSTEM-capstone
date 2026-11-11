@@ -5,7 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="theme-color" content="#eaf3fc">
     <meta name="description" content="Student Monitoring System for attendance, academic progress, early-warning review, and student interventions.">
+    <meta name="application-name" content="Student Monitoring System">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <title>Overview · Student Monitoring System</title>
+    <link rel="manifest" href="/manifest.webmanifest">
+    <link rel="icon" href="/icons/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/icons/icon.svg">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -43,6 +49,29 @@
           <button class="text-link" id="create-account-button" type="button">Create account</button>
         </div>
 
+        <form id="production-registration-form" class="production-login-form" hidden novalidate>
+          <div class="auth-field-row">
+            <label class="auth-field">
+              <span>Username</span>
+              <input name="username" type="text" minlength="3" maxlength="36" autocomplete="username" required>
+            </label>
+          </div>
+          <div class="auth-field-row">
+            <label class="auth-field">
+              <span>Email</span>
+              <input name="email" type="email" maxlength="254" autocomplete="email" required>
+            </label>
+          </div>
+          <div class="auth-field-row">
+            <label class="auth-field">
+              <span>Platform registration invitation code</span>
+              <input name="invitationCode" type="text" minlength="16" maxlength="256" autocomplete="off" required>
+            </label>
+          </div>
+          <button class="button button-primary auth-submit" type="submit">Request account invitation</button>
+          <button class="text-link" id="cancel-registration-button" type="button">Back to sign in</button>
+        </form>
+
         <button class="button button-secondary demo-enter-button" id="enter-demo-mode" type="button">Enter Demo Mode</button>
 
         <p class="login-message" id="login-message" role="status" aria-live="polite">
@@ -59,7 +88,7 @@
         </a>
         <p class="login-eyebrow">AUTHENTICATED ACCOUNT</p>
         <h1 id="production-session-title">Account signed in</h1>
-        <p class="login-intro">Authentication is connected, but workspace membership and data access are not configured. No demo or browser-local student records are shown for this account.</p>
+        <p class="login-intro">No demo or browser-local student records are shown for this account. Workspace access depends on deployed migrations and backend authorization; only configured connected workflows are exposed.</p>
         <p class="portal-account-state" id="production-account-email"></p>
         <form id="production-reset-password-form" class="demo-portal-form" hidden>
           <label class="auth-field">
@@ -68,6 +97,163 @@
           </label>
           <button class="button button-primary auth-submit" type="submit">Update password</button>
         </form>
+        <section class="production-workspace-panel" aria-labelledby="production-workspace-title">
+          <h2 id="production-workspace-title">Connected workspaces</h2>
+          <p id="production-workspace-message" role="status" aria-live="polite">Checking authorized workspace access…</p>
+          <div id="production-workspace-list"></div>
+          <section id="production-attendance-panel" class="connected-attendance-panel" hidden aria-labelledby="connected-attendance-title">
+            <h3 id="connected-attendance-title">Connected attendance</h3>
+            <p>Records are loaded from the selected workspace. Your assigned role and enrollment scope are checked by PostgreSQL.</p>
+            <form id="connected-attendance-form" novalidate>
+              <div class="connected-attendance-filters">
+                <label class="auth-field">
+                  <span>School year</span>
+                  <select id="connected-school-year" required></select>
+                </label>
+                <label class="auth-field">
+                  <span>Assigned section</span>
+                  <select id="connected-section" required></select>
+                </label>
+                <label class="auth-field">
+                  <span>Attendance date</span>
+                  <input id="connected-attendance-date" type="date" required>
+                </label>
+                <label class="auth-field">
+                  <span>Session identifier</span>
+                  <input id="connected-session-key" type="text" maxlength="80" placeholder="For example: AM session" required>
+                </label>
+              </div>
+              <label class="auth-field connected-roster-search">
+                <span>Find a learner (display only)</span>
+                <input id="connected-roster-search" type="search" autocomplete="off">
+              </label>
+              <div class="connected-attendance-totals" aria-label="Full roster totals">
+                <span>Present <strong id="connected-count-present">0</strong></span>
+                <span>Late <strong id="connected-count-late">0</strong></span>
+                <span>Absent <strong id="connected-count-absent">0</strong></span>
+                <span>Excused <strong id="connected-count-excused">0</strong></span>
+                <span>Not marked <strong id="connected-count-unmarked">0</strong></span>
+              </div>
+              <div class="connected-roster-wrap">
+                <table class="connected-roster-table">
+                  <thead><tr><th scope="col">Learner</th><th scope="col">Status</th></tr></thead>
+                  <tbody id="connected-roster-body"></tbody>
+                </table>
+                <p id="connected-roster-empty" role="status" hidden></p>
+              </div>
+              <label id="connected-correction-reason-field" class="auth-field" hidden>
+                <span>Reason for correcting saved attendance</span>
+                <textarea id="connected-correction-reason" maxlength="500" rows="2"></textarea>
+              </label>
+              <p id="connected-attendance-message" role="status" aria-live="polite"></p>
+              <button class="button button-primary auth-submit" id="connected-attendance-save" type="submit">Save attendance</button>
+            </form>
+          </section>
+          <section id="production-directory-panel" class="connected-attendance-panel" hidden aria-labelledby="production-directory-title">
+            <h3 id="production-directory-title">Workspace learner directory</h3>
+            <p>Only workspace records allowed by your membership and assignments are shown. Learner fields are limited to a display name and identifier.</p>
+            <p id="production-directory-message" role="status" aria-live="polite"></p>
+            <label class="auth-field">
+              <span>Search directory</span>
+              <input id="production-directory-search" type="search" maxlength="120" autocomplete="off">
+            </label>
+            <div class="connected-roster-wrap">
+              <table class="connected-roster-table">
+                <thead><tr><th scope="col">Learner</th><th scope="col">Current section</th><th scope="col">Action</th></tr></thead>
+                <tbody id="production-directory-body"></tbody>
+              </table>
+              <p id="production-directory-empty" role="status" hidden></p>
+            </div>
+            <div class="production-directory-pagination">
+              <button class="button button-outline" id="production-directory-previous" type="button">Previous</button>
+              <span id="production-directory-page" aria-live="polite">0 learners</span>
+              <button class="button button-outline" id="production-directory-next" type="button">Next</button>
+            </div>
+            <form id="production-learner-form" class="production-manager-form" hidden novalidate>
+              <strong>Add learner and initial enrollment</strong>
+              <label class="auth-field"><span>Learner identifier</span><input name="learnerIdentifier" maxlength="64" required></label>
+              <label class="auth-field"><span>Display name</span><input name="displayName" maxlength="120" required></label>
+              <label class="auth-field"><span>Active school year</span><select name="schoolYearId" id="production-learner-year" required></select></label>
+              <label class="auth-field"><span>Section</span><select name="sectionId" id="production-learner-section" required></select></label>
+              <label class="auth-field"><span>Enrollment start date</span><input name="startsOn" id="production-learner-starts-on" type="date" required></label>
+              <button class="button button-primary auth-submit" type="submit">Add learner</button>
+            </form>
+            <form id="production-edit-learner-form" class="production-manager-form" hidden novalidate>
+              <strong>Edit learner profile</strong>
+              <label class="auth-field"><span>Learner identifier</span><input name="learnerIdentifier" maxlength="64" required></label>
+              <label class="auth-field"><span>Display name</span><input name="displayName" maxlength="120" required></label>
+              <label class="auth-field"><span>Reason for correction</span><textarea name="reason" maxlength="500" required></textarea></label>
+              <div class="production-transfer-actions">
+                <button class="button button-outline" id="production-edit-learner-cancel" type="button">Cancel</button>
+                <button class="button button-primary" type="submit">Save learner profile</button>
+              </div>
+            </form>
+            <form id="production-transfer-form" class="production-manager-form" hidden novalidate>
+              <strong id="production-transfer-title">Transfer learner</strong>
+              <label class="auth-field"><span>New active school year</span><select name="schoolYearId" id="production-transfer-year" required></select></label>
+              <label class="auth-field"><span>New section</span><select name="sectionId" id="production-transfer-section" required></select></label>
+              <label class="auth-field"><span>Transfer effective date</span><input name="startsOn" id="production-transfer-starts-on" type="date" required></label>
+              <div class="production-transfer-actions">
+                <button class="button button-outline" id="production-transfer-cancel" type="button">Cancel</button>
+                <button class="button button-primary" type="submit">Save transfer</button>
+              </div>
+            </form>
+            <section id="production-structure-panel" class="production-structure-panel" hidden aria-labelledby="production-structure-title">
+              <h3 id="production-structure-title">Workspace structure</h3>
+              <p>Structure changes are limited to workspace Owners and Administrators.</p>
+              <form id="production-school-year-form" class="production-manager-form" novalidate>
+                <strong>Add school year</strong>
+                <label class="auth-field"><span>Name</span><input name="name" maxlength="80" required></label>
+                <label class="auth-field"><span>Starts on</span><input name="startsOn" type="date" required></label>
+                <label class="auth-field"><span>Ends on</span><input name="endsOn" type="date" required></label>
+                <label class="auth-field"><span>Status</span><select name="status" required><option value="draft">Draft</option><option value="active">Active</option><option value="closed">Closed</option></select></label>
+                <button class="button button-outline" type="submit">Add school year</button>
+              </form>
+              <form id="production-grade-form" class="production-manager-form" novalidate>
+                <strong>Add grade level</strong>
+                <label class="auth-field"><span>Grade label</span><input name="label" maxlength="80" required></label>
+                <button class="button button-outline" type="submit">Add grade</button>
+              </form>
+              <form id="production-section-form" class="production-manager-form" novalidate>
+                <strong>Add section</strong>
+                <label class="auth-field"><span>Grade level</span><select name="gradeLevelId" id="production-section-grade" required></select></label>
+                <label class="auth-field"><span>Section label</span><input name="label" maxlength="100" required></label>
+                <button class="button button-outline" type="submit">Add section</button>
+              </form>
+            </section>
+          </section>
+          <p class="production-workspace-limit">Gradebook, warnings, support cases, announcements, reports, and dashboard aggregates are not connected to shared workspace records yet. They are not shown from browser-local demo data.</p>
+          <form id="production-create-workspace-form" class="demo-portal-form" novalidate>
+            <strong>Create a workspace</strong>
+            <label class="auth-field">
+              <span>Workspace name</span>
+              <input name="workspaceName" type="text" minlength="2" maxlength="100" required>
+            </label>
+            <label class="auth-field">
+              <span>Platform-issued workspace creation grant</span>
+              <input name="grantCode" type="text" minlength="16" maxlength="256" autocomplete="off" required>
+            </label>
+            <button class="button button-primary auth-submit" type="submit">Create workspace</button>
+          </form>
+          <button class="text-link" id="platform-operations-toggle" type="button">Platform operations</button>
+          <div id="platform-operations" hidden>
+            <p>These server-checked tools are available only to a bootstrapped Platform Operator. Codes are shown once and are not saved in this browser.</p>
+            <form id="platform-registration-invite-form" class="demo-portal-form" novalidate>
+              <strong>Issue registration invitation</strong>
+              <label class="auth-field"><span>Optional email restriction</span><input name="email" type="email" maxlength="254"></label>
+              <label class="auth-field"><span>Expires in days (1–30)</span><input name="expiresInDays" type="number" min="1" max="30" value="7" required></label>
+              <label class="auth-field"><span>Maximum redemptions (1–20)</span><input name="maxRedemptions" type="number" min="1" max="20" value="1" required></label>
+              <button class="button button-primary auth-submit" type="submit">Issue registration code</button>
+            </form>
+            <form id="platform-workspace-grant-form" class="demo-portal-form" novalidate>
+              <strong>Issue workspace creation grant</strong>
+              <label class="auth-field"><span>Expires in days (1–30)</span><input name="expiresInDays" type="number" min="1" max="30" value="7" required></label>
+              <label class="auth-field"><span>Maximum redemptions (1–5)</span><input name="maxRedemptions" type="number" min="1" max="5" value="1" required></label>
+              <button class="button button-primary auth-submit" type="submit">Issue workspace grant</button>
+            </form>
+            <p id="platform-operation-message" role="status" aria-live="polite"></p>
+          </div>
+        </section>
         <p class="login-message" id="production-session-message" role="status" aria-live="polite"></p>
         <button class="button button-secondary" id="production-sign-out-button" type="button">Sign out</button>
       </section>

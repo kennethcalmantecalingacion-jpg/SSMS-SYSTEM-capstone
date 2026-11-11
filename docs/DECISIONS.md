@@ -239,3 +239,84 @@ Update this log when a decision changes.
   Preview must not use production student data. Provider availability,
   configuration, application connection/testing, and deployment verification
   are separate states.
+
+## 2026-11-11 — Add connected backend foundations and attendance workflow
+
+- **Decision:** Preserve the existing Vite/Vanilla JS application and isolate
+  the synthetic browser-local Demo Portal from real Supabase accounts. Add
+  versioned Supabase migrations, trusted invitation/grant Edge Functions,
+  workspace-scoped authorization source, an attendance-first production UI,
+  and a static-shell PWA. Do not copy Demo Portal data into real workspaces.
+- **Implementation status:** Three SQL migrations, synthetic two-workspace
+  fixtures, pgTAP source tests, four Edge Functions, and workspace/attendance
+  UI source are present. Only workspace listing/creation and attendance are
+  connected in the real-account UI. Student/class CRUD, member administration,
+  gradebook, warnings, support, announcements, reports, and dashboard remain
+  unconnected. Storage, Google Drive, and record-level offline sync are not
+  implemented.
+- **Security/verification boundary:** Grants, RLS, constraints, and
+  cross-workspace relationship checks are defined in source, but migrations
+  and database tests were not run because Docker and Podman are unavailable.
+  No hosted migration or function deployment occurred. These are not verified
+  security or production-readiness claims.
+- **Attendance default:** The source authorizes attendance only for an active
+  Teacher assigned to the exact section and school year. Adviser and
+  workspace-manager access is denied unless the user has that separate
+  Teacher assignment; the default remains subject to deployment review.
+- **Provider status:** The user reports the existing `ssms_front` Vercel
+  project, GitHub connection, Supabase integration, and Vite public variables
+  in all three Vercel environments, and reports
+  `https://pwassms.vercel.app` loads and recognizes the configuration. This
+  URL returned its sign-in page in a browser; no Auth or backend operation was
+  attempted. The exact integration configuration, Preview isolation, and Auth
+  redirect settings remain unverified. Confirm them before any real-data use.
+- **PWA boundary:** The app-shell and static versioned assets are cached;
+  authenticated API responses and learner data are not. IndexedDB/outbox
+  synchronization remains deferred. Installability was observed in a local
+  browser; offline-shell acceptance and device installation still need tests.
+- **Unresolved:** Confirm deployment-specific roles, attendance categories,
+  correction/retention rules, Auth sign-up and invitation settings, initial
+  Platform Operator bootstrap, Preview isolation, and the remaining module
+  workflows. Keep requirements provisional; do not infer school policy or
+  claim legal compliance.
+
+## 2026-11-11 — Connect minimal learner directory and enrollment management
+
+- **Decision:** Extend the real-account workspace surface with an RLS-scoped,
+  paginated directory; manager-only learner creation with an initial
+  enrollment; grade, section, and school-year creation; and transactional
+  enrollment transfer. Keep the synthetic Demo Portal and its local storage
+  unchanged.
+- **Integrity:** Use SECURITY DEFINER operations with fixed empty search
+  paths for learner creation and transfer, enforce active-year/workspace
+  manager checks, and record workspace audit events. Transfers close prior
+  enrollment rather than overwriting it, reject overlapping enrollment and
+  saved-attendance-invalidating dates, and preserve existing attendance rows.
+  Learner writes cannot bypass these operations through direct authenticated
+  table grants. Paginated search runs as the caller and relies on learner RLS.
+- **Scope:** Only the approved minimal identifier and display name are used.
+  At this decision point, learner profile editing/deactivation, member
+  administration, and the remaining monitoring modules were not connected.
+  See the subsequent profile-correction decision below; deactivation remains
+  out of scope.
+- **Verification:** Build and JavaScript checks passed, and pgTAP source
+  includes two-workspace allow/deny, pagination, atomic creation, transfer,
+  history preservation, and audit assertions. Docker/Podman are unavailable,
+  so migrations and pgTAP have not run. No remote changes were made and no
+  tenant-isolation claim is made.
+
+## 2026-11-11 — Add audited learner profile correction
+
+- **Decision:** Allow workspace Owners and Administrators to correct only the
+  approved minimal learner identifier and display name from the real-account
+  directory. Preserve the Demo Portal and its synthetic local records.
+- **Integrity:** Use a manager-authorized database operation, retain old/new
+  values, reason, actor, and timestamp in manager-readable history, and write
+  an attributable workspace audit event. Direct authenticated profile and
+  history writes remain unavailable.
+- **Scope:** Deactivation and expanded learner fields remain out of scope;
+  no additional identity or sensitive-profile fields are introduced.
+- **Verification:** Build and source checks are required; pgTAP coverage is
+  added for manager allow, teacher/cross-workspace denial, duplicate
+  identifier rollback, immutable history, and audit attribution. PostgreSQL
+  execution remains unavailable until a local Supabase stack can run.

@@ -3,26 +3,28 @@
 ## Purpose and status
 
 This dictionary describes the conceptual entities and fields in
-[DATA-MODEL-ERD.md](./DATA-MODEL-ERD.md), informed by project requirements
-and current prototype. It is not a finalized schema, institutional policy, or
-deployment approval. Supabase Auth is integrated in source but no Supabase
-project, application schema, or database migrations are configured. The
-suggested PostgreSQL-compatible types and nullability remain design guidance.
+[DATA-MODEL-ERD.md](./DATA-MODEL-ERD.md), alongside the current versioned SQL
+migrations. It is not an institutional policy or deployment approval. The
+migrations define the account/workspace, school/attendance, and monitoring
+data foundations, but have not been applied or tested because Docker/Podman
+are unavailable. Supabase project configuration reported by the user has not
+been independently verified.
 
 **Nullability:** “Required” means the field should be non-null in a future
 schema unless noted. “Nullable” means no value can be valid in the described
 case. “Conditional” means the field/entity relationship depends on deployment
 institution approval or a still-unconfirmed workflow. PK and FK labels follow the ERD.
-Foreign keys to `USER_PROFILE` also depend on authenticated identities being
-implemented. Enumerated values are not fixed here unless explicitly identified
-as current prototype values; values must be reviewed for each deployment.
+Foreign keys to `USER_PROFILE` reference Supabase Auth UUIDs through
+`user_profiles`. Enumerated values are not policy-approved unless explicitly
+identified as current implementation values; deployment rules must be reviewed.
 
 ## Platform and workspace foundation
 
-These are required conceptual domains for the approved multi-workspace
-architecture. Add concrete field definitions and constraints to versioned
-migrations as the schema is implemented; do not treat frontend input as
-trusted authorization data.
+These domains are represented in
+`supabase/migrations/20261111140000_identity_workspaces.sql`. See the migration
+for concrete columns, constraints, grants, RLS, and functions; this dictionary
+summarizes intent and does not replace database verification. Never treat
+frontend input as trusted authorization data.
 
 | Entity | Scope and minimum integrity requirements |
 |---|---|
@@ -38,7 +40,9 @@ trusted authorization data.
 Workspace-owned entities must carry or resolve a trusted `workspace_id`.
 Composite foreign keys or equivalent constraints must prevent cross-workspace
 references between parent and child records. Use explicit grants and
-deny-by-default RLS for exposed tables; verify policies with direct database
+deny-by-default RLS for exposed tables. The migration source applies these
+patterns and the pgTAP source tests selected attendance isolation paths, but
+neither has been executed. Verify all allow/deny paths with direct database
 and API tests, not only UI controls.
 
 ## Learner and school structure
@@ -46,6 +50,24 @@ and API tests, not only UI controls.
 ### `LEARNER`
 
 Purpose: identify a learner independently of their current section.
+
+The real-account schema stores only a workspace-scoped `learner_identifier`
+and `display_name` in `public.learner_profiles`. Managers update those fields
+through `update_learner_profile`; direct authenticated table updates are not
+granted. `public.learner_profile_history` retains the old/new values, reason,
+actor, and timestamp. History reads are limited to workspace managers, and
+authenticated clients cannot directly write or delete history. This source
+behavior has not been exercised against PostgreSQL.
+
+| `learner_profile_history` field | Migration type | Key / nullability | Description |
+|---|---|---|---|
+| `id` | UUID | PK, required | Stable correction-history identifier. |
+| `workspace_id`, `learner_id` | UUID | Composite FK, required | Links the event to the learner in the same workspace. |
+| `changed_by` | UUID | FK → `auth.users.id`, required | Authenticated actor who performed the correction. |
+| `old_learner_identifier`, `new_learner_identifier` | TEXT | Required | Identifier values before and after the correction. |
+| `old_display_name`, `new_display_name` | TEXT | Required | Display-name values before and after the correction. |
+| `reason` | TEXT | Required, 3–500 trimmed characters | Correction reason retained for review. |
+| `changed_at` | TIMESTAMPTZ | Required | Database-recorded correction time. |
 
 | Field | Suggested type | Key | Nullability | Description and integrity |
 |---|---|---|---|---|
@@ -86,6 +108,18 @@ Its use and boundaries require deployment institution review.
 
 Purpose: preserve the learner's section assignment over time. Do not overwrite
 prior enrollment when a learner transfers.
+
+The versioned table is `public.enrollments` with workspace-scoped `id`,
+`learner_id`, `section_id`, `school_year_id`, `starts_on`, and nullable
+`ends_on`. The connected directory invokes `create_learner_with_enrollment`
+to create a minimal learner profile and initial enrollment atomically.
+`transfer_learner_enrollment` closes the active prior enrollment on the day
+before the new start and inserts a new enrollment in the same transaction.
+Transfers require an active school year and a start date within that year;
+same-day or retroactive transfers and any date that would invalidate an
+already-saved attendance session are rejected. These source behaviors have
+not been run against PostgreSQL. The conceptual field names below remain a
+policy-neutral description, not the exact migration column names.
 
 | Field | Suggested type | Key | Nullability | Description and integrity |
 |---|---|---|---|---|
@@ -342,20 +376,28 @@ confidential guidance notes outside this general update stream.
 
 ### `GUIDANCE_RECORD`
 
-Purpose: placeholder for a distinct, more restricted guidance/counseling record
-domain, only if the deployment institution approves such records.
+The migration source defines `guidance_records` and a restricted counselor
+assignment policy, but this workflow is not connected to the UI or executed
+against a database. The generic `record_body` content field is not approval to
+store real confidential notes; keep it synthetic until the institution
+approves the purpose, minimum content, authorization, audit, and retention.
 
 | Field | Suggested type | Key | Nullability | Description and integrity |
 |---|---|---|---|---|
-| `guidance_record_id` | UUID | PK | Required if entity approved | Stable identifier. |
-| `learner_id` | UUID | FK → `LEARNER.learner_id` | Required if entity approved | Learner associated with this restricted record. |
-| `author_user_id` | UUID | FK → `USER_PROFILE.user_id` | Required once authenticated | Author; approved guidance-role access is required. |
-| `occurred_at` | TIMESTAMPTZ | — | Required | Time associated with the record; whether this means created time or event time must be specified. |
+| `id` | UUID | PK | Required | Stable identifier. |
+| `workspace_id` | UUID | FK → `WORKSPACE.id` | Required | Tenant scope; composite relationship constraints apply. |
+| `learner_id` | UUID | FK → `LEARNER.id` | Required | Learner associated with the restricted record. |
+| `counselor_user_id` | UUID | FK → `WORKSPACE_MEMBERSHIP.user_id` | Required | Assigned Guidance Counselor; access also requires an active matching guidance assignment. |
+| `record_body` | TEXT | — | Required | Generic content placeholder. Use synthetic text only until the content schema and handling policy are approved. |
+| `created_by` | UUID | FK → `USER_PROFILE.user_id` | Required | Authenticated creator; must match the counselor. |
+| `created_at`, `updated_at` | TIMESTAMPTZ | — | Required | Record creation and most recent update times. |
 
-**Important gap:** the ERD has no field for guidance-record content, type,
-purpose, or retention. Do not store sensitive content in this entity until
-the purpose, required fields, authorization, audit, and retention are
-approved. Its distinct name alone does not enforce confidentiality.
+Reads and creation are row-restricted to the assigned counselor; workspace
+owners and administrators do not receive access from their role alone.
+`update_guidance_record` checks that same counselor and appends the old and
+new body to `guidance_record_history` atomically. This is source-level behavior
+only; the migration and its tests have not run. Its existence does not approve
+real sensitive content or establish a retention policy.
 
 ### `GUIDANCE_CASE_ASSIGNMENT`
 
@@ -425,7 +467,7 @@ they are necessary before changing the ERD or creating a schema.
 | Created/updated timestamps and actor attribution on mutable entities | The ERD only includes timestamps on selected events. Confirm which records need creation/update metadata and whether audit events are sufficient. |
 | Warning evidence reference, time window, and creation context | The ERD has `source` text but no linked attendance/score evidence or rule/version reference. Needed only if approved warnings are generated from source records; define explainability and correction behavior first. |
 | Review action and optional note/assignment | `WARNING_REVIEW_EVENT` records reviewer/time only. Define whether acknowledgment, dismissal, correction, reassignment, or comments are needed and permitted. |
-| Guidance-record content schema and case link | `GUIDANCE_RECORD` currently has no content and is deliberately separate. Define minimal approved content and whether it is linked to a guidance case, with strict access and retention, before adding fields. |
+| Guidance-record content schema and case link | The source table contains only a generic `record_body` placeholder and remains deliberately separate. Define approved content, any case link, access, and retention before using real content or expanding the schema. |
 | Assignment scope and effective dates | Teaching/advisory/guidance assignments have no dates or assignment provenance. Confirm who grants assignments and how historical scope is represented. |
 | Attendance session type/creator | Section/date alone may not identify a session if more than one exists per day. Confirm the school's session model and actor requirements. |
 | Ungraded/excused score state | A numeric score distinguishes zero from absence of a score, but there is no explicit ungraded/absent/excused representation. Confirm required score states; do not overload zero. |

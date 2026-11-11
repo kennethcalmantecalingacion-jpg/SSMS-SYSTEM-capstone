@@ -3,13 +3,26 @@
 ## Status and source basis
 
 This is a proposal for review, not a policy approved for a specific deployment
-or an authorization to access real learner data. Supabase Auth password
-sign-in and recovery are implemented in source but no project is configured.
-The prototype has no workspace database, PostgreSQL grants, RLS, or backend
-authorization. Demo account selection and client-side navigation remain
-simulation. Every conditional or pending entry requires deployment review and
-trusted implementation before it can grant access. No matrix entry is
-currently an approved operational permission.
+or an authorization to access real learner data. Versioned migrations now
+define workspace roles, assignments, grants, RLS, and narrowly scoped
+attendance access. Those policies are source-only and have not been executed
+or security-tested; they are conservative technical defaults, not institution
+approval. Demo account selection and client-side navigation remain simulation.
+Every conditional or pending entry requires deployment review. No matrix
+entry constitutes an approved operational permission.
+
+The current attendance helper permits only an active workspace Teacher with
+a teaching assignment for the exact section and school year. It does not grant
+attendance access to Advisers, Workspace Owners, or Workspace Administrators
+without a separate Teacher assignment. This is a conservative implementation
+default pending deployment review, not an approved school policy.
+
+The real-account directory source additionally permits active workspace
+Owners and Administrators to create learners and correct only the minimal
+identifier/display name through manager-checked database functions.
+Corrections append manager-readable history and an audit event; direct client
+writes are not granted. This narrow implementation has not been executed or
+tested against PostgreSQL and does not approve broader learner-profile access.
 
 The demo System Administrator's client-side navigation is limited to a
 data-free System Administration status page. This navigation preset does not
@@ -25,11 +38,12 @@ platform authority. The legacy `Designated System Administrator` concept is
 technical/provider administration, not a workspace role and not a grant to
 learner or guidance data.
 
-This update reconciles the conceptual entities in
-[DATA-MODEL-ERD.md](./DATA-MODEL-ERD.md) with their fields and unresolved
-details in [DATA-DICTIONARY.md](./DATA-DICTIONARY.md), the existing provisional
-role boundaries, and the relevant project requirements. It does not create
-school policy, legal interpretation, or a permission architecture.
+This matrix reconciles the conceptual entities in
+[DATA-MODEL-ERD.md](./DATA-MODEL-ERD.md), the fields in
+[DATA-DICTIONARY.md](./DATA-DICTIONARY.md), and the source-level default
+policies in the Supabase migrations. It does not create school policy, legal
+interpretation, or verified authorization. Direct database allow/deny tests
+remain blocked until a local Supabase runtime is available.
 
 ## Decision legend
 
@@ -127,12 +141,13 @@ effective dates, and role-combination rules still need deployment decisions.
 
 Cells use the permission profiles above. The scope column and role definitions
 constrain each conditional profile. The matrix covers every entity in the
-current 27-entity ERD; it does not add entities or imply that conditional
+current 28-entity ERD; it does not add entities or imply that conditional
 permissions have been approved.
 
 | ERD entity | Scope / boundary | Teacher | Adviser | Guidance Counselor | Parent/Guardian | Designated System Administrator |
 |---|---|---:|---:|---:|---:|---:|
 | `LEARNER` | Assigned class; assigned advisory; assigned referral; verified linked learner; no routine admin access | V | B | V | PARENT | DENY |
+| `LEARNER_PROFILE_CHANGE` | Restricted history; only an active Workspace Owner/Administrator through the manager policy may read; no direct client writes | DENY | DENY | DENY | DENY | DENY |
 | `GRADE_LEVEL` | Minimum structure context needed for an approved task; Owner/Administrator management actions require explicit workspace-scoped grants and RLS | V | V | V | PENDING | PENDING |
 | `SECTION` | Assigned class/advisory or case context; Owner/Administrator management actions require explicit workspace-scoped grants and RLS | V | V | V | DENY | PENDING |
 | `SCHOOL_YEAR` | Minimum structure context; use and management remain conditional on approval | V | V | V | PENDING | PENDING |
@@ -165,6 +180,9 @@ permissions have been approved.
 - `ATTENDANCE_CHANGE`, `ASSESSMENT_SCORE_CHANGE`, `WARNING_REVIEW_EVENT`, and
   `AUDIT_EVENT` are history/event records. Their matrix profiles do not permit
   editing, deleting, or correcting the history row itself.
+- `LEARNER_PROFILE_CHANGE` is manager-readable correction history. Authenticated
+  clients cannot write or delete history directly; corrections run through the
+  audited manager operation.
 - `ASSESSMENT` uses `A`, not `E`, because the ERD has no assessment-change
   history. Corrections to assessment definitions are pending until an
   attributable history process is approved.

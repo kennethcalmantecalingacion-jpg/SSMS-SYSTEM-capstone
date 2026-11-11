@@ -119,8 +119,8 @@ Use one institution-independent, role-aware **Progressive Web App (PWA)** with V
 - **Trusted operations:** Supabase Edge Functions perform operations that require trusted server-side validation, privileged credentials, or third-party secret handling. Keep service/secret keys server-side only.
 - **Files:** Supabase Storage holds approved files in private buckets with object-level authorization. PostgreSQL remains the authoritative source for transactional records.
 - **Realtime:** Supabase Realtime is optional and may be used only where a specific workflow needs it and authorization is verified.
-- **Application format:** an installable, responsive PWA with a Web App Manifest and service worker. PWA implementation is a target, not a claim about the current code.
-- **Future offline capability:** Cache Storage is for application assets; IndexedDB may later hold narrowly scoped, account/workspace-partitioned offline data and a controlled synchronization outbox. The server remains authoritative, and every sync operation must be reauthorized.
+- **Application format:** an installable, responsive PWA with a Web App Manifest, icon, static app-shell/service-worker caching, connection status, and user-controlled updates. The current source implements the shell; device installation and hosted acceptance still require verification.
+- **Future offline capability:** Cache Storage is restricted to public application assets. Authenticated API responses and learner records are never cached. IndexedDB, account/workspace-partitioned records, and a controlled synchronization outbox remain future work; the server stays authoritative and reauthorizes every sync operation.
 - **Optional backup/export:** Google Drive may be a workspace-authorized secondary backup/export destination. It is not a transactional database or a replacement for Supabase backup and restore controls.
 
 Vercel and Supabase are connected services with distinct responsibilities: **Vercel hosts and deploys the frontend; Supabase provides backend services and managed PostgreSQL.** Installing an integration or adding environment variables does not by itself mean the application is configured, connected, tested, or deployed.
@@ -670,15 +670,57 @@ Schema design rules:
 
 # 9. Current implementation status — verify against the repository
 
-The repository is a Vite application using Vanilla JavaScript, HTML, and CSS. It currently has a production-login shell, separate browser-local Demo Portal, synthetic roster and monitoring modules, and versioned localStorage for selected records. Always inspect the working tree and relevant code before describing or changing behavior; this status is a summary, not a substitute for source verification.
+The repository remains a Vanilla JavaScript, HTML, CSS, and Vite application
+with a browser-local synthetic Demo Portal. A separate production account
+shell and a connected workspace/attendance UI have been added. Real accounts
+must never fall through to the Demo Portal or local demo records.
 
-The Supabase JavaScript client dependency and a public-client Auth integration exist in source. Password sign-in and recovery are implemented against that client when `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` are configured. No project credentials are configured in the repository, so remote authentication is not verified. Production registration is blocked because trusted invitation validation is not implemented. Authenticated users are kept out of local demo learner records.
+Versioned Supabase migrations now define global profiles, registration
+invitations, workspace creation grants, memberships/roles, school structure,
+assignments, attendance, and data foundations for gradebook, warning review,
+support, restricted guidance, and announcements. PostgreSQL grants, RLS,
+constraints, security helpers, and trusted invitation/workspace Edge
+Functions are in source. Four synthetic users across two workspaces and
+attendance isolation pgTAP source tests are included. Docker and Podman were
+unavailable, so migrations and database tests have not been run; none of the
+migrations or functions were deployed remotely. Do not describe the source
+policies as verified tenant isolation.
 
-There is no complete application database schema, versioned database migration set, workspace RLS/grants foundation, trusted registration or workspace Edge Functions, or connected workspace backend. Workspace and demo accounts remain browser-local simulation. Student directory, attendance, academic, warning, intervention, report, and announcement functionality remains synthetic/local or session-only as documented in [README.md](README.md) and [REQUIREMENTS-RECONCILIATION.md](docs/REQUIREMENTS-RECONCILIATION.md).
+The production UI supports Supabase Auth flows, invitation-based account
+registration, workspace listing/selection, grant-based workspace creation,
+and assigned-roster attendance save/reload/correction. It also has source for
+an RLS-scoped, paginated learner directory; manager-only learner creation
+with initial enrollment; manager-only profile correction with restricted
+prior-value history; grade/section/school-year creation; and atomic enrollment
+transfer with prior-history preservation and attendance-date validation.
+These flows require the migrations and trusted functions to be deployed and
+have not been tested against a database or live project. Learner deactivation,
+member/invitation/join-request management, ownership transfer, gradebook,
+warnings, support, announcements, reports, and dashboard remain unconnected
+for real accounts. Keep those screens
+disabled or restricted to the synthetic Demo Portal; never present
+browser-local demo data as shared or authorized real-account data.
 
-Vercel/GitHub deployment, Supabase/Vercel project integration, Production/Preview environment separation, and PWA installation have not been configured or verified. The Vercel and Supabase roles and setup requirements below describe the approved target, not a deployment claim. There is no service worker, manifest, IndexedDB offline cache/outbox, or synchronization workflow yet.
+The user reports the existing `ssms_front` Vercel project, GitHub connection,
+Supabase integration, and Vite public variables are configured for
+Production/Preview/Development, and reports
+`https://pwassms.vercel.app` loads and recognizes the Supabase configuration.
+The public URL returned its sign-in page in a browser, but no Auth request or
+backend workflow was attempted. Exact integration settings, Preview isolation,
+and Auth redirect settings remain unverified. Do not change provider settings,
+apply remote migrations, or deploy functions without explicit authorization.
 
-The current navigation includes Overview, Students, Attendance, Academics, Early Warnings, Interventions, Announcements, Reports, and Settings. Preserve existing behavior when implementing connected equivalents, but do not expose local demo records to a future authenticated workspace account.
+The app has a manifest, SVG icon, static app-shell and same-origin versioned
+asset caching, online/offline status, and a user-controlled update prompt.
+Authenticated API responses and learner records are not cached. IndexedDB
+record synchronization, private storage workflows, and Google Drive backup
+are not implemented. Local browser checks observed the manifest and service
+worker registration, install-prompt UI, and offline login-shell reload;
+device installation and hosted PWA acceptance remain unverified.
+
+The existing view and behavior descriptions below describe the synthetic
+Demo Portal unless they explicitly identify a production-connected workflow.
+They are not a claim that the real-account application implements all modules.
 
 ## Existing application views
 
@@ -761,10 +803,15 @@ Preserve useful content in all of these files. Update documentation when impleme
 
 ## Verification state
 
-The application has previously passed a Vite production build and targeted
-JavaScript/browser checks. Those results are not a substitute for rerunning
-checks on the current diff. No live Supabase, Vercel deployment, workspace RLS,
-or PWA acceptance test has been verified.
+The latest implementation run passed `npm.cmd run build`, `npm.cmd test`,
+`node --check` on the modified JavaScript, and `git diff --check`. A local
+browser observed the PWA manifest and service worker registration, exercised
+the install-prompt UI, and confirmed the login shell reloads offline with its
+built JavaScript and CSS. The Supabase CLI could not start a local database
+because Docker and Podman were unavailable; no SQL, pgTAP isolation, live
+Auth, real-account attendance, or device installation has been verified. The
+public deployment returned its login page, but its exact provider settings
+remain user-confirmed and unaudited.
 
 ## Other recommended audit targets
 

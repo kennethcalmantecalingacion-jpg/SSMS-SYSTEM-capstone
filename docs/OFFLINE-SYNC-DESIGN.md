@@ -2,16 +2,19 @@
 
 ## Status and scope
 
-This is the future offline design, not an implemented feature or approved
-deployment policy. Supabase Auth password sign-in/recovery is integrated in
-source but has no configured project. There is no shared application
-database, workspace authorization, offline synchronization, or enforced
-record access. Monitoring records remain synthetic and browser-local. Use
-synthetic data only while designing and testing.
+This document describes future record-level offline synchronization, not an
+implemented feature or approved deployment policy. The PWA manifest,
+service-worker app-shell/static-asset caching, online status, and
+browser-triggered install prompt and user-controlled update handling are
+implemented. Authenticated API responses and learner records are not cached.
+The local browser preview loaded the login shell, JavaScript, and CSS after an
+offline reload; device installation and hosted acceptance remain unverified.
+Supabase migrations and assignment-scoped attendance source exist but have not
+been executed or tested. Use synthetic data only while designing and testing.
 
 The target deployment uses Vercel for the Vite frontend and Supabase for
-backend services and Supabase-managed PostgreSQL. IndexedDB, a service worker,
-and controlled sync remain future work.
+backend services and Supabase-managed PostgreSQL. IndexedDB, a durable
+outbox, and controlled record synchronization remain future work.
 
 The design follows the provisional data model and access boundaries in
 [DATA-MODEL-ERD.md](./DATA-MODEL-ERD.md),
@@ -23,12 +26,15 @@ review.
 
 ### Current prototype limitations
 
-These are known current behaviors, not fixes made by this design:
+These limitations still apply to the browser-local Demo Portal. The separate
+real-account attendance workflow is intended to use the connected backend
+after its migrations are deployed and tested:
 
 - Attendance and academic changes overwrite saved values without complete
   correction history.
-- Saved attendance and academic records remain browser-local and are not tied
-  to a backend enrollment-history model.
+- Demo attendance and academic records remain browser-local; production
+  attendance has a migration-backed enrollment-history model, but it is not
+  remotely operational or verified.
 - Announcement read status is global rather than per user.
 
 The target design below describes safeguards a future authorized,

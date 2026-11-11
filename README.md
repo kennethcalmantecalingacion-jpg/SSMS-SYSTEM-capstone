@@ -13,16 +13,27 @@ approved or deployed school system.
   not a separate database host to purchase or configure.
 - **Authorization:** PostgreSQL grants and RLS are the required data boundary;
   frontend visibility and a publishable key do not authorize access.
-- **Distribution:** the target is an installable PWA. IndexedDB, service-worker
-  caching, and controlled synchronization are future capabilities, not current
-  functionality.
+- **Distribution:** the target is an installable PWA. Static application-shell
+  and same-origin versioned assets are cached by the service worker. IndexedDB
+  and record synchronization are not implemented.
 - **Optional backups:** Google Drive may be a secondary, workspace-authorized
   export destination; Supabase PostgreSQL remains the transactional source of
   truth.
 
 Vercel and Supabase have separate responsibilities: Vercel hosts and deploys
-the frontend; Supabase provides backend services and managed PostgreSQL. The
-architecture target does not mean either provider is connected or deployed.
+the frontend; Supabase provides backend services and managed PostgreSQL.
+Provider setup below is user-confirmed; it has not been independently audited
+and no Auth or backend workflow has been remotely tested during this
+implementation. The public application URL was opened and returned its
+account sign-in page.
+
+The user-confirmed application URL is
+[https://pwassms.vercel.app](https://pwassms.vercel.app). The user reports
+that the existing `ssms_front` Vercel project is linked to this GitHub
+repository and the Supabase integration supplies Vite-compatible public
+variables in Production, Preview, and Development. Preview isolation from
+production data, Auth redirect settings, and migrations still require
+verification. Do not enter real learner data.
 
 ## Current status
 
@@ -97,31 +108,40 @@ architecture target does not mean either provider is connected or deployed.
 - Demo account selection and client-side navigation presets are available.
   Settings shows a data-free System Administration status page; account
   administration and school configuration are not operational.
-- The production login can use Supabase Auth password sign-in and password
-  recovery when `VITE_SUPABASE_URL` and a Supabase publishable key are configured.
-  Authenticated accounts are kept out of the browser-local demo data until a
-  workspace membership backend exists. Registration, workspace access, and
-  student-record authorization are not implemented by this connection alone.
-- The official `@supabase/supabase-js` dependency and public-client integration
-  exist in source. No Supabase project credentials are configured in this
-  repository, so remote sign-in and password recovery have not been tested.
-- Production registration remains disabled until registration invitations can
-  be validated by trusted backend code. No complete application schema, RLS
-  policies, or workspace authorization backend exists.
-- Local demo registration and workspace access are available in-browser: users can
-  sign in with seeded workspace accounts or create an account using a registration
-  invitation code, then create a workspace when a valid grant is supplied.
-  Workspace switching remains a browser-local prototype only; it does not
-  connect to a live Supabase backend or enforce real authorization.
-- The demo navigation presets are provisional and not approved for deployment.
-  Supabase Auth can authenticate accounts when configured, but assignment-level
-  enforcement, workspace authorization, RLS, external messaging, and a shared
-  student-record database are not configured. Client-side navigation restrictions
-  do not protect records from direct browser/API access. Attendance, academic,
-  and support demo data remain in this browser.
-- Vercel hosting/deployment, Supabase/Vercel project integration, Production
-  and Preview environment mapping, and PWA installation have not been
-  configured or verified.
+- The production shell uses Supabase Auth and keeps real accounts separate
+  from the browser-local Demo Portal. Trusted invitation registration and
+  grant-based workspace creation are implemented as Edge Functions, but the
+  remote Auth configuration and flows have not been tested.
+- Versioned migrations define account/workspace authorization, workspace
+  structure, assignments, attendance, and data foundations for gradebook,
+  warning review, support, guidance, and announcements. RLS and grants are
+  implemented in source, but migrations have not been applied to a database
+  and their policies have not been executed or security-tested.
+- The real-account workspace UI supports workspace listing/selection,
+  grant-based creation, assigned-roster attendance save/reload/correction,
+  scoped learner-directory reads, and manager-only learner creation with an
+  initial enrollment, profile corrections with restricted history, grade/
+  section setup, and enrollment transfer. Learner creation, profile correction,
+  and transfer use atomic backend functions; profile changes record prior
+  values, reason, actor, and an audit event. Transfer closes rather than
+  overwrites the prior enrollment and rejects dates that conflict with saved
+  attendance. These features depend on the
+  migrations and authorized backend data being deployed and have not been
+  tested against a database. Learner deactivation and the other monitoring
+  modules, reports, and dashboard are not connected for real accounts.
+- Workspace member/invitation/join-request administration, ownership transfer,
+  guidance workflows, private file storage, and Google Drive backup are not
+  complete. No external messages are sent. Full offline data synchronization
+  is not implemented.
+- `public/manifest.webmanifest`, the SVG icon, and a service worker implement
+  the static app shell, cached same-origin versioned assets, online status,
+  browser-triggered install prompt, and user-controlled update handling.
+  Authenticated API responses and learner records are not cached. The local
+  browser preview loaded its shell, JS, and CSS after an offline reload; device
+  installation and hosted acceptance remain unverified.
+- Local demo registration and workspace access remain browser-local
+  simulations. Demo navigation is not real authorization; demo records remain
+  synthetic and separate from real accounts.
 - A provisional role-permission proposal for teachers, advisers, guidance
   counselors, parents, and system administration is documented in
   `docs/ACCESS-CONTROL-MATRIX.md`. It is not approved for deployment or enforced as
@@ -129,8 +149,8 @@ architecture target does not mean either provider is connected or deployed.
   exist.
 - Use fictitious data only. Do not enter real learner information or credentials.
 - Institution-configurable fields, roles, thresholds, and procedures remain
-  provisional until reviewed for the intended deployment.
-- No legal or policy compliance is claimed.
+  provisional until reviewed for the intended deployment. No legal or policy
+  compliance is claimed.
 
 ## Product identity
 
@@ -173,31 +193,137 @@ key here. Never expose a secret/service-role key through a `VITE_` variable,
 frontend source, browser storage, or build output. A publishable key is not a
 substitute for grants, RLS, or backend authorization.
 
+### Local Supabase development
+
+The Supabase CLI is pinned in the project dependencies. Local database
+commands require Docker; `supabase start` was attempted during this work but
+could not run because Docker and Podman are unavailable in the environment.
+Database migrations and pgTAP tests have therefore not been executed.
+
+```powershell
+npm.cmd run db:start
+npm.cmd run db:reset
+npm.cmd run db:test
+```
+
+`db:reset` resets only the local CLI database and loads the synthetic
+`supabase/seed.sql` fixtures. Never point a reset command at hosted data.
+Copy `supabase/functions/.env.example` to
+`supabase/functions/.env` and adjust only local callback origins before
+serving Edge Functions:
+
+```powershell
+npm.cmd run functions:serve
+```
+
+Keep local environment files and all privileged keys out of version control.
+Never put a Supabase secret/service-role key in a `VITE_` variable.
+
 ### GitHub, Vercel, and Supabase setup
 
-Provider accounts, project creation, and deployment are external setup tasks;
-none have been performed or verified for this repository.
+The user reports that the existing GitHub-to-Vercel connection, Vercel
+project `ssms_front`, Supabase integration, and public Vite variables are
+already configured. Do not recreate those projects or integrations. The
+reported public application URL is
+[https://pwassms.vercel.app](https://pwassms.vercel.app); the provider state
+and deployed workflows have not been independently verified during this task.
 
-1. Create/manage the Supabase organization and project through Supabase.
-2. Create a Vercel project and import this existing GitHub repository. Keep the
-   current Vite framework; use the Vite build output (`dist`) and default Vite
-   build command unless project settings require a documented change.
-3. Install the official Supabase Vercel integration and connect the existing
-   Supabase project to this Vercel project.
-4. Configure the integration's public environment-variable prefix for Vite or
+1. Before using real data or running a sensitive test, verify that Preview
+   targets an isolated Supabase branch/project and Production targets the
+   intended production project. Environment variables being present in both
+   environments do not prove isolation.
+2. Verify the integration's public environment-variable prefix for Vite or
    explicitly map its public URL and publishable key to
    `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`.
-5. Inspect every variable the integration supplies before exposing it to the
+3. Inspect every variable the integration supplies before exposing it to the
    client. Never prefix Supabase secret, service-role, JWT, database-password,
    or other privileged values with `VITE_`, `NEXT_PUBLIC_`, or another public
    prefix. Store required privileged values only in trusted server-side
    environments such as Edge Functions.
-6. Configure and verify the variables separately for Vercel **Production** and
-   **Preview**. Preview deployments must use an isolated Supabase preview
-   branch/project or other non-production target; do not let untrusted preview
-   code use production data.
-7. Verify Supabase Auth redirect URLs for the exact local, Preview, and
+4. Verify Supabase Auth redirect URLs for the exact local, Preview, and
    Production origins before testing confirmation or recovery links.
+
+### Safe remote migration and function deployment
+
+No hosted database was changed and no function was deployed. First run the
+build, tests, and local migrations against a local Supabase stack; review the
+SQL and take an appropriate backup. Local application of migrations is
+currently blocked until Docker is available. Remote deployment requires
+separate explicit authorization; do not run the mutating commands below
+without it.
+
+From the repository root, after obtaining the project ref through the
+provider UI (do not put credentials in chat):
+
+```powershell
+npx.cmd supabase login
+npx.cmd supabase link --project-ref <PROJECT_REF>
+npx.cmd supabase db push --dry-run
+```
+
+Review the dry-run output and confirm the linked project and its backup before
+an explicitly approved migration deployment:
+
+```powershell
+npx.cmd supabase db push
+```
+
+The four Edge Functions are
+`register-with-invitation`, `create-workspace-with-grant`,
+`issue-platform-registration-invitation`, and
+`issue-workspace-creation-grant`. After reviewing each function and preparing
+its server-side origin settings for the intended environment, deploy them
+individually to the matching isolated Supabase project:
+
+```powershell
+npx.cmd supabase functions deploy register-with-invitation --project-ref <PROJECT_REF>
+npx.cmd supabase functions deploy create-workspace-with-grant --project-ref <PROJECT_REF>
+npx.cmd supabase functions deploy issue-platform-registration-invitation --project-ref <PROJECT_REF>
+npx.cmd supabase functions deploy issue-workspace-creation-grant --project-ref <PROJECT_REF>
+```
+
+Set `APP_SITE_URL` and `ALLOWED_APP_ORIGINS` as trusted function environment
+configuration for each environment; replace each placeholder with values for
+that isolated project and its exact Vercel origin:
+
+```powershell
+npx.cmd supabase secrets set --project-ref <PRODUCTION_PROJECT_REF> APP_SITE_URL=https://pwassms.vercel.app ALLOWED_APP_ORIGINS=https://pwassms.vercel.app
+npx.cmd supabase secrets set --project-ref <PREVIEW_PROJECT_REF> APP_SITE_URL=https://<PREVIEW_HOST> ALLOWED_APP_ORIGINS=https://<PREVIEW_HOST>
+```
+
+In Supabase Auth, set the exact Site URL and allowlist only the local,
+Production, and isolated Preview callback URLs that are required. Under
+**Authentication → Providers → Email**, disable public sign-ups before
+enabling invitation-based registration; test `inviteUserByEmail` with those
+exact settings. Configure an approved email delivery provider if real
+invitation/recovery emails are expected; no email delivery was tested here.
+
+Bootstrap the first Platform Operator out of band: a trusted project owner
+creates/invites the pre-identified account through Supabase Auth, verifies the
+identity, and uses the SQL Editor to assign the existing Auth UUID after the
+migrations have been applied. Do not make a public bootstrap code or enable
+public signup to do this. Example, after replacing both placeholders:
+
+```sql
+insert into public.platform_user_roles (user_id, role_key)
+select id, 'platform_operator'
+from auth.users
+where id = '<AUTH_USER_UUID>'::uuid
+  and lower(email) = lower('<VERIFIED_OPERATOR_EMAIL>')
+on conflict (user_id, role_key) do nothing;
+```
+
+Record the out-of-band approval in the provider's authorized administrative
+process. Then issue bounded registration invitations and separate
+workspace-creation grants through their trusted functions. Neither is a
+universal frontend admin code. Verify registration, membership, attendance,
+and cross-workspace denials with synthetic users before any real-data use.
+
+Run database tests only after starting the local stack:
+
+```powershell
+npm.cmd run db:test
+```
 
 Official setup references:
 
