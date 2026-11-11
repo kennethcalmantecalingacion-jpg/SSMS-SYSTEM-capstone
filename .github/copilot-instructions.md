@@ -1,20 +1,31 @@
-# Project guidance
+# Repository instructions
 
-- Treat this repository as a fictitious-data capstone mock, not a production
-  school system. Never request or add real learner records or credentials.
-- Keep the approved project title and problem areas unchanged.
-- Work in small, reviewable increments. Inspect the relevant files, state the
-  goal and scope, and run the narrowest relevant validation.
-- Check official primary sources before recording policy requirements. Record
-  source links, verification status, and unresolved questions in
-  `docs/REQUIREMENTS-RECONCILIATION.md`.
-- Do not invent school procedures, student fields, roles, grading rules, or
-  warning thresholds. Keep unconfirmed items provisional and log decisions in
-  `docs/DECISIONS.md`.
-- Do not claim legal compliance, live authentication, external messaging, or
-  backend security unless the relevant implementation and tests support that
-  claim.
-- Keep secrets out of frontend files and version control. If Supabase is added,
-  protect exposed data with reviewed grants and row-level security policies;
-  never place a service-role key in the browser.
-- Use only synthetic learner data in code, fixtures, screenshots, and tests.
+- The product is the institution-independent **Student Monitoring System**.
+- Follow the active user task and its authorization. Use
+  [MASTER_SYSTEM_BUILD_PROMPT.md](../MASTER_SYSTEM_BUILD_PROMPT.md) as the
+  authoritative architecture reference.
+- Inspect relevant source and supporting requirements before editing. Preserve
+  working behavior unless the task requires a change.
+- Implement the complete authorized scope, including connected dependencies;
+  do not stop for approval between internal stages.
+- Test the implementation, fix discovered defects, and update relevant existing
+  documentation before reporting results.
+- Use synthetic learner data only. Never request or add real learner records
+  or credentials.
+- Keep secrets out of frontend code, browser storage, build output, and version
+  control. Enforce data authorization on the backend, not only through hidden
+  UI controls.
+- Do not claim unverified behavior is operational, secure, compliant,
+  connected, or deployed.
+- Do not commit, push, deploy, or change external services without explicit
+  user authorization.
+
+## Instruction priority
+
+1. Current explicit user task and authorization.
+2. These repository-wide instructions.
+3. [MASTER_SYSTEM_BUILD_PROMPT.md](../MASTER_SYSTEM_BUILD_PROMPT.md).
+4. Supporting documents for their respective reference topics.
+
+Reconcile older supporting text when it conflicts with the approved current
+architecture; retain historical decisions only when clearly labeled as history.

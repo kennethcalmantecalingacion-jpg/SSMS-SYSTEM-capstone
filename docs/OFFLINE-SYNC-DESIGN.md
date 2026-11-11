@@ -2,12 +2,16 @@
 
 ## Status and scope
 
-This is a proposed design for review, not an approved deployment requirement or an
-implemented feature. The prototype has fictional demo account selection and
-browser-local storage for roster, attendance, academic, and support records,
-but no real authentication, shared database, offline synchronization, or
-enforced access controls. Use synthetic data only while designing and testing
-it.
+This is the future offline design, not an implemented feature or approved
+deployment policy. Supabase Auth password sign-in/recovery is integrated in
+source but has no configured project. There is no shared application
+database, workspace authorization, offline synchronization, or enforced
+record access. Monitoring records remain synthetic and browser-local. Use
+synthetic data only while designing and testing.
+
+The target deployment uses Vercel for the Vite frontend and Supabase for
+backend services and Supabase-managed PostgreSQL. IndexedDB, a service worker,
+and controlled sync remain future work.
 
 The design follows the provisional data model and access boundaries in
 [DATA-MODEL-ERD.md](./DATA-MODEL-ERD.md),
@@ -33,7 +37,7 @@ already resolved.
 
 ## 1. Authoritative ownership and synchronization metadata
 
-The future central database is the authoritative shared source of truth.
+The future Supabase-managed PostgreSQL database is the authoritative shared source of truth.
 IndexedDB may hold a limited cache and durable pending-operation outbox, but a
 browser or device never owns shared school records. Local records are
 provisional until the server accepts them.
@@ -67,10 +71,10 @@ as trusted authorization evidence.
 
 Cache only the minimum fields and records required for a specifically
 approved offline task. Partition cached data and queued operations by
-authenticated account and the single configured deployment context so
-different accounts cannot see one another's local records on a shared browser.
-The product does not include multi-tenancy, institution switching, or a
-workspace-management model.
+authenticated account and workspace so different accounts or workspaces
+cannot see one another's local records on a shared browser. A selected
+workspace context does not itself grant access; the server rechecks current
+membership and assignments for every synchronization operation.
 
 The least-sensitive starting candidate is **assigned attendance**: a small,
 approved roster and the attendance session/entry context needed to record
@@ -266,6 +270,7 @@ The following decisions remain for the deployment institution; this document doe
   acknowledgement/audit design; these are not currently modeled ERD fields
   or entities.
 
-These are proposed design choices and open questions, not approved for any deployment
-requirements. Do not claim offline synchronization, authentication,
-persistence, or these security controls are implemented.
+These are proposed design choices and open questions, not approved for a
+deployment. Supabase Auth integration is present but unconfigured; do not claim
+database persistence, workspace authorization, offline synchronization, or
+these offline security controls are implemented.

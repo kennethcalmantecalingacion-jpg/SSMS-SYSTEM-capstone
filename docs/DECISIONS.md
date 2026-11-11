@@ -208,3 +208,34 @@ Update this log when a decision changes.
   database, RLS policy, or backend test has been implemented or executed.
 - **Next step:** Review the attendance-first model and allow/deny test plan
   before beginning local Supabase preparation.
+
+## 2026-11-11 — Adopt Vercel and Supabase as the target architecture
+
+- **Decision:** Keep the existing Vanilla JavaScript, HTML, CSS, and Vite
+  frontend; use Vercel for frontend hosting/deployment and Supabase for backend
+  services and Supabase-managed PostgreSQL. GitHub remains the source
+  repository and deployment trigger. The application target is an installable
+  PWA, with IndexedDB, service-worker caching, and controlled synchronization
+  as future capabilities.
+- **Provider responsibilities:** Vercel builds and serves the frontend.
+  Supabase provides Auth, managed PostgreSQL, RLS/grants, Edge Functions,
+  Storage, and optional Realtime. PostgreSQL is included in the Supabase
+  backend architecture, not a separately hosted database to acquire.
+  Google Drive remains an optional secondary backup/export destination, not
+  the transactional source of truth.
+- **Security boundary:** `VITE_SUPABASE_URL` and
+  `VITE_SUPABASE_PUBLISHABLE_KEY` are the only Supabase values intended for
+  browser configuration. Publishable keys do not authorize data access.
+  Secret/service-role, JWT, and database credentials must remain server-side.
+- **Evidence checked:** Official provider documentation reviewed on
+  2026-11-11: [Supabase/Vercel integration](https://supabase.com/docs/guides/integrations/vercel),
+  [Preview branches](https://supabase.com/docs/guides/integrations/vercel-preview-branches),
+  [Vercel Marketplace](https://supabase.com/docs/guides/integrations/vercel-marketplace),
+  [Vite on Vercel](https://vercel.com/docs/frameworks/frontend/vite), and
+  [Vercel Git integration](https://vercel.com/docs/git).
+- **Status:** Architecture selected; no provider accounts, project integration,
+  Vercel deployment, or PWA installation were configured or tested by this
+  decision. Production/Preview environments must be configured separately;
+  Preview must not use production student data. Provider availability,
+  configuration, application connection/testing, and deployment verification
+  are separate states.

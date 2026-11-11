@@ -2,18 +2,47 @@
 
 ## Purpose and scope
 
-This is a conceptual ERD for the current generic prototype and
-the data relationships needed for a future shared backend. It is a design
-proposal, not an approved institutional policy or a finalized schema. Fields and enum
-values shown are illustrative; confirm them before implementation. The
-prototype currently uses fictional demo account selection and browser-local
-stores; it has no database, real authentication, or backend authorization.
+This is a conceptual ERD for the Student Monitoring System target and the
+current prototype. It is a design proposal, not an approved institutional
+policy or finalized schema. Fields and enum values are illustrative; keep
+deployment-specific rules provisional. Supabase Auth password sign-in and
+recovery are implemented in source but no Supabase project is configured.
+There is no application database schema, migration set, workspace backend,
+RLS foundation, or server authorization yet; monitoring records remain
+synthetic and browser-local.
 
 The generic product identity is **Student Monitoring System**. The diagrams cover
 school structure, learners and historical enrollment, staff identity and
 assignments, attendance, academics, warning review, support follow-up,
 announcements, and audit history. Dashboard summaries and reports are derived
 from these records rather than stored as independent learner data.
+
+The target deployment uses Vercel for the Vite frontend and Supabase for
+backend services and Supabase-managed PostgreSQL. PostgreSQL is not a separate
+host in this architecture. Real workspace-owned records must include workspace
+context; RLS and appropriate grants must be designed and tested before any
+table is exposed.
+
+## Platform and workspace entities to add to the schema
+
+The current diagrams do not yet model the complete multi-workspace foundation.
+The eventual schema must review and add, as appropriate:
+
+- Global identity and platform authorization: `USER_PROFILE`,
+  `PLATFORM_ROLE`, `PLATFORM_USER_ROLE`, `PLATFORM_REGISTRATION_INVITE`, and
+  `WORKSPACE_CREATION_GRANT`.
+- Workspace: `WORKSPACE`, `WORKSPACE_MEMBERSHIP`, `WORKSPACE_MEMBER_ROLE`,
+  `WORKSPACE_INVITE`, `WORKSPACE_JOIN_REQUEST`, and workspace-scoped audit
+  events.
+- Workspace-owning foreign keys and composite relationships on every
+  workspace-owned record needed to prevent cross-workspace references.
+
+An authenticated identity does not imply membership. Pending join requests are
+not memberships. A client-supplied workspace ID is never authorization proof.
+Platform Operator access must not imply routine access to learner records;
+workspace ownership must not imply access to confidential guidance content.
+Registration invitations and workspace-creation grants are separate,
+server-validated, bounded-use authorization mechanisms.
 
 ## Mermaid ERD diagrams
 
@@ -424,5 +453,8 @@ reviewable.
    must be recorded, and how should audit targets maintain referential
    integrity?
 
-This ERD is an input for Phase 2.3's data dictionary and review, not
-authorization to create schema migrations or implement backend behavior.
+This ERD and [DATA-DICTIONARY.md](./DATA-DICTIONARY.md) are living design
+references for implementation. Versioned migrations must encode tenant-safe
+constraints, explicit PostgreSQL grants, deny-by-default RLS, and tests for
+allowed and forbidden direct API/database operations. Unconfirmed deployment
+rules remain disabled rather than being inferred from the model.

@@ -1,17 +1,52 @@
 # QA Checklist
 
-Manual checks for the generic presentation prototype. This is a reusable
-checklist, not an automated test suite. Use fictional data only; never enter
-real learner information or credentials. Record each test run with the template
-at the end.
+Manual checks for the current prototype and future deployment. This is a
+reusable checklist, not an automated test suite. Use synthetic data only;
+never enter real learner information or credentials. Record each test run
+with the template at the end.
 
 ## 1. Pre-test checks
 
-- [ ] Open the existing `index.html` application in a browser and select a
-  fictional demo account.
+- [ ] Open the production-facing login. Confirm it reports Supabase as
+  unconfigured when public project variables are absent; demo credentials
+  must not authenticate through production sign-in.
+- [ ] Choose **Enter Demo Mode**, confirm the separate browser-local Demo
+  Portal, then sign in using a fictional demo account.
 - [ ] Confirm the account's permitted landing screen appears.
 - [ ] Open the browser console and check for errors during load and testing.
 - [ ] Use fictional names, IDs, notes, and messages exclusively.
+
+## 1a. Production authentication (requires configured Supabase project)
+
+The local no-configuration state can be checked without an external project.
+The following checks require configured Supabase Auth, allowed redirect URLs,
+and synthetic test accounts; they have not been verified by this checklist:
+
+- [ ] Configure only `VITE_SUPABASE_URL` and
+  `VITE_SUPABASE_PUBLISHABLE_KEY` for the frontend. Never expose a secret or
+  service-role key through a `VITE_` variable.
+- [ ] Verify password sign-in, persistent session restoration, sign-out,
+  expired-session behavior, password recovery, and recovery redirect handling.
+- [ ] Verify production registration remains disabled until trusted
+  server-side registration-invitation validation is implemented.
+- [ ] Confirm an authenticated user without workspace membership cannot enter
+  the demo shell or see browser-local demo learner records.
+
+## 1b. Vercel and Supabase deployment (requires provider projects)
+
+Provider instructions do not prove that providers are configured or the app
+is deployed. When authorized projects are available:
+
+- [ ] Confirm the Vercel project is linked to the existing GitHub repository
+  and builds the existing Vite app to `dist`.
+- [ ] Confirm the Supabase integration is linked to the intended Supabase
+  project and maps the public URL/publishable key to the Vite variable names.
+- [ ] Inspect synced variables; no database password, secret/service-role key,
+  or JWT secret may be exposed to browser code or build output.
+- [ ] Confirm Preview uses an isolated Supabase preview branch/project and
+  Production uses the intended production configuration.
+- [ ] Verify Auth redirect allowlists for local, Preview, and Production
+  origins. Do not mark deployment complete until the deployed app is tested.
 
 ## 2. Core module smoke tests
 
@@ -64,8 +99,12 @@ assignments. Use synthetic accounts, sections, and attendance data.
 - [ ] **Designated System Administrator:** Deny general attendance session
   and entry access; technical/account administration does not imply learner
   data access.
-- [ ] **School Administrator:** Do not enable until the deployment institution approves this
-  separate proposed role and its scope.
+- [ ] **Workspace Owner/Administrator:** Verify any structure-management
+  capability is workspace-scoped and does not grant cross-workspace or
+  confidential guidance access.
+- [ ] **Platform Operator:** Deny routine attendance and learner-record
+  access unless a separately approved, audited support workflow specifically
+  requires it.
 - [ ] **Historical enrollment:** Reject an entry if the enrollment did not
   belong to the session section or was not effective on the session date.
 - [ ] **Entry uniqueness and atomicity:** Reject a second entry for the same
@@ -136,16 +175,26 @@ At each size, check that:
 - Demo account selection and client-side role navigation are not real
   authentication or enforced authorization; hidden views and local browser
   data are not secured from direct access.
-- There is no backend or central database.
+- Supabase Auth password sign-in and recovery are implemented in source but
+  require project configuration and have not been remotely tested.
+- Production registration is disabled. There is no complete application
+  schema, migration set, workspace persistence, grants/RLS foundation, or
+  trusted membership backend.
+- Multi-workspace functionality is browser-local simulation. Student
+  monitoring records remain synthetic, browser-local, and unauthorized.
+- Vercel hosting/deployment, Supabase/Vercel integration, and PWA installation
+  have not been configured or verified.
 - Offline record synchronization is not implemented.
 - Settings displays data-free technical/account capability status; no account
   administration function is operational.
 - School-specific rules, fields, roles, and permissions remain provisional.
 - Dialog Escape-key dismissal still needs manual verification in Chrome.
 
-Attendance backend authorization, database integrity, and RLS checks above are
-future tests and have not been implemented or run. These are known prototype
-limitations, not results of a new test run. The prototype is for
+Attendance backend authorization, database integrity, and RLS checks above
+are future tests and have not been implemented or run. Remote Supabase Auth,
+Vercel deployment, workspace isolation, and offline sync also remain untested
+without configured external projects and implementation. These are known
+prototype limitations, not results of a new test run. The prototype is for
 demonstration with fictional data, not operational use.
 
 ## 7. Test record template

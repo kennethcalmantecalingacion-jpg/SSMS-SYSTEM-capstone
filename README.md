@@ -3,6 +3,27 @@
 This is a mock system for presenting an academic capstone concept. It is not an
 approved or deployed school system.
 
+## Target architecture
+
+- **Frontend:** the existing Vanilla JavaScript, HTML, CSS, and Vite application.
+- **Hosting/deployment:** Vercel builds and hosts the frontend; GitHub is the
+  source repository and can trigger Preview and Production deployments.
+- **Backend:** Supabase provides Auth, Edge Functions, Storage, optional
+  Realtime, and Supabase-managed PostgreSQL. PostgreSQL is part of Supabase,
+  not a separate database host to purchase or configure.
+- **Authorization:** PostgreSQL grants and RLS are the required data boundary;
+  frontend visibility and a publishable key do not authorize access.
+- **Distribution:** the target is an installable PWA. IndexedDB, service-worker
+  caching, and controlled synchronization are future capabilities, not current
+  functionality.
+- **Optional backups:** Google Drive may be a secondary, workspace-authorized
+  export destination; Supabase PostgreSQL remains the transactional source of
+  truth.
+
+Vercel and Supabase have separate responsibilities: Vercel hosts and deploys
+the frontend; Supabase provides backend services and managed PostgreSQL. The
+architecture target does not mean either provider is connected or deployed.
+
 ## Current status
 
 - A responsive dashboard is implemented in `index.html` and the Vite source
@@ -81,6 +102,12 @@ approved or deployed school system.
   Authenticated accounts are kept out of the browser-local demo data until a
   workspace membership backend exists. Registration, workspace access, and
   student-record authorization are not implemented by this connection alone.
+- The official `@supabase/supabase-js` dependency and public-client integration
+  exist in source. No Supabase project credentials are configured in this
+  repository, so remote sign-in and password recovery have not been tested.
+- Production registration remains disabled until registration invitations can
+  be validated by trusted backend code. No complete application schema, RLS
+  policies, or workspace authorization backend exists.
 - Local demo registration and workspace access are available in-browser: users can
   sign in with seeded workspace accounts or create an account using a registration
   invitation code, then create a workspace when a valid grant is supplied.
@@ -92,6 +119,9 @@ approved or deployed school system.
   student-record database are not configured. Client-side navigation restrictions
   do not protect records from direct browser/API access. Attendance, academic,
   and support demo data remain in this browser.
+- Vercel hosting/deployment, Supabase/Vercel project integration, Production
+  and Preview environment mapping, and PWA installation have not been
+  configured or verified.
 - A provisional role-permission proposal for teachers, advisers, guidance
   counselors, parents, and system administration is documented in
   `docs/ACCESS-CONTROL-MATRIX.md`. It is not approved for deployment or enforced as
@@ -116,16 +146,73 @@ the connected flows as they are built, and keep deployment-specific policy
 decisions provisional until reviewed against official sources and by authorized
 representatives.
 
-Run `npm run dev` to preview the frontend, `npm run build` to create a
-production bundle, or `npm run preview` to serve that bundle. The Supabase Auth
-client integration is present, but no project credentials or database backend
-are configured in this checkout. See `.env.example` for the public client
-configuration names; never put a service-role key in frontend configuration.
+## Local development
+
+Requirements: Node.js `^20.19.0` or `>=22.12.0` and npm, matching the
+installed Vite version's engine requirement.
+
+```powershell
+npm.cmd install
+npm.cmd run dev
+npm.cmd run build
+npm.cmd run preview
+```
+
+Vite's local server URL is printed by `npm.cmd run dev`. The preview command
+serves the most recent build.
+
+### Supabase public client configuration
+
+Copy `.env.example` to `.env.local` for local work and set:
+
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_PUBLISHABLE_KEY`
+
+Vite embeds `VITE_` variables in browser code. Use only a Supabase publishable
+key here. Never expose a secret/service-role key through a `VITE_` variable,
+frontend source, browser storage, or build output. A publishable key is not a
+substitute for grants, RLS, or backend authorization.
+
+### GitHub, Vercel, and Supabase setup
+
+Provider accounts, project creation, and deployment are external setup tasks;
+none have been performed or verified for this repository.
+
+1. Create/manage the Supabase organization and project through Supabase.
+2. Create a Vercel project and import this existing GitHub repository. Keep the
+   current Vite framework; use the Vite build output (`dist`) and default Vite
+   build command unless project settings require a documented change.
+3. Install the official Supabase Vercel integration and connect the existing
+   Supabase project to this Vercel project.
+4. Configure the integration's public environment-variable prefix for Vite or
+   explicitly map its public URL and publishable key to
+   `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`.
+5. Inspect every variable the integration supplies before exposing it to the
+   client. Never prefix Supabase secret, service-role, JWT, database-password,
+   or other privileged values with `VITE_`, `NEXT_PUBLIC_`, or another public
+   prefix. Store required privileged values only in trusted server-side
+   environments such as Edge Functions.
+6. Configure and verify the variables separately for Vercel **Production** and
+   **Preview**. Preview deployments must use an isolated Supabase preview
+   branch/project or other non-production target; do not let untrusted preview
+   code use production data.
+7. Verify Supabase Auth redirect URLs for the exact local, Preview, and
+   Production origins before testing confirmation or recovery links.
+
+Official setup references:
+
+- [Supabase and Vercel integration](https://supabase.com/docs/guides/integrations/vercel)
+- [Supabase Vercel Preview branches](https://supabase.com/docs/guides/integrations/vercel-preview-branches)
+- [Supabase Vercel Marketplace](https://supabase.com/docs/guides/integrations/vercel-marketplace)
+- [Vite on Vercel](https://vercel.com/docs/frameworks/frontend/vite)
+- [Vercel Git integration](https://vercel.com/docs/git)
+
+Provider integration available, provider integration configured, application
+connected and tested, and application deployed and verified are separate status
+claims. Only claim each after checking evidence for that state.
 
 ## Project records
 
 - [Master system build prompt](MASTER_SYSTEM_BUILD_PROMPT.md)
 - [Requirements reconciliation](docs/REQUIREMENTS-RECONCILIATION.md)
 - [Decision log](docs/DECISIONS.md)
-
-Set up Git and make a backup before beginning application implementation.

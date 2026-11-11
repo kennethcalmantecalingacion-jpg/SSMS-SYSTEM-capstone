@@ -3,11 +3,11 @@
 ## Purpose and status
 
 This dictionary describes the conceptual entities and fields in
-[DATA-MODEL-ERD.md](./DATA-MODEL-ERD.md), informed by the project requirements
-and current prototype. It is a proposal for review, not a finalized database
-schema, institutional policy, or claim of deployment approval. The suggested
-PostgreSQL-compatible types and nullability must be reviewed before
-implementation. No SQL or migrations are included.
+[DATA-MODEL-ERD.md](./DATA-MODEL-ERD.md), informed by project requirements
+and current prototype. It is not a finalized schema, institutional policy, or
+deployment approval. Supabase Auth is integrated in source but no Supabase
+project, application schema, or database migrations are configured. The
+suggested PostgreSQL-compatible types and nullability remain design guidance.
 
 **Nullability:** “Required” means the field should be non-null in a future
 schema unless noted. “Nullable” means no value can be valid in the described
@@ -16,6 +16,30 @@ institution approval or a still-unconfirmed workflow. PK and FK labels follow th
 Foreign keys to `USER_PROFILE` also depend on authenticated identities being
 implemented. Enumerated values are not fixed here unless explicitly identified
 as current prototype values; values must be reviewed for each deployment.
+
+## Platform and workspace foundation
+
+These are required conceptual domains for the approved multi-workspace
+architecture. Add concrete field definitions and constraints to versioned
+migrations as the schema is implemented; do not treat frontend input as
+trusted authorization data.
+
+| Entity | Scope and minimum integrity requirements |
+|---|---|
+| `USER_PROFILE` | Global account profile linked to the Supabase Auth identity by its stable user UUID. Profile fields remain minimal and separate from authorization metadata. |
+| `PLATFORM_ROLE`, `PLATFORM_USER_ROLE` | Platform-only authority, including `Platform Operator`. Bootstrap privileged operators out of band; never grant by public signup or workspace ownership. Platform roles do not confer workspace learner-record access. |
+| `PLATFORM_REGISTRATION_INVITE` | Hashed invitation token, expiry, revocation, optional email restriction, bounded redemption, and atomic consumption. Validate only in trusted backend code. |
+| `WORKSPACE_CREATION_GRANT` | Separate hashed, expiring/revocable, limited-use grant. Consume atomically with workspace and owner creation in a trusted operation. |
+| `WORKSPACE` | Independent workspace identity and configuration. |
+| `WORKSPACE_MEMBERSHIP`, `WORKSPACE_MEMBER_ROLE` | Workspace-scoped membership and role assignment with active/revoked status. A pending request is not membership; users may have different roles in different workspaces. |
+| `WORKSPACE_INVITE`, `WORKSPACE_JOIN_REQUEST` | Workspace-scoped, bounded invitations and pending requests. Invitations cannot grant platform authority or Owner. Requests grant no data access until approved. |
+| Workspace audit event | Attribute membership, role, grant redemption, ownership transfer, and other privileged operations to authenticated actors and their workspace context. |
+
+Workspace-owned entities must carry or resolve a trusted `workspace_id`.
+Composite foreign keys or equivalent constraints must prevent cross-workspace
+references between parent and child records. Use explicit grants and
+deny-by-default RLS for exposed tables; verify policies with direct database
+and API tests, not only UI controls.
 
 ## Learner and school structure
 

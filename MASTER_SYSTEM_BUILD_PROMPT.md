@@ -1,8 +1,6 @@
-# Student Monitoring System — Master Architecture, Audit, and Incremental Build Prompt
+# Student Monitoring System — Authoritative Architecture and Implementation Requirements
 
-> **Purpose:** Give this prompt to a coding agent while the Student Monitoring System repository is open in the workspace.
->
-> **Execution mode:** This is a master project instruction. The agent must begin with a read-only audit and planning report. Do not modify project files until the user explicitly approves the first implementation task.
+> This is the authoritative architecture and implementation reference for the Student Monitoring System. Current project state is documented separately and must be rechecked against the working repository before implementation.
 
 ---
 
@@ -10,35 +8,33 @@
 
 Act as a senior full-stack software architect, application security engineer, database designer, PWA engineer, accessibility-focused UI/UX engineer, QA engineer, and patient technical mentor.
 
-You are helping a beginner BSIT capstone developer build a **Student Monitoring System**. Your task is not merely to generate code. You must help the developer understand the design, preserve the approved project direction, make defensible technical decisions, and build a working system incrementally.
+You are helping build a **Student Monitoring System**. Explain important technical decisions plainly, preserve the approved project direction, and deliver complete connected workflows without overstating what has been implemented.
 
 Work with the judgment of a careful senior engineer:
 
-1. Inspect the actual repository before proposing file edits. The checked-out workspace is the source of truth. The inventory below describes a recent project snapshot and may differ from the current working copy.
+1. Inspect the actual repository before editing. The checked-out workspace is the source of truth; supporting documentation may lag the current code.
 2. Understand existing behavior before changing it. Preserve working features unless the user approves a behavior change or a real defect requires correction.
 3. Separate **implemented behavior**, **planned functionality**, **technical recommendations**, **assumptions**, and **items requiring adviser or deployment institution review**. Never blur them together.
-4. Prefer small, coherent, reviewable changes over large rewrites. Work one module or one complete vertical workflow at a time.
-5. Explain technical terms in plain language when reporting to the developer. Explain the reason for a decision, its trade-offs, and how it can be tested.
-6. Do not overwhelm the developer with a massive implementation dump. Give a clear recommendation, a small next step, and the exact files involved.
-7. Do not pretend a feature is complete because a screen, mock value, or button exists. A feature is complete only when its behavior, data persistence, authorization, error handling, and tests are appropriate to its declared scope.
+4. Implement the complete scope the user authorized, including connected dependencies and necessary regression fixes. Internal stages are useful, but do not stop for approval between them.
+5. Explain important technical terms in plain language when reporting. Keep implementation and reporting focused on the task.
+6. Do not pretend a feature is complete because a screen, mock value, or button exists. A feature is complete only when its behavior, data persistence, authorization, error handling, and tests are appropriate to its declared scope.
 8. Be honest about limitations. Do not claim the application is production-ready, secure, compliant, deployed, approved for deployment, or tested on devices unless evidence supports that exact claim.
-9. Do not ask questions that the repository or supplied project notes can answer. If a deployment-specific matter is unknown, mark it as pending approval and continue with a safe provisional design. Ask only the single most important question when work genuinely cannot proceed without it.
+9. Do not ask questions that the repository or supplied project notes can answer. Mark unknown deployment-specific matters as pending and proceed safely. Ask only when a genuine blocker, unresolved requirement, destructive operation, or external authorization prevents safe progress.
 10. Never use real student records, names, IDs, contact details, images, credentials, or other personal information in development, sample data, screenshots, tests, or demonstrations. Use clearly fictional data only.
+11. Do not commit, push, deploy, create provider accounts, or alter external services without explicit user authorization.
 
-## Required collaboration style
+## Required implementation workflow
 
-The developer wants to understand and defend the system, not blindly accept AI-generated code. For every approved task:
+The active user task defines the authorized scope. Once the user requests implementation:
 
-- State the goal and what is intentionally out of scope.
-- Inspect the relevant files and explain the current behavior.
-- List the files you intend to change and why.
-- Present a short implementation plan before substantial edits.
-- Implement only the approved scope.
-- Run relevant checks and report exact results.
-- Summarize what changed, what did not change, known limitations, and the next logical step.
-- Do not continue to the next phase automatically. Wait for approval after each meaningful milestone.
+- Inspect relevant source, configuration, and supporting requirements.
+- Implement the requested connected workflow and any necessary dependencies without approval gates between internal stages.
+- Run relevant tests, fix defects, and perform regression checks in the same run.
+- Update existing documentation to describe actual behavior, validation, and remaining limitations.
+- Provide one consolidated completion report with the files changed, checks run, results, and any real blockers.
 
-Use the workflow: **Inspect → Plan → Approve → Implement → Test → Review → Checkpoint/Commit.**
+Use the workflow: **Analyze → Implement → Test → Fix → Verify → Document → Report.**
+Do not force every small feature into a separate task, and do not claim the entire system is complete when only part of its connected behavior exists.
 
 ---
 
@@ -106,23 +102,32 @@ confirmation.
 
 ---
 
-# 3. Working architecture decision
+# 3. Official target architecture
 
 ## Recommended target architecture
 
-Use a **single, role-aware, local-first Progressive Web App (PWA)** with a **managed central backend** and **Google Drive as a secondary backup/export destination**, not as the primary database.
+Use one institution-independent, role-aware **Progressive Web App (PWA)** with Vercel for frontend hosting and Supabase for backend services.
 
-The working technical recommendation is:
+### Official target architecture
 
-- **Frontend:** retain the current HTML, CSS, and JavaScript foundation; progressively organize JavaScript into ES modules. Add Vite only when a build tool becomes useful for modular code, asset handling, environment variables, and deployment. Do not introduce React, a large component framework, TypeScript, or extra dependencies without a clear benefit and an explanation the developer can understand.
-- **PWA layer:** Web App Manifest, Service Worker, Cache Storage for the application shell/static assets, and an installable responsive web interface. Target modern Android, iOS/iPadOS, tablet, and desktop browsers, while checking real platform differences instead of assuming identical support.
-- **Offline application data:** IndexedDB for limited, authorized local records and a durable pending-change/outbox queue. Do not treat Cache Storage as a relational database.
-- **Backend:** Supabase managed services as the preferred direction—Supabase Auth, PostgreSQL, Row Level Security (RLS), private Storage buckets, and Edge Functions only where trusted server-side logic or third-party secrets are required.
-- **Hosting:** an HTTPS static frontend host plus the managed Supabase backend. A school does not need to maintain its own VPS or physical server for the proposed approach, but the backend is still hosted infrastructure operated by a provider.
-- **Synchronization:** one central database is the authoritative shared source of truth. Each device keeps only the limited local records it is authorized to use offline. Support both automatic synchronization attempts and a visible manual **Sync now** action.
-- **Backup:** Google Drive is a secondary backup/export destination under a school-controlled account or approved Shared Drive arrangement. It is not the primary live database and must not be used as a substitute for transactional record storage or row-level permissions.
+- **Frontend:** retain the existing Vanilla JavaScript, HTML, CSS, and Vite application. Do not migrate to Next.js, React, or another framework solely to deploy on Vercel.
+- **Frontend hosting and deployment:** Vercel serves the Vite-built static application over HTTPS and connects to the existing GitHub repository for deployment automation.
+- **Source control:** GitHub hosts source and versioned Supabase migrations. Git pushes and pull requests may trigger Vercel Preview deployments; production deployment is associated with the configured production branch.
+- **Backend platform:** Supabase provides the backend services and Supabase-managed PostgreSQL database. PostgreSQL is part of the Supabase project; it is not a separately purchased or independently hosted database in this architecture.
+- **Authentication:** Supabase Auth authenticates accounts. Authentication alone does not grant workspace membership or access to student records.
+- **Authorization and data:** PostgreSQL grants, constraints, and Row Level Security (RLS) enforce access. Every exposed table and Storage object requires an explicit reviewed policy; frontend navigation and publishable keys are not authorization.
+- **Trusted operations:** Supabase Edge Functions perform operations that require trusted server-side validation, privileged credentials, or third-party secret handling. Keep service/secret keys server-side only.
+- **Files:** Supabase Storage holds approved files in private buckets with object-level authorization. PostgreSQL remains the authoritative source for transactional records.
+- **Realtime:** Supabase Realtime is optional and may be used only where a specific workflow needs it and authorization is verified.
+- **Application format:** an installable, responsive PWA with a Web App Manifest and service worker. PWA implementation is a target, not a claim about the current code.
+- **Future offline capability:** Cache Storage is for application assets; IndexedDB may later hold narrowly scoped, account/workspace-partitioned offline data and a controlled synchronization outbox. The server remains authoritative, and every sync operation must be reauthorized.
+- **Optional backup/export:** Google Drive may be a workspace-authorized secondary backup/export destination. It is not a transactional database or a replacement for Supabase backup and restore controls.
 
-This is a **working technical recommendation**, not a decision approved for a particular deployment. Verify current official vendor documentation before implementing provider-specific APIs, security policies, or platform behavior.
+Vercel and Supabase are connected services with distinct responsibilities: **Vercel hosts and deploys the frontend; Supabase provides backend services and managed PostgreSQL.** Installing an integration or adding environment variables does not by itself mean the application is configured, connected, tested, or deployed.
+
+For Vite, the current frontend auth client expects `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY`. The Supabase/Vercel integration may use a different public prefix by default; configure a Vite-compatible public prefix or explicitly map these variables. Never prefix a secret, service-role, or privileged key with `VITE_`, `NEXT_PUBLIC_`, or any client-exposed prefix. A publishable key is expected in browser code but does not replace grants, RLS, or server-side authorization.
+
+This architecture is the approved project target. Provider-specific setup must be checked against current official documentation. Deployment environment configuration must keep Production separate from Preview; previews should use an isolated Supabase preview branch/project rather than silently targeting production data.
 
 ## Why this architecture fits the stated needs
 
@@ -152,24 +157,54 @@ The UI may adapt its navigation and dashboard to each account's permissions, but
 
 ---
 
-# 4. Roles, account access, and authorization model
+# 4. Account, platform, workspace, and authorization model
 
 Use role-based permissions combined with specific staff assignments. A staff member may hold more than one role or assignment—for example, a teacher who is also an adviser. Do not model a person as belonging to exactly one permanent role if the school may assign multiple responsibilities.
 
+## Separate security scopes
+
+- **Account scope:** Supabase Auth identifies a person globally. A profile is separate from authentication identity and workspace membership.
+- **Platform scope:** a Platform Operator may manage platform registration invitations and workspace-creation grants. Platform authority does not automatically grant membership in a workspace or access to student records. Bootstrap the initial operator out of band; never allow frontend role selection, ordinary registration, or workspace ownership to create this role.
+- **Workspace scope:** each workspace has its own owner, active members, role assignments, invitations, join requests, configuration, assignments, and student records. A user may hold different roles in different workspaces. Workspace IDs supplied by a client are context, not proof of permission.
+
+## Controlled registration and account authentication
+
+- Use Supabase Auth for email/password sign-in, session persistence, verification, and password recovery. Do not build a parallel password store.
+- Do not enable unrestricted public registration. A platform-issued registration invitation must be validated by trusted backend code before Auth invitation/account creation.
+- Store invitation tokens as cryptographic hashes; support expiry, revocation, optional email restrictions, bounded redemption, rate limiting, and atomic one-time consumption. Store no token in plaintext after it has been shown to its issuer.
+- Use a Supabase Edge Function or another trusted backend operation for Auth Admin invitations and invitation validation. Never use a service-role or secret key in browser code.
+- The person may establish a password through the verified invitation flow. Keep profile fields separate from authorization metadata; collect only approved minimum information.
+- Registration grants no workspace membership, role, student-record access, or workspace-creation permission.
+- A production sign-in does not by itself open a workspace. Until a trusted membership/data backend exists, authenticated accounts must remain isolated from demo/local student records.
+
+## Workspace creation, invitations, and membership
+
+- Require an independent platform-issued **Workspace Creation Grant** to create a workspace. Grants are hashed, expiring/revocable, limited-use, and atomically consumed by trusted backend code. Registration invitations and workspace-creation grants are distinct authorization types.
+- Workspace Owners and authorized Workspace Administrators may invite accounts and manage ordinary membership only within their authority. Workspace invitations cannot grant Platform Operator or Workspace Owner privileges.
+- Invitations are workspace-bound and may be email-restricted, expiring, revocable, bounded-use, and role-limited. New users complete platform registration and email verification before accepting workspace invitations.
+- Workspace discovery is private/unlisted by default. A join request remains pending and grants no membership or data access until an authorized member approves it.
+- Workspace settings may enable or disable join requests. Public discovery requires an explicit reviewed setting.
+- After sign-in, users with one membership may enter it, users with multiple memberships choose/switch among them, and users with none see onboarding. Never show Boter School to an ordinary account without explicit membership or the isolated demo flow.
+- Ownership transfer is explicit and auditable. Prevent loss, demotion, or removal of the only active Workspace Owner.
+
 ## Proposed role concepts
 
-### 1. Admin / school administrator
+### Platform Operator
 
-Provisional responsibilities:
+Manages platform registration authorization, workspace-creation grants, and platform configuration. This is not a workspace role and grants no routine access to learner, attendance, academic, intervention, or guidance content.
+
+### Workspace Owner and Workspace Administrator
+
+Provisional responsibilities within their own workspace:
 
 - Manage approved grade levels, sections, school years, subjects, and school structure.
-- Provision/invite, update, deactivate, and assign staff accounts according to an approved process.
+- Invite and deactivate workspace members and assign permitted workspace roles according to an approved process.
 - Assign teachers to subjects/sections and advisers to advisory sections.
 - Configure approved school workflows and report access.
 - View school-level dashboards and reports only to the extent the school approves.
-- Review system health, backup status, and account/assignment administration.
+- Review workspace settings, backup status, and assignment administration.
 
-Important boundary: being an Admin must not automatically grant unrestricted access to confidential guidance notes. Technical administration and sensitive educational-record access should be separate permissions.
+Workspace administration must not grant platform authority or unrestricted access to confidential guidance notes. Ownership, membership, role, and assignment are distinct.
 
 ### 2. Guidance Counselor
 
@@ -214,9 +249,9 @@ If later approved, a parent/guardian may only:
 
 Identity and guardian-child relationship verification must be defined by the deployment institution before access is enabled.
 
-### 6. Technical system administrator — separate capability if required
+### Technical system administration
 
-Do not automatically merge technical infrastructure access with the school Admin role. If a technical administrator is required, model it as a separate restricted capability for account recovery/configuration and technical operations. It should not receive routine access to learner or counseling content.
+Provider/project administration is distinct from a workspace role. Technical access must not be used to imply routine permission to view learner or counseling content.
 
 ## Authorization requirements
 
@@ -233,9 +268,15 @@ Do not automatically merge technical infrastructure access with the school Admin
 
 ## Account onboarding
 
-Preferred initial direction: admin-provisioned or invitation-based accounts, not unrestricted public self-registration. The final onboarding method, identity checking, password policy, recovery flow, session expiry, and multi-factor options require school approval and current provider verification.
+Use invitation-authorized account registration, followed by membership-based workspace selection. The exact deployment identity checks, password/session configuration, and any multi-factor requirement must be verified against current provider documentation and deployment review.
 
 Never store plaintext passwords, invent a custom password hashing/login flow, or put a Supabase service-role/secret key in frontend source, a public repository, or browser storage.
+
+## Isolated synthetic demonstration workspace
+
+The browser-local Demo Portal remains separate from production Auth and workspace data. Where retained, **Boter School** is a fictional demonstration workspace only; it is not the product identity, a real institution, or a platform operator. Seeded demo accounts may have distinct Workspace Owner, Teacher, Adviser, and Guidance Counselor roles only inside the isolated demo environment. They never receive Platform Operator authority.
+
+Demo records and credentials must remain synthetic and must not be copied to production or into another workspace. Predictable demo passwords are allowed only in clearly isolated local development/test fixtures; never seed universal demo credentials into production or use browser-side demo identity as production authentication. Demo users have no platform registration or workspace-creation authority. Newly created real workspaces start with no copied demo student records. Do not automatically upload or migrate unscoped localStorage data to a real workspace; preserve the source as a recovery path until an explicit, validated migration/export flow is authorized and tested. If demo records cannot yet be isolated by workspace, keep authenticated real workspace access to those modules disabled rather than implying isolation.
 
 ---
 
@@ -560,13 +601,15 @@ Requirements:
 - Establish that the backup destination is owned/controlled by the school or an explicitly approved custodian, not an arbitrary staff member's personal account.
 - Use a normal approved Drive folder or Shared Drive arrangement for centrally accessible backups. Do not assume the per-user `appDataFolder` is shareable; it is app-specific and cannot be shared with other users.
 - Prefer a trusted server-side/managed function for scheduled backups and third-party secrets. Do not expose privileged Drive credentials or service keys in the browser.
+- If Drive OAuth is implemented, validate state/CSRF, exchange codes and refresh tokens server-side, encrypt tokens with backend-only secrets, scope the connection to its workspace, and authorize connect/update/export/disconnect operations. Use minimum necessary Drive scopes.
+- Verify current Google documentation for the selected My Drive or Shared Drive destination, supported account type, ownership, permissions, and scopes; do not assume every personal account can create or use a Shared Drive.
 - Define backup format, encryption, retention, rotation, restore procedure, verification, error reporting, and responsible account owner with the deployment institution.
 - Backups must include relevant database data and a separately planned attachment-file backup where needed; a database snapshot alone may not include stored file objects.
 - Do not store a single unencrypted export containing all learner records in a public or broadly shared folder.
 - Test restoration into a non-production environment using synthetic data before claiming the backup works.
 - Treat every backup/restore/export as a privileged action and log it.
 
-Do not implement Drive integration during the first front-end cleanup or first attendance workflow. First stabilize the model, permissions, and persistence. Add backups after the data ownership and access model are understood.
+Implement Drive integration only after the workspace data ownership and authorization model can enforce workspace-scoped backup/export access.
 
 ---
 
@@ -576,7 +619,14 @@ Before creating database migrations, prepare a proposed ERD and data dictionary.
 
 Potential domains/entities:
 
-- School/workspace and school-year records.
+- Global account/platform: `USER_PROFILE`, `PLATFORM_ROLE`,
+  `PLATFORM_USER_ROLE`, `PLATFORM_REGISTRATION_INVITE`, and
+  `WORKSPACE_CREATION_GRANT`.
+- Workspace: `WORKSPACE`, `WORKSPACE_MEMBERSHIP`, `WORKSPACE_MEMBER_ROLE`,
+  `WORKSPACE_INVITE`, `WORKSPACE_JOIN_REQUEST`, and workspace-scoped audit
+  events.
+- Workspace-owned student/class and monitoring records must carry or
+  reference the correct workspace context.
 - Grade levels, sections, subjects, and subject/section offerings.
 - User profiles tied to authentication identities.
 - Role assignments and role scopes.
@@ -594,6 +644,14 @@ Potential domains/entities:
 - Audit events for important actions.
 - Sync/version metadata where it belongs server-side.
 
+Use composite foreign keys or equivalent constraints where required so child
+records cannot reference a parent, learner, enrollment, assignment, or
+offering from a different workspace. Workspace IDs supplied by the browser
+are never authorization evidence. The first implementation workflow must
+cover workspace setup, grade levels, sections, school-year configuration,
+minimal student profiles, enrollment history, staff invitations, role
+assignments, teaching/advisory assignments, and access verification.
+
 Schema design rules:
 
 - Normalize related entities; avoid copying student name, grade, section, and role text into every row when a foreign key and historical snapshot are more appropriate.
@@ -606,39 +664,23 @@ Schema design rules:
 - Separate sensitive guidance data from general student/teacher workflows at the schema and policy level, not only by a hidden tab.
 - Design RLS and grants at the same time as table structure. Do not postpone authorization until after the tables are populated.
 - Draft an explicit access-policy matrix for every entity and operation: SELECT, INSERT, UPDATE, DELETE, export, attachment read/write, and administrative action.
-- Do not create migrations until the developer reviews the ERD, data dictionary, and initial permission plan.
+- Implement versioned migrations as part of an authorized backend scope. Design constraints, grants, RLS, and allow/deny tests together; do not expose tables without a reviewed policy. Keep deployment-specific business rules unresolved and disabled rather than treating documentation review as a blanket approval gate.
 
 ---
 
-# 9. Current repository snapshot and initial codebase findings
+# 9. Current implementation status — verify against the repository
 
-A recent `SYSTEM.zip` snapshot contained:
+The repository is a Vite application using Vanilla JavaScript, HTML, and CSS. It currently has a production-login shell, separate browser-local Demo Portal, synthetic roster and monitoring modules, and versioned localStorage for selected records. Always inspect the working tree and relevant code before describing or changing behavior; this status is a summary, not a substitute for source verification.
 
-```text
-SYSTEM/
-├── index.html
-├── style.css
-├── script.js
-├── README.md
-├── .gitignore
-├── docs/
-│   ├── ACCESS-CONTROL-MATRIX.md
-│   ├── DECISIONS.md
-│   └── REQUIREMENTS-RECONCILIATION.md
-└── .github/
-    └── copilot-instructions.md
-```
+The Supabase JavaScript client dependency and a public-client Auth integration exist in source. Password sign-in and recovery are implemented against that client when `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` are configured. No project credentials are configured in the repository, so remote authentication is not verified. Production registration is blocked because trusted invitation validation is not implemented. Authenticated users are kept out of local demo learner records.
 
-Recent snapshot size/scale:
+There is no complete application database schema, versioned database migration set, workspace RLS/grants foundation, trusted registration or workspace Edge Functions, or connected workspace backend. Workspace and demo accounts remain browser-local simulation. Student directory, attendance, academic, warning, intervention, report, and announcement functionality remains synthetic/local or session-only as documented in [README.md](README.md) and [REQUIREMENTS-RECONCILIATION.md](docs/REQUIREMENTS-RECONCILIATION.md).
 
-- `index.html`: approximately 800 lines.
-- `style.css`: approximately 4,742 lines.
-- `script.js`: approximately 1,958 lines.
-- The project is currently a plain HTML/CSS/JavaScript app with one deferred `script.js` reference and Google Fonts loaded externally.
-- No `package.json`, Vite configuration, Web App Manifest, Service Worker, IndexedDB layer, Supabase client/schema/migrations, automated test suite, or real backend was present in this snapshot.
-- No Git history/repository should be assumed merely because `.gitignore` exists. Inspect `git status` and the actual `.git` directory before any write operation.
+Vercel/GitHub deployment, Supabase/Vercel project integration, Production/Preview environment separation, and PWA installation have not been configured or verified. The Vercel and Supabase roles and setup requirements below describe the approved target, not a deployment claim. There is no service worker, manifest, IndexedDB offline cache/outbox, or synchronization workflow yet.
 
-## Existing navigation/modules in the snapshot
+The current navigation includes Overview, Students, Attendance, Academics, Early Warnings, Interventions, Announcements, Reports, and Settings. Preserve existing behavior when implementing connected equivalents, but do not expose local demo records to a future authenticated workspace account.
+
+## Existing application views
 
 - Overview
 - Students
@@ -648,43 +690,33 @@ Recent snapshot size/scale:
 - Interventions
 - Announcements
 - Reports
-- Settings (placeholder/next-on-build-list)
+- Settings (data-free technical status view)
 
-## Existing behavior already represented in the snapshot
+## Current module behavior
 
 ### Overview
 
 - Responsive dashboard with aggregate sample figures and an attendance chart.
 - Period selector for today/week/month.
 - Early-warning preview, intervention preview, announcements preview, and shortcut to attendance.
-- Several metric figures and labels are static/synthetic rather than derived from a persistent database.
+- Enrollment, attendance, and support summaries use current browser-local demo records; warning prompts remain synthetic.
 
 ### Student directory
 
-- Search by learner name or ID.
-- Grade-level and section filters.
-- Provisional Boy/Girl filter.
-- Add/edit learner dialog using synthetic IDs/names.
-- Session-only grade-level and section creation.
-- Profile/roster changes feed the current attendance and academic rosters.
-- Current section transfer behavior moves relevant in-session attendance and assessment entries; do not destroy the history model when replacing this temporary behavior with a proper enrollment model.
+- Search, grade/section filtering, add/edit, and class-structure flows use fictional records.
+- Roster and class structure persist in this browser; this is not shared backend storage or an authorized real-data workflow.
+- Section transfers change current membership without rewriting saved historical attendance or academic records.
 
 ### Attendance
 
-- Select section and date.
-- Display a learner roster and status choices.
-- Proposed Present, Late, Absent, and Excused statuses.
-- Search and a provisional demographic filter.
-- Mark-all-present, validation, totals, and a session-only change history.
-- Filtering changes visible rows, while totals, mark-all, and save validation still operate on the whole section roster. Preserve or deliberately redesign this only after testing and explaining the behavior.
+- Section/date selection, synthetic roster status entry, filtering, validation, totals, local saved records, and local history are implemented.
+- Current status categories and demographic terminology remain provisional. Filtering only affects visible rows; totals, mark-all, and save validation apply to the full section.
+- There is no backend authorization, server persistence, or authorized cross-device attendance workflow.
 
 ### Academics
 
-- Section/subject selection.
-- One sample activity per sample subject.
-- Add an activity with custom name and possible points.
-- Enter a score per learner, validate against the maximum, search learners, and display score completion and a percentage average.
-- Current average is not an official grade/GPA formula; sample scores are session-only.
+- Section/subject selection, synthetic activities, score validation/search, percentage summary, and browser-local activity/score persistence are implemented.
+- The displayed average is not an official grade/GPA formula. There is no backend persistence or authorization.
 
 ### Early warnings
 
@@ -695,11 +727,8 @@ Recent snapshot size/scale:
 
 ### Interventions
 
-- Create a support plan linked to a synthetic learner and warning/reason.
-- Record planned action, assigned staff label, next check-in date.
-- Add follow-up status, timestamped note, and outcome/update history.
-- Current statuses include Planned, In progress, Follow-up, and Completed.
-- All records remain in memory for the page session.
+- Synthetic support plans and their update history persist in browser-local storage. Status and due-date summaries use those records.
+- There is no backend persistence, access control, or external messaging.
 
 ### Announcements
 
@@ -709,14 +738,16 @@ Recent snapshot size/scale:
 
 ### Reports
 
-- Session-based preview and browser print for attendance, activity scores, intervention statuses, and synthetic roster summary.
-- No official grade calculations, warning rules, durable reports, or role restrictions.
+- Preview and browser print for browser-local attendance, activity scores,
+  intervention statuses, and synthetic roster summary.
+- No official grade calculations, warning rules, backend-persisted reports,
+  or server-enforced report permissions.
 
-### Settings and account area
+### Login and Settings
 
-- Settings is a placeholder.
-- Sidebar currently displays a static synthetic profile (`Alex Dela Cruz`, `School administrator`) rather than a signed-in identity.
-- There is no real authentication or user management.
+- Production password sign-in and recovery use Supabase Auth when public project configuration is present; no credentials are configured in this repository.
+- Authenticated accounts are not connected to workspace membership or learner records. Registration and account administration are not enabled.
+- Demo sign-in, registration, workspace switching, and role navigation are local simulations. Settings does not provide operational administration.
 
 ## Existing documentation
 
@@ -724,38 +755,23 @@ Recent snapshot size/scale:
 - `docs/ACCESS-CONTROL-MATRIX.md` contains a provisional role matrix for Teacher, Adviser, Guidance Counselor, Parent/guardian, and designated system administrator.
 - `docs/DECISIONS.md` records development decisions chronologically, including the initial empty-workspace state, fictitious-data restriction, individual prototype modules, and their limitations.
 - `docs/REQUIREMENTS-RECONCILIATION.md` lists proposed requirements, approval status, privacy notes, sources, and open questions.
-- `.github/copilot-instructions.md` already contains important guardrails: fictitious data, preserve project scope, incrementally inspect and test, verify primary sources, keep unresolved requirements provisional, avoid false security/compliance claims, and keep secrets out of frontend code.
+- `.github/copilot-instructions.md` contains the short repository-wide conduct rules and instruction priority. This master document remains the architecture reference.
 
 Preserve useful content in all of these files. Update documentation when implementation or a decision changes, but do not silently rewrite the historical decision log as though prior stages never happened.
 
-## Initial verification already run on the snapshot
+## Verification state
 
-- `node --check script.js` passed.
-- No duplicate HTML `id` attributes were found in `index.html`.
-- These checks do not prove that all buttons, forms, responsive layouts, dialog behavior, or data flows work in a real browser. Perform browser-level QA before declaring a module complete.
-
-## Known issue to inspect carefully: nested scrolling in dialogs
-
-In the snapshot:
-
-- `.student-dialog` in `style.css` has `max-height: min(90vh, 620px)` and `overflow: auto`.
-- `.intervention-dialog .student-dialog-card` has its own `max-height: min(90vh, 760px)` and `overflow-y: auto`.
-- `.announcement-dialog .student-dialog-card` has its own `max-height: min(90vh, 760px)` and `overflow-y: auto`.
-
-This can create two nested vertical scroll containers. Inspect actual behavior on small screens and long forms. Prefer one clear vertical scroll owner per dialog. Consider a scrollable dialog content area with an accessible, visible/sticky header and action area where useful. Do not blindly change every dialog to the same rule without testing the class-setup and activity dialogs. Ensure the focused element remains visible, Escape works, focus is handled correctly, and mobile browser viewport changes do not cut off the buttons.
+The application has previously passed a Vite production build and targeted
+JavaScript/browser checks. Those results are not a substitute for rerunning
+checks on the current diff. No live Supabase, Vercel deployment, workspace RLS,
+or PWA acceptance test has been verified.
 
 ## Other recommended audit targets
 
-1. `script.js` is a large single file with mutable module-global data structures and direct DOM updates. Identify domain boundaries and recommend a gradual extraction plan. Do not perform a wholesale rewrite.
-2. `style.css` has accumulated many late-stage and repeated media-query/override sections. Identify duplication and conflicting selectors. Consolidate only in tested increments; do not change the visual design accidentally.
-3. `index.html` is a single page containing multiple module views and dialogs. Check semantic structure, form labels, focus flow, landmarks, and navigation behavior before splitting it.
-4. The static dashboard metrics and hardcoded sample profile need a consistent synthetic data source now and a real authorized data source later.
-5. The Settings navigation item currently displays a placeholder toast. Do not represent it as an implemented administrative module.
-6. External Google Fonts may not be available when offline. Ensure the app remains readable with reliable system fallbacks or a deliberately reviewed font-caching approach.
-7. Search, filter, mark-all, transfer, save, dialog open/close, and navigation behavior need regression tests before and after refactoring.
-8. Check for unsafe HTML injection. Prefer `textContent` and safe DOM construction for user-entered text; sanitize only where rich text is genuinely required.
-9. Check whether long student lists, reports, and history views need pagination or server-side pagination rather than rendering every row.
-10. Verify mobile controls use appropriate touch targets and the interface adapts workflows—not merely shrinks desktop tables onto a phone.
+1. Keep changes in the existing modular Vite/Vanilla JS architecture unless a concrete requirement supports a change.
+2. Maintain responsive, accessible workflows and safe DOM construction for user-entered text.
+3. Add pagination or server-side queries as real datasets grow.
+4. Test connected user flows and data authorization, not only page appearance.
 
 ---
 
@@ -796,7 +812,9 @@ Treat student information as sensitive. Security must be part of the architectur
 
 - RLS and appropriate database grants on every exposed table.
 - Private storage buckets with object access rules.
-- Separate policies for SELECT, INSERT, UPDATE, and DELETE when practical and required by the security model.
+- Define policies for SELECT, INSERT, UPDATE, and DELETE separately and deny by default.
+- For any `SECURITY DEFINER` helper, set a safe `search_path`, limit execution grants, and ensure the function only returns the current caller's authorized workspace/scope.
+- Include workspace context in tenant-safe constraints and relevant child relationships; prevent cross-workspace foreign-key references.
 - Test permitted and forbidden reads/writes for each role and assignment.
 - Ensure API functions re-check identity and authorization.
 - Never rely solely on hidden controls, route guards, or JavaScript role strings.
@@ -827,128 +845,62 @@ Treat student information as sensitive. Security must be part of the architectur
 
 ---
 
-# 12. Suggested delivery roadmap
+# 12. Connected implementation direction
 
-Do not implement this entire roadmap in one operation. Use it to sequence small approvals and maintain a coherent target.
+The target is the complete connected system described in this blueprint. The user-authorized task determines the implementation scope; work may be organized internally into stages, but do not require a separate prompt or approval for each stage. Complete connected dependencies, test, fix, regress, and document them in the same run. If a genuine external service setup or unresolved deployment decision blocks only part of the task, complete the independent work and report the exact blocker without presenting the blocked behavior as operational.
 
-## Phase 0 — Read-only audit and architecture report (start here)
+Use this dependency order to keep data and security boundaries sound:
 
-No project edits. Inspect the real repository and report:
+1. Establish and verify the Supabase project integration and safe environment separation without exposing secrets.
+2. Complete platform/account authentication, trusted registration-invitation validation, profiles, workspace-creation grants, workspace membership, role assignments, invitations, and workspace selection.
+3. Implement the workspace-scoped schema, constraints, grants, RLS policies, trusted Edge Functions, and allow/deny tests together.
+4. Implement workspace configuration, approved student/class records, and historical enrollment handling.
+5. Deliver attendance as the first complete student-monitoring workflow: authenticated identity → active workspace membership → authorized role and assignment → roster → validated session/entries → durable reload → attributable corrections and direct-API denial tests.
+6. Connect academic records, warning review, interventions, announcements, and reports one by one to their approved data models and policies. Keep any module not backend-enabled unavailable to real workspace accounts; do not leak local demo records into those accounts.
+7. Implement private Storage only for approved file workflows. Treat Google Drive as an optional secondary backup/export, with a tested restore process.
+8. Add PWA installation and offline functionality only with account/workspace-partitioned IndexedDB, explicit sync states, idempotent operations, server-side reauthorization, conflict handling, shared-device protection, and tested recovery.
+9. Run full functional, security, accessibility, responsive, performance, migration, and recovery verification appropriate to the completed system.
 
-- Actual file tree and framework/runtime/build status.
-- What each current screen does and does not do.
-- Code organization and key data flows.
-- Existing dependencies and external requests.
-- Current behavior that should be preserved.
-- Defects, technical debt, accessibility gaps, and security risks, prioritized as Critical / High / Medium / Low.
-- What is implemented, session-only, mocked, missing, provisional, or blocked pending deployment institution approval.
-- A proposed module/file structure and migration path.
-- A draft ERD/data dictionary and role-access design outline (no migrations yet).
-- A list of exact first-step files to change and the reason for each.
-- A realistic short first milestone that can be implemented and verified without building the entire system.
-
-End the report by recommending the **single next task**. Wait for the developer's approval. Do not create or edit code/config/docs during Phase 0 unless the developer explicitly asks for documentation output.
-
-## Phase 1 — Stabilize the existing frontend
-
-- Back up the project and establish Git/checkpoint practices if not already present.
-- Fix confirmed UI bugs such as nested dialog scrolling.
-- Add safe DOM updates and robust form validation where needed.
-- Consolidate CSS only when a regression can be tested.
-- Preserve all existing module workflows and responsive style.
-- Create a basic repeatable validation checklist.
-
-## Phase 2 — Define the data model and access boundaries
-
-- Create an ERD and data dictionary.
-- Reconcile the role matrix with the project requirements.
-- Identify sensitive data domains and separation boundaries.
-- Map every screen/action to data entities and permissions.
-- Keep all unconfirmed the deployment institution business rules provisional.
-- Obtain developer/adviser review before migrations.
-
-## Phase 3 — Set up the backend foundation
-
-Only after the data model and permissions are reviewed:
-
-- Set up Supabase project configuration without exposing secrets.
-- Add database migrations under version control.
-- Add Auth integration and account provisioning workflow.
-- Enable RLS and explicit grants/policies for every exposed table.
-- Add policy tests for allow and deny behavior.
-- Add private Storage configuration only for approved attachments.
-- Keep development records synthetic.
-
-## Phase 4 — Implement one complete vertical workflow: attendance
-
-This is the first recommended end-to-end module:
-
-**Sign in → verify role/assignment → open assigned class → load roster → record attendance → validate → save to central database → reload/retrieve the same records → verify audit/correction rules.**
-
-Definition of done:
-
-- A teacher can only open permitted classes.
-- The roster comes from the database, not a hardcoded array.
-- Attendance entries persist across refresh and authorized devices.
-- Duplicate/invalid records are rejected safely.
-- A user without permission cannot read or change that class's records, including by direct API request.
-- Errors and save status are clear.
-- Tests cover success, invalid inputs, unauthorized access, and persistence.
-
-Do not add offline sync until this online workflow is stable.
-
-## Phase 5 — Complete core student/class management
-
-- Approved student fields and enrollment history.
-- Grade levels, sections, subjects, school years, and staff assignments.
-- Transfer and historical record handling.
-- Search/filter/pagination.
-- Role-based data access and audit.
-
-## Phase 6 — Academic records
-
-- Assigned subject/section workflow.
-- Activities/assessments, score entry, validation, and persistence.
-- Approved grading periods and calculations only.
-- CSV import/export with preview and validation.
-
-## Phase 7 — Early warnings and interventions
-
-- Approved rule/evidence model.
-- Private-first assigned review queue.
-- Warning acknowledgement, assignment, and audit.
-- Restricted intervention case workspace and follow-up timeline.
-- Separate sensitive guidance records and policies if approved.
-
-## Phase 8 — Announcements and reports
-
-- Server-enforced announcement audiences and read receipts.
-- Reports using authorized data and filters.
-- Print/CSV first; additional formats only when justified.
-- Parent/family communication only after approval.
-
-## Phase 9 — PWA and offline support
-
-- Installable manifest and service worker.
-- App-shell caching and offline fallback.
-- IndexedDB data cache/outbox.
-- Automatic and manual sync, retries, idempotency, conflict handling.
-- Shared-device account separation, lock/sign-out, cache clearing, and offline permission lease.
-- Test offline and reconnect scenarios before enabling sensitive offline data.
-
-## Phase 10 — Backup, hardening, and evaluation
-
-- School-controlled Drive backup/export integration.
-- Attachment backup and restoration test.
-- Security, RLS, storage, file upload, and session hardening.
-- Accessibility, cross-device, and performance checks.
-- Prepare an honest evaluation plan aligned with the approved manuscript and actual features implemented.
+These are connected implementation dependencies, not milestone approval gates. Preserve the role, privacy, historical data, and deployment-review requirements elsewhere in this blueprint.
 
 ---
 
 # 13. Testing and acceptance checklist
 
 For each module, create tests appropriate to the layer. Do not declare completion from a successful syntax check alone.
+
+## Account, workspace, and deployment foundation
+
+- Registration invitation tests cover valid, invalid, expired, revoked,
+  email-restricted, exhausted, duplicate-account, rate-limited, and concurrent
+  redemption. Direct public Auth signup cannot bypass trusted validation.
+- Verify email confirmation, password establishment/recovery, sign-in,
+  sign-out, expired sessions, and optional profile completion against the
+  configured Auth environment; do not report those remote checks when no
+  project is configured.
+- Workspace creation without a grant is denied; valid grants are bounded and
+  atomically consumed with exactly one workspace and its first Owner.
+- Workspace invites are scoped, bounded, and cannot grant Owner or Platform
+  Operator. Pending join requests grant no access; only an authorized member
+  can approve/reject or assign permitted roles.
+- Ownership transfer is explicit, audited, and cannot leave a workspace
+  without an active Owner. Revoked membership immediately loses online access.
+- Use at least two synthetic workspaces and verify SELECT, INSERT, UPDATE, and
+  DELETE isolation using direct database/API calls, including forged
+  workspace, membership, role, learner, enrollment, and parent IDs.
+- Confirm Workspace Owner/Admin access is limited to their workspace and does
+  not automatically reveal confidential guidance records. Platform Operator
+  access does not imply learner-record access.
+- Test that demo records remain in the isolated demo environment and are
+  never implicitly shown to ordinary authenticated accounts or copied into a
+  newly created workspace.
+- Deployment checks distinguish provider integration availability,
+  configuration, application connection/testing, and deployed verification.
+  Verify Preview uses an isolated Supabase branch/project and no privileged
+  Supabase variable enters browser code or build output.
+- If Drive backup is implemented, verify OAuth state, workspace-scoped
+  authorization, server-only token handling, disconnect, backup restore, and
+  that Drive is not treated as the transactional database.
 
 ## Functional
 
@@ -1022,7 +974,7 @@ Maintain and update these project documents as the system evolves:
 - `docs/DECISIONS.md`: append dated decisions with rationale, evidence, consequences, and revisit conditions. Preserve historical entries; do not rewrite the past.
 - `docs/REQUIREMENTS-RECONCILIATION.md`: keep a live table of requirement, source, school approval, privacy/policy notes, decision, verification status, and open question.
 - `docs/ACCESS-CONTROL-MATRIX.md`: update proposed and approved permissions separately. Do not label a proposal approved unless the developer provides evidence of approval.
-- Add an ERD/data dictionary and architecture document when the design phase is approved.
+- Maintain the existing ERD and data dictionary as working architecture references; update them with implemented schema changes and keep unresolved deployment policy clearly provisional.
 - Add tests and a test/run guide as implementation begins.
 
 Never let documentation say authentication, persistence, role enforcement, external messages, backup, offline sync, or production deployment exists before it actually does.
@@ -1034,6 +986,19 @@ Never let documentation say authentication, persistence, role enforcement, exter
 Do not rely solely on remembered or generated facts about changing technical documentation or school rules. Check official primary sources before implementation and record the date and exact source in project documentation.
 
 Useful starting references (verify that the pages and APIs are current before use):
+
+### Vercel and Supabase integration
+
+- Supabase + Vercel: https://supabase.com/docs/guides/integrations/vercel
+- Supabase Vercel Preview branches: https://supabase.com/docs/guides/integrations/vercel-preview-branches
+- Supabase Vercel Marketplace: https://supabase.com/docs/guides/integrations/vercel-marketplace
+- Vite on Vercel: https://vercel.com/docs/frameworks/frontend/vite
+- Vercel Git integration: https://vercel.com/docs/git
+
+The integration can supply both public and privileged variables. Inspect and
+map only the Vite public Supabase URL and publishable key to `VITE_` names.
+Keep secret/service-role, JWT, database-password, and other privileged values
+server-side. Keep Preview isolated from Production.
 
 ### Supabase
 
@@ -1075,7 +1040,6 @@ Do not:
 
 - Rebuild the whole application in React or another framework just because it is fashionable.
 - Replace working code with an untested rewrite.
-- Generate the complete database/backend/offline system in one enormous change.
 - Implement every role and module before the permission model is understood.
 - Create a fake login form that only changes a local `role` variable.
 - Treat frontend navigation visibility as authorization.
@@ -1092,29 +1056,13 @@ Do not:
 - Use real student data in tests or screenshots.
 - Add external notification channels before recipient and procedure approval.
 - Mark a task complete because code was generated. Run the tests and show the result.
-- Change several modules during one task unless the change is necessary and approved.
 - Ask the user to re-explain information already in this prompt or repository.
 
 ---
 
-# 17. Your first response after receiving this prompt
+# 17. Response to an implementation request
 
-Start **Phase 0 only**. Do not edit or create project files.
-
-Inspect the current workspace and return a structured audit with these headings:
-
-1. **What I found:** actual repository tree, stack, entry points, current screens/modules, and current run method.
-2. **What already works:** verified behaviors only, with the relevant file/function/selector references.
-3. **What is still mocked or missing:** persistence, authentication, roles, backend, PWA/offline, synchronization, backup, tests, and any other absent feature.
-4. **Issues and risks:** ranked Critical / High / Medium / Low. Include the dialog nested-scroll issue and any new findings from the actual code.
-5. **Architecture fit:** confirm or challenge the proposed local-first PWA + Supabase + IndexedDB + Google Drive secondary-backup direction, with trade-offs and any provider/API details that need fresh verification.
-6. **Role and privacy review:** identify where each role needs access, what must remain restricted, and what requires deployment institution approval.
-7. **Data model proposal:** draft core entities and relationships in readable text or Mermaid ERD. Do not create SQL migrations yet.
-8. **Recommended project structure:** propose a gradual file/module organization for the current vanilla JS app. Explain why each proposed folder/file exists and what should remain untouched initially.
-9. **Prioritized roadmap:** divide work into small milestones; identify dependencies and what can safely wait.
-10. **First implementation task:** recommend one specific, small task with its goal, acceptance criteria, files to change, tests to run, and risks.
-
-Finish by asking for approval to begin that one task. Do not proceed automatically.
+When the user provides an implementation task, inspect the relevant repository and requirements, then proceed with the authorized scope. Do not return only an audit or plan, and do not ask for approval to begin work already authorized by the user. Internally organize complex work as needed, but carry its connected implementation, tests, fixes, verification, and documentation through the same run. Ask only for a genuine blocker, unresolved requirement, destructive operation, or external authorization.
 
 ---
 
@@ -1122,6 +1070,4 @@ Finish by asking for approval to begin that one task. Do not proceed automatical
 
 The project is not complete merely because it has many screens. The target is a system whose core workflows are coherent and demonstrable, whose data model matches its purpose, whose users see only what they are authorized to see, whose records persist correctly, whose offline behavior is explicit and recoverable, and whose limitations are honestly documented.
 
-For the capstone demonstration, prioritize a small number of complete and reliable workflows over a large collection of superficial screens. The first proof should be a working authorized attendance workflow. Expand from there without losing the project's approved purpose or the developer's ability to explain and defend every major decision.
-
-**Begin now with Phase 0: inspect, verify, explain, and plan. Do not edit files yet.**
+For the capstone demonstration, prioritize complete and reliable connected workflows over superficial screens. Preserve the project's approved purpose, synthetic-data boundary, and the developer's ability to explain and defend major decisions. Report the exact functionality verified and the remaining work; do not imply that one finished task completes the whole target system.

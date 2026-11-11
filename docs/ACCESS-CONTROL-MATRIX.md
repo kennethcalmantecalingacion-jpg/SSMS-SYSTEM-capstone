@@ -2,25 +2,28 @@
 
 ## Status and source basis
 
-This is a proposal for review, not a policy approved for a specific deployment or an authorization
-to access real learner data. The prototype now offers fictional demo account
-selection and client-side navigation restrictions. These are not real
-authentication or enforced permissions: assignment-level enforcement,
-backend authorization, and RLS do not exist. The roles below are provisional,
-and every conditional or pending entry requires deployment institution approval and a trusted
-implementation before it can grant access. No entry is marked as currently
-allowed.
+This is a proposal for review, not a policy approved for a specific deployment
+or an authorization to access real learner data. Supabase Auth password
+sign-in and recovery are implemented in source but no project is configured.
+The prototype has no workspace database, PostgreSQL grants, RLS, or backend
+authorization. Demo account selection and client-side navigation remain
+simulation. Every conditional or pending entry requires deployment review and
+trusted implementation before it can grant access. No matrix entry is
+currently an approved operational permission.
 
 The demo System Administrator's client-side navigation is limited to a
 data-free System Administration status page. This navigation preset does not
 approve or grant any entity permission in this proposal.
 
-The blueprint distinguishes a proposed **School Administrator** role for
-school structure and staff-assignment management from the **Designated System
-Administrator** for technical/account administration. School Administrator
-is not an active role in this matrix and has no grants here. The Designated
-System Administrator must not inherit school-structure or learner-record
-permissions from that proposed role.
+The approved target distinguishes account, platform, and workspace scopes.
+Authentication does not create membership. Workspace membership and
+role/assignment are separate, scoped grants. `Platform Operator` is a
+platform-level role and does not imply membership or routine access to learner
+records. A `Workspace Owner` and authorized `Workspace Administrator` may
+manage their own workspace only within approved boundaries; neither receives
+platform authority. The legacy `Designated System Administrator` concept is
+technical/provider administration, not a workspace role and not a grant to
+learner or guidance data.
 
 This update reconciles the conceptual entities in
 [DATA-MODEL-ERD.md](./DATA-MODEL-ERD.md) with their fields and unresolved
@@ -74,6 +77,20 @@ server-side enforcement are in place.
 
 ## Provisional roles and scope
 
+- **Platform Operator:** manage platform registration invitations,
+  workspace-creation grants, and platform configuration only. Bootstrap this
+  privilege out of band. Do not grant routine workspace learner-record access.
+- **Workspace Owner:** manage membership, configuration, roles, assignments,
+  and approved operations within the owned workspace. Ownership does not
+  grant platform authority or unrestricted confidential guidance access.
+- **Workspace Administrator:** manage ordinary membership, roles,
+  assignments, and approved structure only within the assigned workspace and
+  only within delegated authority. Cannot self-promote to Owner or Platform
+  Operator.
+- **Workspace membership:** pending join requests grant no access. Users can
+  belong to multiple workspaces with different roles; the workspace context
+  must be enforced by PostgreSQL constraints, grants, and RLS.
+
 - **Teacher:** any conditional class access is limited to currently approved
   teaching assignments and their subject offerings/classes. The role alone
   grants no roster, section, or case scope.
@@ -88,16 +105,16 @@ server-side enforcement are in place.
   learner relationship, and limited to information and communications
   explicitly approved for that relationship. The ERD does not yet include a
   guardian-link entity.
-- **Designated System Administrator:** technical/account administration does
-  not grant routine learner, academic, attendance, warning, support-note, or
-  guidance-content access. This role is not the proposed School Administrator
-  role. School-structure and staff-assignment administration remain pending
-  approval of a separate role. An administrator must not grant or elevate
-  their own privileges.
-- **School Administrator:** a separate proposed school-management role from
-  the master blueprint, not included as an active or granted role in this
-  matrix. Its approval, account provisioning, and precise authority remain
-  pending deployment review.
+- **Designated System Administrator:** legacy technical/account
+  administration concept; it does not grant routine learner, academic,
+  attendance, warning, support-note, or guidance-content access. Do not
+  conflate it with Platform Operator, Workspace Owner, or Workspace
+  Administrator.
+- **Matrix coverage:** the entity table below is the older monitoring-role
+  proposal and does not yet enumerate the full Workspace Owner and Workspace
+  Administrator management actions. Do not infer an unlisted grant; define
+  each workspace management action explicitly and test it with RLS before
+  enabling it.
 
 A user may have multiple roles and multiple assignment records. Evaluate each
 role, assignment, entity, action, and record scope independently. Do not use
@@ -116,8 +133,8 @@ permissions have been approved.
 | ERD entity | Scope / boundary | Teacher | Adviser | Guidance Counselor | Parent/Guardian | Designated System Administrator |
 |---|---|---:|---:|---:|---:|---:|
 | `LEARNER` | Assigned class; assigned advisory; assigned referral; verified linked learner; no routine admin access | V | B | V | PARENT | DENY |
-| `GRADE_LEVEL` | Minimum structure context needed for an approved task; management authority requires a separately approved School Administrator role | V | V | V | PENDING | PENDING |
-| `SECTION` | Assigned class/advisory or case context; management authority requires a separately approved School Administrator role | V | V | V | DENY | PENDING |
+| `GRADE_LEVEL` | Minimum structure context needed for an approved task; Owner/Administrator management actions require explicit workspace-scoped grants and RLS | V | V | V | PENDING | PENDING |
+| `SECTION` | Assigned class/advisory or case context; Owner/Administrator management actions require explicit workspace-scoped grants and RLS | V | V | V | DENY | PENDING |
 | `SCHOOL_YEAR` | Minimum structure context; use and management remain conditional on approval | V | V | V | PENDING | PENDING |
 | `ENROLLMENT` | Applicable learner and historical section context only | V | V | V | PARENT | DENY |
 | `USER_PROFILE` | Own minimum account details; admin technical identity references only | I | I | I | I | M |
@@ -173,7 +190,7 @@ status legend and assignment restrictions as the entity matrix.
 | Existing module | Principal entities | Principal actions and provisional boundary |
 |---|---|---|
 | **Overview** | Derived from `LEARNER`, `ENROLLMENT`, attendance, assessment, warning, and support entities | Read scoped summaries only. Totals and charts must be computed from records the user may read; no extra access through dashboard aggregation. Parent summaries, if approved, are limited to linked learners. |
-| **Students** | `LEARNER`, `ENROLLMENT`, `SECTION`, `GRADE_LEVEL`, `SCHOOL_YEAR` | View class roster, advisory roster, assigned referral context, or verified linked learner only as approved. Profile updates are limited to the adviser `B` proposal. School structure management is reserved for a separately approved School Administrator role; Designated System Administrator receives no automatic grant. |
+| **Students** | `LEARNER`, `ENROLLMENT`, `SECTION`, `GRADE_LEVEL`, `SCHOOL_YEAR` | View class roster, advisory roster, assigned referral context, or verified linked learner only as approved. Profile updates are limited to the adviser `B` proposal. Workspace Owner/Administrator structure management requires explicit workspace-scoped grants and RLS; technical platform roles receive no automatic grant. |
 | **Attendance** | `ATTENDANCE_SESSION`, `ATTENDANCE_ENTRY`, `ATTENDANCE_CHANGE`, `ENROLLMENT` | Candidate recording scope is an approved assigned Teacher offering and, if the deployment institution confirms, an assigned Adviser section. Corrections require attributable history. Guidance, Parent/Guardian, and Designated System Administrator have no general table access; any approved referral/guardian summary must be separately scoped and authorized. |
 | **Academics** | `SUBJECT`, `SUBJECT_OFFERING`, `ASSESSMENT`, `ASSESSMENT_SCORE`, `ASSESSMENT_SCORE_CHANGE`, `ENROLLMENT` | Teachers manage approved assessments and scores only for assigned offerings. Advisers, guidance staff, and parents receive only approved summaries within scope. Score corrections require history; official grading rules remain unconfirmed. |
 | **Early Warnings** | `WARNING_RECORD`, `WARNING_REVIEW_EVENT`, and source records where approved | Read/review only within assigned class, advisory, or referral scope. Review events are attributable and append-only. No parent internal alert queue, unapproved threshold administration, or administrator content access. |
@@ -218,7 +235,7 @@ documented deployment institution approval and server-side implementation.
 | Guidance Counselor requests general session, entry, or correction-table access | Deny; any minimum referral context requires a separate approved data path and policy |
 | Disabled Parent/Guardian requests attendance data | Deny |
 | Designated System Administrator requests attendance records or corrections | Deny |
-| Proposed School Administrator role or grant before explicit approval | Deny; role remains unprovisioned |
+| Workspace Owner/Administrator attempts an action outside their workspace or delegated scope | Deny |
 | Any actor submits an enrollment from another section, an enrollment outside its effective dates, or an unknown session | Reject atomically; create no partial batch |
 | Duplicate entry for the same session/enrollment, including concurrent submissions | Reject or idempotently avoid duplicate according to the reviewed transaction design |
 | User attempts to grant themselves a role or assignment | Deny |
@@ -231,11 +248,12 @@ assignment effective dates are approved and revoked.
 ## Decisions requiring deployment institution approval
 
 - Which staff positions map to Teacher, Adviser, Guidance Counselor, and
-  Designated System Administrator; who approves accounts, role changes, and
-  each assignment; whether one user may hold multiple roles.
-- Whether a separate School Administrator role is approved for school
-  structure and staff-assignment management, and how that authority is kept
-  separate from Designated System Administrator technical/account functions.
+  workspace-specific roles; who approves accounts, role changes, and each
+  assignment; whether one user may hold multiple roles.
+- Which workspace structure and staff-assignment actions Workspace Owners may
+  perform and which actions may be delegated to Workspace Administrators.
+- Workspace invitation and join-request workflow, private discovery settings,
+  membership revocation, and owner-transfer safeguards.
 - Exact per-entity read, create, update, correction, and export permissions,
   assignment lifecycle, correction workflow, audit detail, retention, and
   archival behavior.
@@ -259,6 +277,7 @@ assignment effective dates are approved and revoked.
 - What operational audit fields administrators may read, and how to prevent
   audit views from disclosing restricted record content.
 
-Do not implement authentication, authorization, RLS, database policies, or
-real-data access from this proposal alone. It does not assert deployment approval or
-legal compliance.
+This proposal does not assert deployment approval or legal compliance.
+Authentication exists only as a configurable Supabase client integration;
+authorization, database policies/RLS, and real-data access remain
+unimplemented until their grants and policies are reviewed and tested.
