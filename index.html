@@ -20,7 +20,7 @@
         </a>
         <p class="login-eyebrow">PRODUCTION ACCESS</p>
         <h1 id="login-title">Sign in to your workspace</h1>
-        <p class="login-intro">This production sign-in is not configured yet. A real backend and authorization flow are still pending deployment configuration.</p>
+        <p class="login-intro" id="production-login-intro">Production sign-in requires Supabase configuration. Workspace authorization and student-record access are not available yet.</p>
 
         <form id="main-login-form" class="production-login-form" novalidate>
           <div class="auth-field-row">
@@ -48,6 +48,28 @@
         <p class="login-message" id="login-message" role="status" aria-live="polite">
           Production sign-in and registration remain unconfigured. Use the Demo Mode sandbox to test local workflow behavior and synthetic data.
         </p>
+      </section>
+    </main>
+
+    <main class="login-view production-session-view" id="production-session-view" hidden aria-labelledby="production-session-title">
+      <section class="login-card">
+        <a class="login-brand" href="#" aria-label="Student Monitoring System">
+          <span class="brand-mark" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
+          <span class="brand-copy"><strong>Student Monitoring</strong><small>SYSTEM</small></span>
+        </a>
+        <p class="login-eyebrow">AUTHENTICATED ACCOUNT</p>
+        <h1 id="production-session-title">Account signed in</h1>
+        <p class="login-intro">Authentication is connected, but workspace membership and data access are not configured. No demo or browser-local student records are shown for this account.</p>
+        <p class="portal-account-state" id="production-account-email"></p>
+        <form id="production-reset-password-form" class="demo-portal-form" hidden>
+          <label class="auth-field">
+            <span>New password</span>
+            <input name="password" type="password" autocomplete="new-password" required>
+          </label>
+          <button class="button button-primary auth-submit" type="submit">Update password</button>
+        </form>
+        <p class="login-message" id="production-session-message" role="status" aria-live="polite"></p>
+        <button class="button button-secondary" id="production-sign-out-button" type="button">Sign out</button>
       </section>
     </main>
 

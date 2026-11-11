@@ -76,17 +76,22 @@ approved or deployed school system.
 - Demo account selection and client-side navigation presets are available.
   Settings shows a data-free System Administration status page; account
   administration and school configuration are not operational.
+- The production login can use Supabase Auth password sign-in and password
+  recovery when `VITE_SUPABASE_URL` and a Supabase publishable key are configured.
+  Authenticated accounts are kept out of the browser-local demo data until a
+  workspace membership backend exists. Registration, workspace access, and
+  student-record authorization are not implemented by this connection alone.
 - Local demo registration and workspace access are available in-browser: users can
   sign in with seeded workspace accounts or create an account using a registration
   invitation code, then create a workspace when a valid grant is supplied.
   Workspace switching remains a browser-local prototype only; it does not
   connect to a live Supabase backend or enforce real authorization.
-- The demo navigation presets are provisional and not approved for deployment. There
-  is no real authentication, assignment-level enforcement, backend
-  authorization, RLS, external messaging, or central database. Client-side
-  navigation restrictions do not protect records from direct browser/API
-  access. Attendance, academic, and support data are persisted only in this
-  browser.
+- The demo navigation presets are provisional and not approved for deployment.
+  Supabase Auth can authenticate accounts when configured, but assignment-level
+  enforcement, workspace authorization, RLS, external messaging, and a shared
+  student-record database are not configured. Client-side navigation restrictions
+  do not protect records from direct browser/API access. Attendance, academic,
+  and support demo data remain in this browser.
 - A provisional role-permission proposal for teachers, advisers, guidance
   counselors, parents, and system administration is documented in
   `docs/ACCESS-CONTROL-MATRIX.md`. It is not approved for deployment or enforced as
@@ -102,15 +107,20 @@ approved or deployed school system.
 The application is the **Student Monitoring System**. It is not branded for,
 owned by, or approved by a particular institution.
 
-## Development approach
+## System implementation direction
 
-Build and verify one small increment at a time. Review official sources before
-translating policy into requirements. Review the data model and access design
-before adding database migrations or connecting a real backend.
+The target is a complete connected system, not isolated mock screens. Core
+identity, workspace boundaries, record workflows, and integrations must work
+together before the system is represented as operational. Continue validating
+the connected flows as they are built, and keep deployment-specific policy
+decisions provisional until reviewed against official sources and by authorized
+representatives.
 
 Run `npm run dev` to preview the frontend, `npm run build` to create a
-production bundle, or `npm run preview` to serve that bundle. No backend is
-configured.
+production bundle, or `npm run preview` to serve that bundle. The Supabase Auth
+client integration is present, but no project credentials or database backend
+are configured in this checkout. See `.env.example` for the public client
+configuration names; never put a service-role key in frontend configuration.
 
 ## Project records
 

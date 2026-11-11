@@ -12,6 +12,14 @@
   switchWorkspace,
 } from "../core/auth/demo-auth.js";
 import { canAccessView, getAllowedViews, getRoleLabel } from "../core/access/role-access.js";
+import {
+  getProductionAuthClient,
+  getProductionAuthConfigurationError,
+  isProductionAuthConfigured,
+} from "../core/auth/production-auth.js";
+
+let activeProductionUser = null;
+let passwordRecoveryActive = false;
 
 function setLoginMessage(message) {
   const loginMessage = document.querySelector("#login-message");
@@ -22,6 +30,7 @@ function setLoginMessage(message) {
 
 function showMainLogin(message) {
   const loginView = document.querySelector("#login-view");
+  const productionSessionView = document.querySelector("#production-session-view");
   const demoPortal = document.querySelector("#demo-portal-view");
   const appShell = document.querySelector("#app-shell");
 
@@ -30,6 +39,9 @@ function showMainLogin(message) {
   }
   if (demoPortal) {
     demoPortal.hidden = true;
+  }
+  if (productionSessionView) {
+    productionSessionView.hidden = true;
   }
   if (appShell) {
     appShell.hidden = true;
@@ -41,6 +53,7 @@ function showMainLogin(message) {
 
 function showDemoPortal() {
   const loginView = document.querySelector("#login-view");
+  const productionSessionView = document.querySelector("#production-session-view");
   const demoPortal = document.querySelector("#demo-portal-view");
   const appShell = document.querySelector("#app-shell");
 
@@ -49,6 +62,9 @@ function showDemoPortal() {
   }
   if (demoPortal) {
     demoPortal.hidden = false;
+  }
+  if (productionSessionView) {
+    productionSessionView.hidden = true;
   }
   if (appShell) {
     appShell.hidden = true;
@@ -163,6 +179,7 @@ function renderWorkspaceSwitcher(session) {
 
 function renderSession(session) {
   const loginView = document.querySelector("#login-view");
+  const productionSessionView = document.querySelector("#production-session-view");
   const demoPortal = document.querySelector("#demo-portal-view");
   const appShell = document.querySelector("#app-shell");
   const workspaceNameStrong = document.querySelector(".workspace-name strong");
@@ -174,6 +191,9 @@ function renderSession(session) {
     }
     if (demoPortal) {
       demoPortal.hidden = true;
+    }
+    if (productionSessionView) {
+      productionSessionView.hidden = true;
     }
     if (appShell) {
       appShell.hidden = true;
@@ -198,6 +218,9 @@ function renderSession(session) {
 
   if (demoPortal) {
     demoPortal.hidden = true;
+  }
+  if (productionSessionView) {
+    productionSessionView.hidden = true;
   }
   if (loginView) {
     loginView.hidden = true;
@@ -416,30 +439,196 @@ function bindDemoPortal() {
   }
 }
 
-export function initializeAuthShell() {
-  renderAccounts();
-  bindDemoPortal();
-  renderPortalOnboarding(getCurrentSession());
-  renderSession(getCurrentSession());
+function setFormBusy(form, busy, busyLabel) {
+  const button = form.querySelector('button[type="submit"]');
+  if (!button) {
+    return;
+  }
+  if (busy) {
+    button.dataset.idleLabel = button.textContent;
+    button.textContent = busyLabel;
+  } else {
+    button.textContent = button.dataset.idleLabel || button.textContent;
+    delete button.dataset.idleLabel;
+  }
+  button.disabled = busy;
+  form.setAttribute("aria-busy", String(busy));
+}
 
-  const mainLoginForm = document.querySelector("#main-login-form");
-  if (mainLoginForm) {
-    mainLoginForm.addEventListener("submit", (event) => {
+function renderProductionSession(user, message = "", passwordRecovery = false) {
+  activeProductionUser = user || null;
+  passwordRecoveryActive = passwordRecovery;
+  const loginView = document.querySelector("#login-view");
+  const productionSessionView = document.querySelector("#production-session-view");
+  const demoPortal = document.querySelector("#demo-portal-view");
+  const appShell = document.querySelector("#app-shell");
+  const title = document.querySelector("#production-session-title");
+  const email = document.querySelector("#production-account-email");
+  const status = document.querySelector("#production-session-message");
+  const resetForm = document.querySelector("#production-reset-password-form");
+
+  if (loginView) loginView.hidden = true;
+  if (demoPortal) demoPortal.hidden = true;
+  if (appShell) appShell.hidden = true;
+  if (productionSessionView) productionSessionView.hidden = false;
+  if (title) title.textContent = passwordRecovery ? "Set a new password" : "Account signed in";
+  if (email) email.textContent = user?.email || "";
+  if (status) status.textContent = message;
+  if (resetForm) resetForm.hidden = !passwordRecovery;
+  document.title = `${passwordRecovery ? "Set password" : "Account"} · Student Monitoring System`;
+}
+
+function bindProductionAuth(client) {
+  const loginForm = document.querySelector("#main-login-form");
+  if (loginForm) {
+    loginForm.addEventListener("submit", async (event) => {
       event.preventDefault();
-      const formData = new FormData(event.currentTarget);
+      const formData = new FormData(loginForm);
       const email = String(formData.get("email") || "").trim();
-      const password = String(formData.get("password") || "").trim();
+      const password = String(formData.get("password") || "");
+      if (!email || !password) {
+        setLoginMessage("Enter your email and password.");
+        return;
+      }
 
       const demoMatch = getDemoAccounts().find((account) => account.available && (
         account.email.toLowerCase() === email.toLowerCase() || account.username.toLowerCase() === email.toLowerCase()
       ));
-      if (demoMatch && demoMatch.passwordHash === (awaitHashValue(password))) {
+      if (demoMatch && demoMatch.passwordHash === awaitHashValue(password)) {
         setLoginMessage("Demo accounts are reserved for the separate Demo Portal. Use the Enter Demo Mode button to continue.");
         return;
       }
 
-      setLoginMessage("Production sign-in is not configured yet. This prototype is demo-only and uses local browser storage instead of a live auth backend.");
+      if (!client) {
+        const configurationError = getProductionAuthConfigurationError();
+        setLoginMessage(configurationError
+          ? `Production authentication configuration error: ${configurationError}`
+          : "Production sign-in is unavailable because Supabase is not configured. Configure the public project URL and publishable key to enable authentication.");
+        return;
+      }
+
+      setFormBusy(loginForm, true, "Signing in…");
+      try {
+        const { data, error } = await client.auth.signInWithPassword({ email, password });
+        if (error) {
+          setLoginMessage(`Unable to sign in: ${error.message}`);
+          return;
+        }
+        if (!data.session) {
+          setLoginMessage("Sign-in was received, but no active session was returned. Check the email confirmation settings for this deployment.");
+        }
+      } catch (error) {
+        setLoginMessage(`Sign-in failed: ${error instanceof Error ? error.message : "Unexpected authentication error."}`);
+      } finally {
+        setFormBusy(loginForm, false, "Signing in…");
+      }
     });
+  }
+
+  const forgotPasswordButton = document.querySelector("#forgot-password-button");
+  if (forgotPasswordButton) {
+    forgotPasswordButton.addEventListener("click", async () => {
+      const email = String(document.querySelector("#main-login-email")?.value || "").trim();
+      if (!email) {
+        setLoginMessage("Enter your account email first, then choose Forgot password.");
+        document.querySelector("#main-login-email")?.focus();
+        return;
+      }
+      if (!client) {
+        const configurationError = getProductionAuthConfigurationError();
+        setLoginMessage(configurationError
+          ? `Password recovery is unavailable: ${configurationError}`
+          : "Password recovery is unavailable because Supabase is not configured.");
+        return;
+      }
+
+      forgotPasswordButton.disabled = true;
+      try {
+        const { error } = await client.auth.resetPasswordForEmail(email, {
+          redirectTo: window.location.origin + window.location.pathname,
+        });
+        if (error) {
+          setLoginMessage(`Password recovery could not be started: ${error.message}`);
+          return;
+        }
+        setLoginMessage("If an account exists for that email, a password recovery link will be sent. Complete the update from the link in this browser.");
+      } catch (error) {
+        setLoginMessage(`Password recovery failed: ${error instanceof Error ? error.message : "Unexpected authentication error."}`);
+      } finally {
+        forgotPasswordButton.disabled = false;
+      }
+    });
+  }
+
+  const createAccountButton = document.querySelector("#create-account-button");
+  if (createAccountButton) {
+    createAccountButton.addEventListener("click", () => {
+      setLoginMessage("Production registration is not enabled. It requires a trusted invitation-validation backend; demo registration is available only in the separate Demo Portal.");
+    });
+  }
+
+  const resetForm = document.querySelector("#production-reset-password-form");
+  if (resetForm) {
+    resetForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const password = String(new FormData(resetForm).get("password") || "");
+      if (!password) {
+        setLoginMessage("Enter a new password.");
+        return;
+      }
+      setFormBusy(resetForm, true, "Updating…");
+      try {
+        const { error } = await client.auth.updateUser({ password });
+        if (error) {
+          renderProductionSession(activeProductionUser, `Password update failed: ${error.message}`, true);
+          return;
+        }
+        resetForm.reset();
+        renderProductionSession(activeProductionUser, "Your password was updated.", false);
+      } catch (error) {
+        renderProductionSession(activeProductionUser, `Password update failed: ${error instanceof Error ? error.message : "Unexpected authentication error."}`, true);
+      } finally {
+        setFormBusy(resetForm, false, "Updating…");
+      }
+    });
+  }
+
+  const signOutButton = document.querySelector("#production-sign-out-button");
+  if (signOutButton) {
+    signOutButton.addEventListener("click", async () => {
+      signOutButton.disabled = true;
+      try {
+        const { error } = await client.auth.signOut();
+        if (error) {
+          const user = (await client.auth.getUser()).data.user;
+          renderProductionSession(user, `Sign-out failed: ${error.message}`);
+          return;
+        }
+        showMainLogin("You have signed out of the authenticated account.");
+      } catch (error) {
+        renderProductionSession(activeProductionUser, `Sign-out failed: ${error instanceof Error ? error.message : "Unexpected authentication error."}`);
+      } finally {
+        signOutButton.disabled = false;
+      }
+    });
+  }
+}
+
+export async function initializeAuthShell() {
+  renderAccounts();
+  bindDemoPortal();
+  renderSession(null);
+  const client = getProductionAuthClient();
+  bindProductionAuth(client);
+
+  const loginIntro = document.querySelector("#production-login-intro");
+  if (loginIntro) {
+    const configurationError = getProductionAuthConfigurationError();
+    loginIntro.textContent = configurationError
+      ? `Production authentication is unavailable: ${configurationError}`
+      : isProductionAuthConfigured()
+      ? "Sign in with your account. Workspace membership and student-record access are not enabled until the backend authorization layer is configured."
+      : "Production sign-in requires Supabase configuration. Workspace authorization and student-record access are not available yet.";
   }
 
   const enterDemoModeButton = document.querySelector("#enter-demo-mode");
@@ -451,26 +640,40 @@ export function initializeAuthShell() {
     });
   }
 
-  const forgotPasswordButton = document.querySelector("#forgot-password-button");
-  if (forgotPasswordButton) {
-    forgotPasswordButton.addEventListener("click", () => {
-      setLoginMessage("Password reset is not configured. The application is still a browser-local prototype without operational authentication.");
-    });
-  }
-
-  const createAccountButton = document.querySelector("#create-account-button");
-  if (createAccountButton) {
-    createAccountButton.addEventListener("click", () => {
-      showDemoPortal();
-      setLoginMessage("Production account creation is not configured. Create a demo account from the Demo Portal to test the workflow.");
-    });
-  }
-
   const demoReturnLogin = document.querySelector("#demo-return-login");
   if (demoReturnLogin) {
     demoReturnLogin.addEventListener("click", () => {
       showMainLogin("Demo Mode is a sandbox only. Real authentication and authorization are not active.");
     });
+  }
+
+  if (!client) {
+    renderSession(getCurrentSession());
+    return;
+  }
+
+  client.auth.onAuthStateChange((event, session) => {
+    if (session) {
+      renderProductionSession(session.user, "", event === "PASSWORD_RECOVERY");
+    } else if (event === "SIGNED_OUT") {
+      activeProductionUser = null;
+      showMainLogin("You have signed out of the authenticated account.");
+    }
+  });
+
+  try {
+    const { data, error } = await client.auth.getSession();
+    if (error) {
+      showMainLogin(`Unable to restore the authentication session: ${error.message}`);
+      return;
+    }
+    if (data.session) {
+      renderProductionSession(data.session.user, "", passwordRecoveryActive);
+    } else {
+      renderSession(getCurrentSession());
+    }
+  } catch (error) {
+    showMainLogin(`Unable to initialize production authentication: ${error instanceof Error ? error.message : "Unexpected authentication error."}`);
   }
 }
 
